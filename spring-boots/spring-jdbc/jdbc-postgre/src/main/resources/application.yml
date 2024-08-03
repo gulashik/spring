@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: jdbc-postgre
+    # todo настройки datasource
+    # https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.datasource.dbcp2
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/testbd"
+    username: "postgres"
+    password: "postgres"
+    driver-class-name: "org.postgresql.Driver"
+
+  # https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.sql.init.continue-on-error
+  sql:
+    # todo скрипты
+    init:
+      mode: always # default = embedded
+      data-locations: data.sql
+      schema-locations: schema.sql
+      # username: # пользователь для наката
+      # password: # пароль для наката

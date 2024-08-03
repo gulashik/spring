@@ -1,0 +1,7 @@
+spring:
+    application:
+        name: annotation-example-condition
+
+conditions:
+    one-condition: true
+    two-condition: true

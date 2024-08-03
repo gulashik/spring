@@ -1,0 +1,10 @@
+# todo можно для удобства использовать
+logging:
+  level:
+    root: error
+
+# todo можно для удобства использовать
+spring:
+  main:
+    allow-circular-references: true
+    banner-mode: off
