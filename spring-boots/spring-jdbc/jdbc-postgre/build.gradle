@@ -1,0 +1,53 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.3'
+	id 'io.spring.dependency-management' version '1.1.6'
+	id("org.flywaydb.flyway") version "9.22.3"
+	//id "io.freefair.lombok" version "8.1.0" // можно вместо остальных lombok анотаций использовать
+}
+
+group = 'com.sprboot.testcontext'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+	// todo flyway
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-database-postgresql'
+
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// todo lombok
+	implementation 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// flywayMigrate Task. Настройки аналогичны как в application.properties
+flyway {
+	url = "jdbc:postgresql://localhost:5432/testbd"
+	user = "postgres"
+	password = "postgres"
+	baselineOnMigrate = true
+	locations = ["filesystem:db/migration/dev/postgresql"]
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

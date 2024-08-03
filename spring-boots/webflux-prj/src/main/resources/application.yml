@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: webflux-prj
+#  todo реактивный source
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/testbd
+    username: postgres
+    password: postgres
+
+logging:
+  level:
+    org.springframework.jdbc.core.JdbcTemplate: TRACE

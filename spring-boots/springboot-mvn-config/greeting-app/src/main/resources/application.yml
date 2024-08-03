@@ -1,0 +1,14 @@
+# todo опции для интернационализации
+spring:
+  messages:
+    # todo файлы начинаются с basename
+    basename: messages
+    encoding: UTF-8
+    # todo Не дает свалиться в системную локаль если не найден файл для переданной в MessageSource
+    # todo Если false то будут браться сообщения из дефолтного файла, если true, то из файла соответствующего системной локали
+    fallbackToSystemLocale: false
+
+gulash:
+  custom:
+    io-enabled: true # not used
+    locale: ru-RU # not used

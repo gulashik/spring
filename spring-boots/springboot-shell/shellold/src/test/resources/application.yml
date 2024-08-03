@@ -1,0 +1,7 @@
+spring:
+  # отключаем для тестов запуск зацикливания
+  shell:
+    interactive:
+      enabled: false # true default - как обычно запуск
+  main:
+    allow-circular-references: true

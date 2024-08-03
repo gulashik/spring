@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb # todo url при запуске H2
+  jpa:
+    generate-ddl: false # todo true - создание схемы при запуске
+    hibernate:
+      ddl-auto: validate # todo если не embeded БД вроде как логично validate
+        # none - Disable DDL handling.
+        # validate - Validate the schema, make no changes to the database.
+        # update - Update the schema if necessary.
+        # create - Create the schema and destroy previous data.
+        # create-drop - Create and then destroy the schema at the end of the session
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true # todo смотрим в логах весь sql, который генерится в Hibernate
+  sql:
+    init:
+      mode:  always # todo если generate-ddl=true, то можно указать тут never - отключить выполнение schema.sql и data.sql для избежания конфликтов
+
+logging:
+  level:
+    ROOT: info # error

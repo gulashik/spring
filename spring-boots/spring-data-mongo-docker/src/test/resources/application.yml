@@ -1,0 +1,25 @@
+spring:
+  data:
+    mongodb:
+      database: test_database  # Имя базы данных для тестов
+      mongo-db:
+        write-concern:
+          journal: false
+
+# todo flapdoodle(встроенная Mongo) properties
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.0.2
+
+# todo mongock section
+mongock:
+  runner-type: "ApplicationRunner" # default
+  #runner-type: "InitializingBean" # todo включаем при использовании spring-shell
+  change-logs-scan-package:
+    - ru.gulas.spring.mongock.changelog # todo где классы наката лежат
+  mongo-db:
+    write-concern:
+      journal: false # todo нужно для тестов
+    read-concern: local

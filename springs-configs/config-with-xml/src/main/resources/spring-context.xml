@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd">
+    <!--todo XML конфиг файл-->
+    <bean id="appProperties" class="org.gulash.configxml.implemetation.TestFileProviderImpl">
+        <constructor-arg name="testFileName"  value="questions.csv"/>
+        <constructor-arg name="questionTag"  value=";"/>
+        <constructor-arg name="answerTag" value="\|"/>
+        <constructor-arg name="answerSplitter" value="%"/>
+        <constructor-arg name="skipLines" value="1"/>
+    </bean>
+
+    <bean id="ioService" class="org.gulash.service.implementation.IOServiceStreams">
+    </bean>
+
+    <bean id="lineMapper" class="org.gulash.mapper.LineMapper"/>
+
+    <bean id="questionDao" class="org.gulash.dao.implementation.CsvQuestionDao">
+        <constructor-arg name="provider" ref="appProperties"/>
+        <constructor-arg name="lineToQuestionMapper" ref="lineMapper"/>
+    </bean>
+
+    <bean id="testServiceImpl" class="org.gulash.service.implementation.TestServiceImpl">
+        <constructor-arg name="ioService" ref="ioService"/>
+        <constructor-arg name="questionDao" ref="questionDao"/>
+    </bean>
+
+    <bean id="testRunnerServiceImpl" class="org.gulash.service.implementation.TestRunnerServiceImpl">
+        <constructor-arg ref="testServiceImpl"/>
+    </bean>
+
+</beans>

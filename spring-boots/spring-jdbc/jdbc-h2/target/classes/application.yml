@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    # todo url
+    url: jdbc:h2:mem:testdb # todo бд в памяти
+    #url: jdbc:h2:file:./src/main/resources # todo бд в файле
+  sql:
+    # todo скрипты
+    init:
+      mode: always
+      data-locations: data.sql
+      schema-locations: schema.sql
+  # todo опции https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data.spring.h2.console.enabled
+  h2:
+    console:
+      path: /h2-console
+      settings:
+        web-allow-others: true

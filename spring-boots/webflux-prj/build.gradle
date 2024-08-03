@@ -1,0 +1,71 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+
+    id 'org.flywaydb.flyway' version '9.22.3'
+    id 'io.freefair.lombok' version '8.11'
+}
+
+group = 'com.gulash.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // todo webflux
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // todo r2dbc возможно не нужны - проверить
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+
+    implementation 'org.jetbrains:annotations:26.0.1'
+    implementation 'org.apache.commons:commons-lang3'
+
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+
+    // todo r2dbc возможно не нужны - проверить
+    runtimeOnly 'org.postgresql:postgresql'
+    runtimeOnly 'org.postgresql:r2dbc-postgresql'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:postgresql'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // todo reactor
+    testImplementation 'io.projectreactor:reactor-test'
+}
+
+flyway {
+    url = "jdbc:postgresql://localhost:5432/testbd"
+    user = "postgres"
+    password = "postgres"
+    baselineOnMigrate = true
+    locations = ["classpath:db/migration"]
+
+}
+// todo накатываем при запуске
+tasks.named('compileJava') {
+    dependsOn 'flywayMigrate'
+}
+tasks.named('test') {
+    useJUnitPlatform()
+}

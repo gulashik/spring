@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+  h2:
+    console:
+      enabled: true # todo нужно включить h2 консоль + web и jpa starter-ы, чтобы ходить в браузер
+  # https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.data-migration
+  flyway:
+    enabled: true # default true

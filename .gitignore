@@ -1,0 +1,5 @@
+*/.idea
+.idea
+*/*.iml
+*/misc.xml
+*/*.zip

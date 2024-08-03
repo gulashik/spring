@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: jdbc-postgre
+  # https://docs.spring.io/spring-boot/appendix/application-properties/index.html#application-properties.data-migration.spring.sql.init.continue-on-error
+  sql:
+    # todo скрипты
+    init:
+       mode: always # default = embedded
+       data-locations: data.sql
+       schema-locations: schema.sql
+      # username: # пользователь для наката
+      # password: # пароль для наката
+
+# todo настройки datasource
+additional-datasource:
+    db-primary:
+      url: "jdbc:postgresql://localhost:5432/primary_db"
+      username: "postgres"
+      password: "postgres"
+      driver-class-name: "org.postgresql.Driver"
+      # flyway-location: не актуально для primary возьмём из build.gradle
+    db-secondary:
+      url: "jdbc:postgresql://localhost:5433/secondary_db"
+      username: "postgres"
+      password: "postgres"
+      driver-class-name: "org.postgresql.Driver"
+      flyway-location: "filesystem:db/migration/dev/postgresql"

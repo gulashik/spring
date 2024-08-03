@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<!-- todo указываем <parent> spring-boot-starter-parent где хранятся
+			общие настройки pluginManagement, dependencyManagement
+	-->
+<!-- todo Нужно указать spring-boot-starter-parent тут или родительском pom.xml -->
+	<!--<parent>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-parent</artifactId>
+            <version>3.3.2</version>
+            &lt;!&ndash;todo lookup parent from repository &ndash;&gt;
+            <relativePath/>
+        </parent> -->
+	<parent>
+		<groupId>ru.gulash</groupId>
+		<artifactId>spring-boot-intro</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<artifactId>greeting-app</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>greeting-app</name>
+
+	<properties>
+		<java.version>17</java.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+	</properties>
+
+	<!-- todo зависимости и стартеры-->
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<!-- todo версия будет браться из spring-boot-starter-parent-->
+		</dependency>
+
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<!-- todo plugin spring-boot-maven-plugin - собирает jar-ник-->
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

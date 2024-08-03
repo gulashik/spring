@@ -1,0 +1,16 @@
+###
+GET http://localhost:8080/demo/mono/just
+Accept: */*
+Content-Type: application/json
+Cache-Control: no-cache
+
+###
+# curl 'http://localhost:8080/demo/flux/range' --header 'Accept: */*' --header 'Content-Type: application/json' --header 'Cache-Control: no-cache'
+GET http://localhost:8080/demo/flux/generate
+Accept: */*
+Cache-Control: no-cache
+Content-Type: application/json
+
+###
+
+
