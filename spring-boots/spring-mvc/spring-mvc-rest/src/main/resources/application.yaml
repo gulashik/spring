@@ -1,0 +1,47 @@
+server:
+  # Изменили порт
+  port: 7070
+  # Изменили context-path
+  servlet.context-path: /layerapp
+  # Добавили в ответ message
+  error.include-message: always
+
+# выставляем дополнительные endpoint-ы
+management:
+  endpoints:
+    web.exposure.include: '*'
+    shutdown.enabled: true
+    # если есть авторизация - доступ к endpoint-ми только после авторизации
+    health.show-details: when_authorized
+
+# Добавление пользователя для Spring Security
+spring:
+  security:
+    user:
+      name: my_user_name
+      password: 123
+
+# Setup for the H2 console for viewing data in the database
+  h2:
+    console:
+      enabled: true
+      path: /h2
+
+# H2 data source setup
+  datasource:
+    url: jdbc:h2:file:./src/main/resources
+    username: sa
+    password:
+
+  # Automatically update tables when persistence objects have changed
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  # ?????? Date ? Time
+# yyyy-MM-dd  iso
+  mvc:
+    format:
+      date: iso
+      time: iso

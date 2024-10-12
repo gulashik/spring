@@ -20,8 +20,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.stereotype.Component;
 
 @SpringBootApplication
 public class BeanLifecycleApplication {
@@ -191,5 +193,16 @@ class Person
         System.out.println("onApplicationEvent method from ApplicationListener; Context available; Event-" + event.getClass().getSimpleName() );
         // можем получить контекст
         ApplicationContext applicationContext = event.getApplicationContext();
+    }
+}
+
+
+@Component
+/*public*/ class MyContextRefreshedEventHandler {
+    // Начиная с Spring 4.2, вместо реализации ApplicationListener можно использовать аннотацию @EventListener для упрощения кода
+    @EventListener
+    public void handleContextRefreshed(ContextRefreshedEvent event) {
+        System.out.println("Контекст приложения обновлен или инициализирован (через @EventListener)!");
+        // логика здесь
     }
 }

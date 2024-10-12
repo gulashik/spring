@@ -1,0 +1,21 @@
+version: '3.1'
+services:
+  primary-db:
+    image: postgres:16.3
+    restart: always
+    environment:
+      POSTGRES_DB: primary_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  secondary-db:
+    image: postgres:16.3
+    restart: always
+    environment:
+      POSTGRES_DB: secondary_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
