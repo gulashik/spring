@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run.flux;
+package com.gulash.example.webfluxprj.manual_run.flux.init;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.Disposable;
@@ -18,8 +18,11 @@ public class RangeExample {
 
     private static void range() {
 
-        Disposable disposable = Flux.range(1, 5).delayElements(Duration.ofSeconds(1), Schedulers.boundedElastic())
-            .subscribe(System.out::println);
+        Disposable disposable =
+            // todo range - генерирует последовательность
+            Flux.range(1, 5)
+                .delayElements(Duration.ofSeconds(1), Schedulers.boundedElastic())
+                .subscribe(System.out::println);
 
         waitForDisposableEnd(List.of(disposable));
     }
@@ -29,7 +32,10 @@ public class RangeExample {
             // isDisposed
             //  true, если ресурс был освобожден (закрыт или отменен).
             //  false, если ресурс все еще активен.
-            disposable -> { while (!disposable.isDisposed()) {}}
+            disposable -> {
+                while (!disposable.isDisposed()) {
+                }
+            }
         );
     }
 }
