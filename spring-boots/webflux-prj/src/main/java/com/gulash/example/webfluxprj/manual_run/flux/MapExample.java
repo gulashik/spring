@@ -1,18 +1,11 @@
 package com.gulash.example.webfluxprj.manual_run.flux;
 
-import com.gulash.example.webfluxprj.model.Notes;
-import com.gulash.example.webfluxprj.model.PersonDto;
-import com.gulash.example.webfluxprj.repository.NotesRepo;
 import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 /*
             ПРОСТО ДЕМОНСТРАЦИЯ НЕ РАБОТАЕТ
 */
@@ -29,6 +22,13 @@ class UserController {
             .map(user -> new UserDTO(user.getId(), user.getName()))
             // todo FLATMAP - АСИНХРОННО; Обновляем или добавляем дополнительную информацию
             .flatMap(userDTO -> userService.enrichUser(userDTO));
+    }
+
+    private void otherFlatMapUsage() {
+        Flux.range(1, 5)
+            // todo FLATMAP - АСИНХРОННО; внутри можно использовать Mono
+            .flatMap(i -> Mono.just(i * 10)) // Умножение каждого числа на 10
+            .subscribe(System.out::println);
     }
 }
 
