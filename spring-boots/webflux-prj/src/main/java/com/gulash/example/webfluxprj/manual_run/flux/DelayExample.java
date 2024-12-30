@@ -10,12 +10,13 @@ import java.util.List;
 public class DelayExample {
     public static void main(String[] args) {
         // todo предварительно запуск spring-boots/webflux-prj/compose.md
-
         delay();
     }
 
     private static void delay() {
-        Disposable disposable = Flux.range(1, 5).delayElements(Duration.ofSeconds(1), Schedulers.boundedElastic())
+        Disposable disposable = Flux.range(1, 5)
+            .delayElements(Duration.ofSeconds(1)/*, Schedulers.parallel() - Вычислительные задачи (по умолчанию)*/)
+            .delayElements(Duration.ofSeconds(1), Schedulers.boundedElastic()/*Блокирующие или долгие задачи*/)
             .subscribe(System.out::println);
 
         waitForDisposableEnd(List.of(disposable));
