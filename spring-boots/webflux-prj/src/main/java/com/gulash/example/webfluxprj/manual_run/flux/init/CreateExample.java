@@ -46,7 +46,7 @@ public class CreateExample {
             //.take(2) // запрос на отмену
             .subscribe(
                 System.out::println,
-                Throwable::printStackTrace,
+                Throwable::printStackTrace, // при Exception
                 () -> System.out.println("Done")
             );
 
