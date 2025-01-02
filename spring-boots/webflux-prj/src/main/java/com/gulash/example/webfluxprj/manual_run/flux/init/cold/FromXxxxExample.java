@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run.flux.init;
+package com.gulash.example.webfluxprj.manual_run.flux.init.cold;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
