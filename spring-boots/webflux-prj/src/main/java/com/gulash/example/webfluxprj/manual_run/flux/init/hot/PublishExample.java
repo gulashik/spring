@@ -16,8 +16,79 @@ public class PublishExample {
 	        Эффективно для обработки событий реального времени (например, данные с сенсоров или уведомления).
         */
 
-        examplePublishAndConnect();
-        examplePublishAndAutoconnect();
+//        examplePublishAndConnect();
+//        examplePublishAndAutoconnect();
+//        examplePublishAndRefCount();
+        exampleShare();
+    }
+
+    private static void exampleShare() throws InterruptedException {
+        // todo .publish() - делает поток "горячим"(Преобразует поток из "холодного" (`Cold Publisher`) в "горячий" (`Hot Publisher`))
+        //			+ refCount(x) -  активирует поток при X подписчиков (в отличие от ``).
+        //              refCount(0) - немедленно активирует поток, даже если нет подписчиков и заканчивается при полной отписке
+        //              refCount(1) -  активирует поток при появлении одного подписчика и заканчивается при полной отписке
+
+        // todo refCount vs autoConnect отличия
+        //  .autoConnect(2) - эмиссия начинается при наличии двух подписчиков и НЕ заканчивается при полной отписке.
+        //  .refCount(2) - эмиссия начинается при наличии двух подписчиков и ЗАКАНЧИВАЕТСЯ при полной отписке
+        //  .share() - аналог publish().refCount() Эмиссия начинается при наличии ОДНОГО подписчика и и ЗАКАНЧИВАЕТСЯ при полной отписке.
+
+        Flux<Integer> refCountFlux = Flux.range(1, 15)
+            .delayElements(Duration.ofMillis(500), Schedulers.parallel())
+            .doOnCancel(() -> System.out.println("Flux canceled"))
+            .doFinally(signalType -> System.out.println("Flux finally by type-" + signalType))
+            .doOnNext(System.out::println)
+            .share() // аналог publish().refCount() Эмиссия начинается при наличии ОДНОГО подписчика и и ЗАКАНЧИВАЕТСЯ при полной отписке.
+            //.publish().autoConnect() Всё будет прододжаться при отписке
+            ;
+
+        Disposable sub1 = refCountFlux.subscribe(data -> System.out.println("Subscriber 1: " + data));
+
+        Thread.sleep(1000);
+
+        Disposable sub2 = refCountFlux.subscribe(data -> System.out.println("Subscriber 2: " + data));
+
+        Thread.sleep(2000);
+
+        // Завершение подписки. При refCount публишер будет остановлен.
+        sub1.dispose();
+        sub2.dispose();
+
+        Thread.sleep(5000);
+    }
+
+    private static void examplePublishAndRefCount() throws InterruptedException {
+        // todo .publish() - делает поток "горячим"(Преобразует поток из "холодного" (`Cold Publisher`) в "горячий" (`Hot Publisher`))
+        //			+ refCount(x) -  активирует поток при X подписчиков (в отличие от ``).
+        //              refCount(0) - немедленно активирует поток, даже если нет подписчиков и заканчивается при полной отписке
+        //              refCount(1) -  активирует поток при появлении одного подписчика и заканчивается при полной отписке
+
+        // todo refCount vs autoConnect отличия
+        //  .autoConnect(2) - эмиссия начинается при наличии двух подписчиков и НЕ заканчивается при полной отписке.
+        //  .refCount(2) - эмиссия начинается при наличии двух подписчиков и ЗАКАНЧИВАЕТСЯ при полной отписке
+        //  .share() - аналог publish().refCount() Эмиссия начинается при наличии ОДНОГО подписчика и и ЗАКАНЧИВАЕТСЯ при полной отписке.
+
+        Flux<Integer> refCountFlux = Flux.range(1, 5)
+            .delayElements(Duration.ofMillis(500), Schedulers.parallel())
+            .doOnNext(System.out::println)
+            .publish()
+            //.autoConnect(2) // Эмиссия начинается при наличии двух подписчиков и НЕ заканчивается при полной отписке.
+            .refCount(2) // Эмиссия начинается при наличии двух подписчиков и ЗАКАНЧИВАЕТСЯ при полной отписке
+            ;
+
+        Disposable sub1 = refCountFlux.subscribe(data -> System.out.println("Subscriber 1: " + data));
+
+        Thread.sleep(1000);
+
+        Disposable sub2 = refCountFlux.subscribe(data -> System.out.println("Subscriber 2: " + data));
+
+        Thread.sleep(2000);
+
+        // Завершение подписки. При refCount публишер будет остановлен.
+        sub1.dispose();
+        sub2.dispose();
+
+        Thread.sleep(5000);
     }
 
     private static void examplePublishAndAutoconnect() throws InterruptedException {
@@ -25,6 +96,11 @@ public class PublishExample {
         //			+ autoConnect(x) -  активирует поток при X подписчиков (в отличие от ``).
         //              autoConnect(0) - немедленно активирует поток, даже если нет подписчиков
         //              autoConnect(1) -  активирует поток при появлении одного подписчика
+
+        // todo refCount vs autoConnect отличия
+        //  .autoConnect(2) - эмиссия начинается при наличии двух подписчиков и НЕ заканчивается при полной отписке.
+        //  .refCount(2) - эмиссия начинается при наличии двух подписчиков и ЗАКАНЧИВАЕТСЯ при полной отписке
+        //  .share() - аналог publish().refCount() Эмиссия начинается при наличии ОДНОГО подписчика и и ЗАКАНЧИВАЕТСЯ при полной отписке.
 
         // Создаем холодный Flux
         Flux<String> coldFlux = Flux
