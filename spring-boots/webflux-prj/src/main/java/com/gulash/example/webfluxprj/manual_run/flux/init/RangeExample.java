@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run.flux.init.cold;
+package com.gulash.example.webfluxprj.manual_run.flux.init;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.Disposable;

@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run.flux.init.cold;
+package com.gulash.example.webfluxprj.manual_run.flux.init;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -11,6 +11,7 @@ import java.util.List;
 public class IntervalExample {
     public static void main(String[] args) {
         // todo Flux.interval - для генерации бесконечной последовательности типа Long c нуля с указанными интервалами времени
+        // todo Создание Cold publisher
         Flux<Long> interval = Flux.interval(
                 Duration.ofSeconds(1), // initial delay
                 Duration.ofSeconds(2), // period of increment
@@ -18,6 +19,7 @@ public class IntervalExample {
             )
             .take(5);// используем ограничитель
 
+        // todo Подписываемся(subscribe) и получаем объект disposable
         Disposable disposable = interval.subscribe(
             item -> System.out.println("item: %s %s".formatted(item, LocalDateTime.now().withNano(0)))
         );

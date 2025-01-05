@@ -2,9 +2,6 @@ package com.gulash.example.webfluxprj.manual_run.flux.init.hot;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
-import reactor.core.scheduler.Schedulers;
-
-import java.time.Duration;
 
 public class SinkExample {
     public static void main(String[] args) {
