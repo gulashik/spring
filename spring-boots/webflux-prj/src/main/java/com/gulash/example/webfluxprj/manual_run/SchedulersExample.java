@@ -18,6 +18,7 @@ public class SchedulersExample {
     }
     private static void schedulersAndDisposable() throws InterruptedException {
 /*
+    Schedulers играют ключевую роль в управлении потоками выполнения задач. Они определяют, в каком потоке будет выполняться реактивная цепочка или её часть.
         Schedulers.parallel() - Глобальный пул потоков для вычислительных задач (CPU-bound).
         Schedulers.boundedElastic() - Гибкий пул потоков для задач, которые могут блокировать (например, I/O).
         Schedulers.single() - Один поток для выполнения задач. Используется для операций, требующих последовательности.
