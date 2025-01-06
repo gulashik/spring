@@ -14,7 +14,7 @@ public class ContextExample {
         // todo Context — это неизменяемая MAP-а, которую можно использовать для передачи данных(идентификаторы запросов, токены или параметры) по цепочке реактивного программирования.
 
         Disposable disposable = Flux.range(1, 5)
-            // todo Получаем на вход read-only контекст
+            // todo Получаем на вход read-only контекст - ОДИН РАЗ запускается
             .transformDeferredContextual(
                 (integerFlux, contextView) -> {
                     // todo получаем из контекста
@@ -28,11 +28,20 @@ public class ContextExample {
                     }
 
                     // todo выводим всё что есть в контексте
-                    contextView.forEach((key, value) -> System.out.println("key: " + key + " value: " + value));
+                    contextView.forEach((key, value) -> System.out.println("transformDeferredContextual. key: " + key + " value: " + value));
 
                     return integerFlux;
                 }
             )
+            // todo Получаем на вход read-only контекст - НА КАЖДЫЙ СИГНАЛ в потоке запускается
+            .doOnEach(
+                signal -> {
+                    // todo выводим всё что есть в контексте
+                    signal.getContextView()
+                        .forEach((key, value) -> System.out.println("doOnEach. key: " + key + " value: " + value));
+                }
+            )
+            // todo Получаем на вход read-only контекст - НА КАЖДЫЙ СИГНАЛ в потоке запускается
             .map(
                 integer -> {
                     // todo обращаемся к контексту через deferContextual
