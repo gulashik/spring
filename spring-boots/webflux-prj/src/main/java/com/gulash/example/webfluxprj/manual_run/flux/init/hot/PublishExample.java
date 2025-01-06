@@ -38,7 +38,7 @@ public class PublishExample {
             .doOnCancel(() -> System.out.println("Flux canceled"))
             .doFinally(signalType -> System.out.println("Flux finally by type-" + signalType))
             .doOnNext(System.out::println)
-            .share() // аналог publish().refCount() Эмиссия начинается при наличии ОДНОГО подписчика и и ЗАКАНЧИВАЕТСЯ при полной отписке.
+            .share() // todo аналог publish().refCount() Эмиссия начинается при наличии ОДНОГО подписчика и и ЗАКАНЧИВАЕТСЯ при полной отписке.
             //.publish().autoConnect() Всё будет прододжаться при отписке
             ;
 
@@ -84,7 +84,7 @@ public class PublishExample {
 
         Thread.sleep(2000);
 
-        // Завершение подписки. При refCount публишер будет остановлен.
+        // Завершение подписки. При refCount ноль публишер будет остановлен.
         sub1.dispose();
         sub2.dispose();
 
@@ -93,7 +93,7 @@ public class PublishExample {
 
     private static void examplePublishAndAutoconnect() throws InterruptedException {
         // todo .publish() - делает поток "горячим"(Преобразует поток из "холодного" (`Cold Publisher`) в "горячий" (`Hot Publisher`))
-        //			+ autoConnect(x) -  активирует поток при X подписчиков (в отличие от ``).
+        //			+ autoConnect(x) -  активирует поток при X подписчиков
         //              autoConnect(0) - немедленно активирует поток, даже если нет подписчиков
         //              autoConnect(1) -  активирует поток при появлении одного подписчика
 
