@@ -15,6 +15,7 @@ public class OnBackpressureBufferExample {
 
         //exampleWithTtll();
         exampleWithStrategy();
+
     }
 
     private static void exampleWithStrategy() {
@@ -23,11 +24,14 @@ public class OnBackpressureBufferExample {
             .onBackpressureBuffer(
                 3, // todo храним максимум
                 integer -> System.out.println("Dropped - " + integer), // todo Обработка переполнения
-                BufferOverflowStrategy.DROP_LATEST // todo стратегия переполнения
+                BufferOverflowStrategy.DROP_OLDEST // todo стратегия переполнения
             )
-            .delayElements(Duration.of(10, ChronoUnit.SECONDS))
+            .delayElements(Duration.of(1, ChronoUnit.SECONDS), Schedulers.boundedElastic())
             .subscribeOn(Schedulers.boundedElastic())
-            .subscribe(System.out::println);
+            .subscribe(
+                System.out::println,
+                error -> System.err.println("Error: " + error.getMessage())
+            );
 
         waitForDisposableEnd(List.of(disposable));
     }
