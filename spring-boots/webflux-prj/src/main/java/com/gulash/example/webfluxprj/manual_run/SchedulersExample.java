@@ -8,6 +8,8 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 public class SchedulersExample {
@@ -18,16 +20,34 @@ public class SchedulersExample {
     }
     private static void schedulersAndDisposable() throws InterruptedException {
 /*
+    Schedulers — это абстракция для управления потоками и планирования задач(где и как будут выполняться задачи).
     Schedulers играют ключевую роль в управлении потоками выполнения задач. Они определяют, в каком потоке будет выполняться реактивная цепочка или её часть.
         Schedulers.parallel() - Глобальный пул потоков для вычислительных задач (CPU-bound).
-        Schedulers.boundedElastic() - Гибкий пул потоков для задач, которые могут блокировать (например, I/O).
-        Schedulers.single() - Один поток для выполнения задач. Используется для операций, требующих последовательности.
         Schedulers.newParallel("worker-thread", 2) - Локальный пул потоков для изолированной параллельной обработки. нужно xxx.dispose();
+
+        Schedulers.boundedElastic() - Гибкий пул потоков для задач, которые могут блокировать (I/O-bound).
+        Schedulers.newBoundedElastic(10, 100, "custom-scheduler") -
+
+        Schedulers.single() - Один поток для выполнения задач. Используется для операций, требующих последовательности.
+
+        Schedulers.immediate() - Исполняет задачи немедленно в текущем потоке.
+
+        Schedulers.fromExecutor(Executor) - Позволяет использовать пользовательский пул потоков через ExecutorService.
+
+        Примеры
+        subscribeOn(Scheduler) - Определяет, в каком Scheduler начнётся выполнение реактивной цепочки.
+        publishOn(Scheduler) - Переключает выполнение цепочки на другой Scheduler.
 */
         Scheduler scheduler =
             //Schedulers.parallel();// для большинства задач, чтобы не управлять потоками вручную.
-            Schedulers.boundedElastic();
+            Schedulers.boundedElastic(); // для I/O-bound задач
+            //Schedulers.newBoundedElastic(/*Максимальное количество потоков*/10, /*Максимальное количество задач в очереди*/100, /*Название пула*/"custom-scheduler"); // для I/O-bound задач
             //Schedulers.newParallel("worker-thread", 2); // нужно scheduler.dispose();
+
+            // не разбирался
+            // нужно закрывать пул потоков shutdown()
+            // ExecutorService executorService = Executors.newFixedThreadPool(5);
+            // Scheduler customScheduler = Schedulers.fromExecutor(executorService);
 
         Flux<Integer> integerFlux =
             Flux
