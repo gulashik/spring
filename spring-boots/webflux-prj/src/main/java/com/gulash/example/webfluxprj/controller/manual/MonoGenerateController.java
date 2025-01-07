@@ -16,8 +16,6 @@ import java.time.Duration;
 @RestController
 public class MonoGenerateController {
 
-    private final Scheduler workerPool;
-
     // curl 'http://localhost:8080/demo/mono/just' --header 'Accept: */*' --header 'Content-Type: application/json' --header 'Cache-Control: no-cache'
     @GetMapping("/demo/mono/just")
     public Mono<String> one() {

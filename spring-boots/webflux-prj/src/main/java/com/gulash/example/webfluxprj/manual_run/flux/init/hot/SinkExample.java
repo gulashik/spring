@@ -6,6 +6,8 @@ import reactor.core.publisher.Sinks;
 public class SinkExample {
     public static void main(String[] args) {
         // todo Создаем Sink с типом multicast
+        //   todo Sinks.Many в режиме multicast поддерживает только активных подписчиков
+        //      (т.е. данные, опубликованные до подписки, не будут доставлены новым подписчикам).
         Sinks.Many<String> sink = Sinks.many().multicast().onBackpressureBuffer();
 
         // todo Получаем горячий Flux
@@ -34,8 +36,10 @@ public class SinkExample {
         // todo Эмитим дополнительные данные
         sink.tryEmitNext("WebFlux");
 
-        // завершение посмотреть
-        //sink.tryEmitComplete();
+        // завершение
+        sink.tryEmitComplete();
         //sink.emitComplete(xxx);
     }
 }
+
+

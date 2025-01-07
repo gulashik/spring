@@ -11,7 +11,7 @@ import java.util.List;
 
 public class OnBackpressureBufferExample {
     public static void main(String[] args) {
-        // todo onBackpressureBuffer - настройки хранения событий,для управления при избыточном количестве не обработаных событий
+        // todo onBackpressureBuffer - настройки хранения событий,для управления при избыточном количестве не обработанных событий
 
         //exampleWithTtll();
         exampleWithStrategy();
