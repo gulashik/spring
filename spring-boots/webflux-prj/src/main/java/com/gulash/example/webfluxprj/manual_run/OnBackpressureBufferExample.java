@@ -59,5 +59,4 @@ public class OnBackpressureBufferExample {
             disposable -> { while (!disposable.isDisposed()) {}}
         );
     }
-
 }
