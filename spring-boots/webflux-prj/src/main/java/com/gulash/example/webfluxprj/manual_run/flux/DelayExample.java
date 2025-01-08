@@ -15,6 +15,7 @@ public class DelayExample {
 
     private static void delay() {
         Disposable disposable = Flux.range(1, 5)
+            .log()
             .delayElements(Duration.ofSeconds(1)/*, Schedulers.parallel() - Вычислительные задачи (по умолчанию)*/)
             .delayElements(Duration.ofSeconds(1), Schedulers.boundedElastic()/*Блокирующие или долгие задачи*/)
             .subscribe(System.out::println);
