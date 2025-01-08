@@ -7,7 +7,7 @@ public class GenerateExample {
     public static void main(String[] args) {
         // todo Flux.generate позволяет СИНХРОННО генерировать элементы по одному с использованием состояния(SynchronousSink)
         Flux<Integer> generate = Flux.generate(
-            () -> 0, // initial state
+            () -> 0, // todo initial state
             (Integer currentState, SynchronousSink<Integer> synchronousSink) -> {
                 // todo что-то отдали в поток
                 synchronousSink.next(currentState);
