@@ -3,26 +3,79 @@ package com.gulash.example.webfluxprj.manual_run.flux.init;
 import reactor.core.publisher.Flux;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DeferExample {
     public static void main(String[] args) {
-/*
-        ****Initial time for EAGER: 2025-01-02T17:07:45.087232
 
-        Время уже больше чем в EAGER. Т.к. eager уже создан: 2025-01-02T17:07:45.173534
+        timeExample(); // более замороченный пример
 
-        Subscribing to eager Flux
-        Всегда ОДИНАКОВОЕ время: 2025-01-02T17:07:45.087232
+        lazyExample(); // just
+        deferredExample(); // defer
+    }
 
-        Subscribing to deferred Flux
-        ****Initial time for DEFER: 2025-01-02T17:07:46.293533
-        Всегда РАЗНОЕ время: 2025-01-02T17:07:46.293533
-        ****Initial time for DEFER: 2025-01-02T17:07:47.412046
-        Всегда РАЗНОЕ время: 2025-01-02T17:07:47.412046
+    private static void deferredExample() {
+        AtomicInteger counter = new AtomicInteger(0);
 
-        Subscribing to eager Flux
-        Всегда ОДИНАКОВОЕ время: 2025-01-02T17:07:45.087232
-*/
+        // Поток создаётся только при подписке
+        Flux<Integer> flux = Flux.defer(() -> {
+            return Flux.just(counter.incrementAndGet(), counter.incrementAndGet(), counter.incrementAndGet());
+        });
+
+        System.out.println("Перед подпиской");
+
+        flux.subscribe(System.out::println); // Подписываемся, выводим события
+        flux.subscribe(System.out::println); // Подписываемся ещё раз
+
+        // Вывод: Числа увеличиваются
+        // Перед подпиской
+        // 1
+        // 2
+        // 3
+        // 4
+        // 5
+        // 6
+    }
+
+    private static void lazyExample() {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        // Создаём поток сразу
+        Flux<Integer> flux = Flux.just(counter.incrementAndGet(), counter.incrementAndGet(), counter.incrementAndGet());
+
+        System.out.println("Перед подпиской");
+
+        flux.subscribe(System.out::println); // Подписываемся, выводим события
+        flux.subscribe(System.out::println); // Подписываемся ещё раз
+
+        // Вывод: Числа повторяются
+        // Перед подпиской
+        // 1
+        // 2
+        // 3
+        // 1
+        // 2
+        // 3
+    }
+
+    private static void timeExample() {
+    /*
+            ****Initial time for EAGER: 2025-01-02T17:07:45.087232
+
+            Время уже больше чем в EAGER. Т.к. eager уже создан: 2025-01-02T17:07:45.173534
+
+            Subscribing to eager Flux
+            Всегда ОДИНАКОВОЕ время: 2025-01-02T17:07:45.087232
+
+            Subscribing to deferred Flux
+            ****Initial time for DEFER: 2025-01-02T17:07:46.293533
+            Всегда РАЗНОЕ время: 2025-01-02T17:07:46.293533
+            ****Initial time for DEFER: 2025-01-02T17:07:47.412046
+            Всегда РАЗНОЕ время: 2025-01-02T17:07:47.412046
+
+            Subscribing to eager Flux
+            Всегда ОДИНАКОВОЕ время: 2025-01-02T17:07:45.087232
+    */
         // todo Flux.just - значения формируются СРАЗУ в МОМЕНТ СОЗДАНИЯ Flux экземпляра.
         Flux<LocalDateTime> eager = Flux.just(getNow("EAGER"));
 
