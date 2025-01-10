@@ -1,7 +1,6 @@
 package com.gulash.example.webfluxprj.manual_run.flux;
 
 import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -9,10 +8,10 @@ public class _TemplateExample {
     public static void main(String[] args) {
         // todo предварительно запуск spring-boots/webflux-prj/compose.md
 
-        template();
+        example();
     }
 
-    private static void template() {
+    private static void example() {
 
     }
 
