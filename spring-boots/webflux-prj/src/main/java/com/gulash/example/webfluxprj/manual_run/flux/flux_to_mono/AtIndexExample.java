@@ -22,6 +22,7 @@ public class AtIndexExample {
         Mono<Integer> firstNumberMono = numbers.next();
         // todo last - последний элемент в Mono<X>
         Mono<Integer> lastNumberMono = numbers.last();
+        Mono<Integer> lastNumberMono2 = numbers.last(99/*default value*/);
 
         Disposable disposable1 = firstNumberMono.subscribe(System.out::println);
         Disposable disposable2 = lastNumberMono.subscribe(System.out::println);
