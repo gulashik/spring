@@ -24,7 +24,7 @@ public class IfEmptyExample {
 
         Flux<String> stringFlux2 = emptyStringFlux
             // todo switchIfEmpty - указываем PUBLISHER если поток пустой
-            .switchIfEmpty(Mono.just("default value from Publisher"));
+            .switchIfEmpty(Flux.just("default value from Publisher"));
 
         stringFlux2.subscribe(System.out::println);
     }
