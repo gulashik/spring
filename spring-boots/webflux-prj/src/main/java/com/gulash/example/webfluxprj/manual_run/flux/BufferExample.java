@@ -2,13 +2,10 @@ package com.gulash.example.webfluxprj.manual_run.flux;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.List;
 
-public class CollecMaptExample {
+public class BufferExample {
     public static void main(String[] args) {
         // todo предварительно запуск spring-boots/webflux-prj/compose.md
 
@@ -16,17 +13,18 @@ public class CollecMaptExample {
     }
 
     private static void example() {
-        Flux<String> words = Flux.just("hello", "world", "hello", "hello", "hello", "hello");
+        Flux<Integer> flux = Flux.just(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
-        // todo collectMap - позволяет собирать элементы потока в Map. НЕТ ОБРАБОТКИ КОЛЛИЗИИ ПО КЛЮЧАМ. Используем collect, collectMultimap
-        Mono<Map<String, String>> mapMono = words
-            .collectMap(
-                s -> s, /*key*/
-                s -> s, /*value*/
-                LinkedHashMap::new /*можно указать конкретный тип*/
-            );// {hello=hello, world=world}
+        // todo buffer - собирает элементы потока в группы, создавая новый Flux<List<>>
+        Flux<List<Integer>> bufferedFlux = flux.buffer(3);
 
-        mapMono.subscribe(System.out::println);
+        bufferedFlux.subscribe(list -> System.out.println("Буфер: " + list));
+        /*
+            Буфер: [1, 2, 3]
+            Буфер: [4, 5, 6]
+            Буфер: [7, 8, 9]
+            Буфер: [10]
+        */
 
     }
 
