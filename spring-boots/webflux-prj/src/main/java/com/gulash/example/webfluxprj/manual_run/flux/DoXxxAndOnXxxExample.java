@@ -2,6 +2,7 @@ package com.gulash.example.webfluxprj.manual_run.flux;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 import reactor.util.context.Context;
 
 import java.util.List;
@@ -10,10 +11,72 @@ public class DoXxxAndOnXxxExample {
     public static void main(String[] args) {
         // todo предварительно запуск spring-boots/webflux-prj/compose.md
 
-        template();
+        manyMethods();
+        onErrorContinue();
     }
 
-    private static void template() {
+    private static void onErrorContinue() {
+        try {
+            Flux<Integer> flux = Flux.just("1", "2", "a", "3")
+                .publishOn(Schedulers.boundedElastic())
+                .doFirst(() -> System.out.println("onErrorContinue(Throwable throwable, Object object)"))
+                .map(Integer::parseInt)
+                // todo onErrorContinue - при возникновении ошибки делает возможным продолжить поток
+                .onErrorContinue(
+                    (Throwable throwable, Object object) -> {
+                        System.out.println("Error object: " + object);
+                        throwable.printStackTrace();
+                    }
+                );
+
+            Disposable disposable = flux.subscribe(System.out::println);
+
+            waitForDisposableEnd(List.of(disposable));
+        } finally {}
+
+        try {
+            Flux<Integer> flux = Flux.just("1", "2", "a", "3")
+                .publishOn(Schedulers.boundedElastic())
+                .doFirst(() -> System.out.println("onErrorContinue(Class.class, Throwable throwable, Object object)"))
+                .map(Integer::parseInt)
+                // todo onErrorContinue - срабатываем по классу ошибки ЕСЛИ ОШИБКА ОТЛИЧАЕТСЯ - ВТИХУЮ ЗАВЕШАЕМ ПОТОК
+                .onErrorContinue(
+                    NumberFormatException.class/* NumberFormatException.class*//*IllegalAccessError.class*/, // todo ЕСЛИ ОШИБКА ОТЛИЧАЕТСЯ - ЗАВЕШАЕМ ПОТОК // Класс ошибки
+                    (Throwable throwable, Object object) -> {
+                        System.out.println("1 Error object: " + object);
+                        throwable.printStackTrace();
+                    }
+                )                ;
+
+            Disposable disposable = flux.subscribe(System.out::println);
+
+            waitForDisposableEnd(List.of(disposable));
+        } finally {}
+
+        try {
+            Flux<Integer> flux = Flux.just("1", "2", "a", "3")
+                .publishOn(Schedulers.boundedElastic())
+                .doFirst(() -> System.out.println("onErrorContinue(Predicate, Throwable throwable, Object object)"))
+                .map(Integer::parseInt)
+                // todo onErrorContinue - ищем по Predicate из класса ошибки, если ОШИБКА не отловлена ВТИХУЮ ЗАВЕШАЕМ ПОТОК
+                .onErrorContinue(
+                    throwable -> throwable instanceof RuntimeException, // todo Predicate по классу ошибки
+                    (Throwable throwable, Object object) -> {
+                        System.out.println("2 Error object: " + object);
+                        throwable.printStackTrace();
+                    }
+                )
+                ;
+
+            Disposable disposable = flux.subscribe(System.out::println);
+
+            waitForDisposableEnd(List.of(disposable));
+        } finally {}
+
+    }
+
+
+    private static void manyMethods() {
 
         Flux<Integer> flux = Flux.range(1, 10)
             // todo Flux.error - добавляем ошибку в потока чаще нужно для тестирования
