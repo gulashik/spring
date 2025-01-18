@@ -1,14 +1,10 @@
-package com.gulash.example.webfluxprj.manual_run.flux.init.publish_subscribe;
+package com.gulash.example.webfluxprj.manual_run.flux.init.publish_subscribe_swtich;
 
 import org.reactivestreams.Subscription;
-import reactor.core.Disposable;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.SignalType;
 import reactor.core.scheduler.Schedulers;
-
-import java.util.List;
-import java.util.concurrent.Flow;
 
 public class SubscribeWithExample {
     public static void main(String[] args) {

@@ -1,8 +1,7 @@
-package com.gulash.example.webfluxprj.manual_run.flux.flux_to_mono;
+package com.gulash.example.webfluxprj.manual_run.flux;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 

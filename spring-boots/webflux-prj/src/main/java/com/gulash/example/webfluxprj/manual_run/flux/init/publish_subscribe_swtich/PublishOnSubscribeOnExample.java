@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run.flux.init.publish_subscribe;
+package com.gulash.example.webfluxprj.manual_run.flux.init.publish_subscribe_swtich;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
