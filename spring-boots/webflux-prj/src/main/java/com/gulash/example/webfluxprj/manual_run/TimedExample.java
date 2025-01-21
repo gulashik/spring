@@ -1,13 +1,11 @@
-package com.gulash.example.webfluxprj.manual_run.flux;
+package com.gulash.example.webfluxprj.manual_run;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Timed;
 import reactor.core.scheduler.Schedulers;
 
-import java.time.Clock;
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 public class TimedExample {
