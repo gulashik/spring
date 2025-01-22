@@ -7,18 +7,21 @@ import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
 import java.util.List;
 
-public class DelayExample {
+public class DealyElementsExample {
     public static void main(String[] args) {
         // todo предварительно запуск spring-boots/webflux-prj/compose.md
-        delay();
+
+        example();
     }
 
-    private static void delay() {
-        Disposable disposable = Flux.range(1, 5)
-            .log()
-            .delayElements(Duration.ofSeconds(1)/*, Schedulers.parallel() - Вычислительные задачи (по умолчанию)*/)
-            .delayElements(Duration.ofSeconds(1), Schedulers.boundedElastic()/*Блокирующие или долгие задачи*/)
-            .subscribe(System.out::println);
+    private static void example() {
+        Disposable disposable =
+            Flux.range(1, 5)
+                .log()
+                // todo delayElements - откладывает операцию на заданное время
+                .delayElements(Duration.ofSeconds(1), Schedulers.boundedElastic())
+                .delayElements(Duration.ofSeconds(1)/* todo default, Schedulers.parallel()*/)
+                .subscribe(System.out::println);
 
         waitForDisposableEnd(List.of(disposable));
     }
