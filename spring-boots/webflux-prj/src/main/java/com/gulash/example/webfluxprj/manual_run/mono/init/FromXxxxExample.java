@@ -1,5 +1,6 @@
 package com.gulash.example.webfluxprj.manual_run.mono.init;
 
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -8,12 +9,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class FromXxxxExample {
     public static void main(String[] args) {
-        //monoFrom();
-        //monoFromCallable();
+        monoFrom();
+        monoFromCallable();
         monoFromRunnable();
-        //monoFromCompletionStage();
-        //monoFromFuture();
-        //monoFromDirect();
+        monoFromSupplier();
+        monoFromCompletionStage();
+        monoFromFuture();
+        monoFromDirect();
     }
 
     private static void monoFrom() {
@@ -47,6 +49,14 @@ public class FromXxxxExample {
             .fromRunnable(() -> System.out.println("Runnable executed"));
 
         mono.subscribe();  // Выведет "Runnable executed"
+    }
+
+    private static void monoFromSupplier() {
+        Mono<String> mono = Mono
+            // todo fromRunnable - создает Mono, которое выполняет переданное действие.
+            .fromSupplier(() -> "from Supplier value");
+
+        mono.subscribe(System.out::println);// Выведет "from Supplier value"
     }
 
     private static void monoFromCompletionStage() {
