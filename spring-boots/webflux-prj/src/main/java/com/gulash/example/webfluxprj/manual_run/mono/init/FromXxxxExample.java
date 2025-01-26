@@ -11,7 +11,8 @@ public class FromXxxxExample {
         //monoFrom();
         //monoFromCallable();
         //monoFromCompletionStage();
-        monoFromDirect();
+        monoFromFuture();
+        //monoFromDirect();
     }
 
     private static void monoFrom() {
@@ -47,6 +48,17 @@ public class FromXxxxExample {
         Mono<String> mono = Mono
             // todo fromCompletionStage - оборачивает CompletableFuture в Mono
             .fromCompletionStage(future);
+
+        mono.subscribe(System.out::println);  // Hello, from CompletableFuture
+    }
+
+    private static void monoFromFuture() {
+
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> "Hello, from CompletableFuture");
+
+        Mono<String> mono = Mono
+            // todo fromFuture - оборачивает CompletableFuture в Mono
+            .fromFuture(future);
 
         mono.subscribe(System.out::println);  // Hello, from CompletableFuture
     }
