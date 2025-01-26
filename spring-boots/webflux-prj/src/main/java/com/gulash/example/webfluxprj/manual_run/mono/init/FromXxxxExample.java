@@ -10,8 +10,9 @@ public class FromXxxxExample {
     public static void main(String[] args) {
         //monoFrom();
         //monoFromCallable();
+        monoFromRunnable();
         //monoFromCompletionStage();
-        monoFromFuture();
+        //monoFromFuture();
         //monoFromDirect();
     }
 
@@ -39,6 +40,13 @@ public class FromXxxxExample {
                 result -> System.out.println("Received: " + result),
                 error -> System.err.println("Error: " + error)
             );
+    }
+    private static void monoFromRunnable() {
+        Mono<Void> mono = Mono
+            // todo fromRunnable - создает Mono, которое выполняет переданное действие.
+            .fromRunnable(() -> System.out.println("Runnable executed"));
+
+        mono.subscribe();  // Выведет "Runnable executed"
     }
 
     private static void monoFromCompletionStage() {
