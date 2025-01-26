@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run;
+package com.gulash.example.webfluxprj.manual_run.common;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.BufferOverflowStrategy;

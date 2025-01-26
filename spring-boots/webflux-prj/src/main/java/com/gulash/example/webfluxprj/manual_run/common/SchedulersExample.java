@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run;
+package com.gulash.example.webfluxprj.manual_run.common;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.Disposable;
@@ -8,8 +8,6 @@ import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Slf4j
 public class SchedulersExample {

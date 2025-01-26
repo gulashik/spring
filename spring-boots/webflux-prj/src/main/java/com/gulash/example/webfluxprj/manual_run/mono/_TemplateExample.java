@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run.flux;
+package com.gulash.example.webfluxprj.manual_run.mono;
 
 import reactor.core.Disposable;
 

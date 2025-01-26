@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run;
+package com.gulash.example.webfluxprj.manual_run.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

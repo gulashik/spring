@@ -1,8 +1,7 @@
-package com.gulash.example.webfluxprj.manual_run;
+package com.gulash.example.webfluxprj.manual_run.common;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Timed;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 
