@@ -1,7 +1,7 @@
-package com.gulash.example.webfluxprj.manual_run.flux;
+package com.gulash.example.webfluxprj.manual_run.mono;
 
 import reactor.core.Disposable;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
 import reactor.util.retry.Retry;
 
@@ -20,18 +20,18 @@ public class RetryXxxExample {
     private static void retry() {
         AtomicInteger atomicInteger = new AtomicInteger(0);
 
-        Disposable disposable = Flux
-            // поток
-            .range(10,5).delayElements(Duration.ofMillis(500))
+        Disposable disposable = Mono.just(13).delayElement(Duration.ofMillis(500))
             // регистрируем попытку, чтобы потом прервать(для демонстраци только)
             .doFirst(() -> System.out.println("********* attempt:" + atomicInteger.incrementAndGet()))
 
             .handle(
                 (Integer i, SynchronousSink<String> sink) -> {
-                    if ( i == 13 && atomicInteger.get() != 3 ) {
+                    if (i == 13 && atomicInteger.get() != 3) {
+                        System.out.println("Error occurred");
                         sink.error(new RuntimeException("Simulated error"));
                         return;
                     }
+                    System.out.println("Success way occurred");
                     sink.next("Value " + i);
                 }
             )
@@ -47,36 +47,30 @@ public class RetryXxxExample {
         waitForDisposableEnd(List.of(disposable));
         /*
             ********* attempt:1
-            Received: Value 10
-            Received: Value 11
-            Received: Value 12
+            Error occurred
             ********* attempt:2
-            Received: Value 10
-            Received: Value 11
-            Received: Value 12
+            Error occurred
             ********* attempt:3
-            Received: Value 10
-            Received: Value 11
-            Received: Value 12
+            Success way occurred
             Received: Value 13
-            Received: Value 14
          */
+
     }
 
     private static void retryWhen() {
         AtomicInteger atomicInteger = new AtomicInteger(0);
 
-        Disposable disposable = Flux
-            // поток
-            .range(10,5).delayElements(Duration.ofMillis(500))
+        Disposable disposable = Mono.just(13).delayElement(Duration.ofMillis(500))
             // регистрируем попытку, чтобы потом прервать(для демонстраци только)
             .doFirst(() -> atomicInteger.incrementAndGet())
             .handle(
                 (Integer i, SynchronousSink<String> sink) -> {
-                    if ( i == 13 && atomicInteger.get() != 3 ) {
+                    if (i == 13 && atomicInteger.get() != 3) {
+                        System.out.println("Error occurred");
                         sink.error(new RuntimeException("Simulated error"));
                         return;
                     }
+                    System.out.println("Success way occurred");
                     sink.next("Value " + i);
                 }
             )
@@ -85,7 +79,7 @@ public class RetryXxxExample {
                 Retry
                     // todo backoff
                     .backoff(3, Duration.ofMillis(500)) // 3 попытки с экспоненциальной задержкой
-                        .maxBackoff(Duration.ofMillis(5000)) // Максимальная задержка 5 секунд
+                    .maxBackoff(Duration.ofMillis(5000)) // Максимальная задержка 5 секунд
                     // или
                     //.fixedDelay(3, Duration.ofSeconds(2)) // 3 попытки с задержкой 2 секунды
 
@@ -102,19 +96,12 @@ public class RetryXxxExample {
 
         waitForDisposableEnd(List.of(disposable));
         /*
-            Received: Value 10
-            Received: Value 11
-            Received: Value 12
+            Error occurred
             ********* attempt:0
-            Received: Value 10
-            Received: Value 11
-            Received: Value 12
+            Error occurred
             ********* attempt:1
-            Received: Value 10
-            Received: Value 11
-            Received: Value 12
+            Success way occurred
             Received: Value 13
-            Received: Value 14
         */
     }
 
