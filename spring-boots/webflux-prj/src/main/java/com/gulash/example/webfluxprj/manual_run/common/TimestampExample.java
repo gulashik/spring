@@ -2,6 +2,7 @@ package com.gulash.example.webfluxprj.manual_run.common;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 
@@ -12,10 +13,11 @@ public class TimestampExample {
     public static void main(String[] args) {
         // todo предварительно запуск spring-boots/webflux-prj/compose.md
 
-        example();
+        //timestampFlux();
+        timestampMono();
     }
 
-    private static void example() {
+    private static void timestampFlux() {
 
         Flux<Tuple2<Long, String>> timestamped = Flux
             .just("A", "B", "C", "D")
@@ -35,6 +37,29 @@ public class TimestampExample {
             Timestamp: 1737486241683, Элемент потока: B
             Timestamp: 1737486242188, Элемент потока: C
             Timestamp: 1737486242693, Элемент потока: D
+        */
+
+    }
+
+    private static void timestampMono() {
+
+        Mono<Tuple2<Long, String>> timestamped = Mono
+            .just("A")
+            .delayElement(Duration.ofMillis(500))
+            // todo timestamp - оборачивает элемент в Tuple2<Long, ElementType>, где Long - количество миллисекунд с 00:00:00 1 января 1970 года
+            .timestamp(Schedulers.boundedElastic());
+
+        Disposable disposable = timestamped.subscribe(
+            (Tuple2<Long, String> tuple2) -> {
+                System.out.println("Timestamp: " + tuple2.get(0));
+                System.out.println( "Элемент потока: " + tuple2.get(1));
+            }
+        );
+
+        waitForDisposableEnd(List.of(disposable));
+        /*
+            Timestamp: 1738422622223
+            Элемент потока: A
         */
 
     }
