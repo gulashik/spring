@@ -8,6 +8,8 @@ public class CreateExample {
     public static void main(String[] args) {
     /*
         todo Flux.create используется для ручного создания реактивного потока, который можно наполнять данными вручную через FluxSink.
+
+        todo Flux.create - Lazy стратегия генерации как и DEFER
             Может быть полезен для интеграции с callback-базированными библиотеками.
             Может быть полезен в случаях, когда поток данных не определен на момент его создания, или требуется низкоуровневый контроль.
     */
@@ -49,6 +51,14 @@ public class CreateExample {
                 Throwable::printStackTrace, // при Exception
                 () -> System.out.println("Done")
             );
+
+        integerFlux
+                    .take(2) // запрос на отмену
+                    .subscribe(
+                        System.out::println,
+                        Throwable::printStackTrace, // при Exception
+                        () -> System.out.println("Done")
+                    );
 
         //disposable.dispose();
     }
