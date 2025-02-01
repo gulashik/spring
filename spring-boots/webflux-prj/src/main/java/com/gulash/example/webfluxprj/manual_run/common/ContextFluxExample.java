@@ -7,7 +7,7 @@ import reactor.util.context.Context;
 
 import java.util.List;
 
-public class ContextExample {
+public class ContextFluxExample {
     public static void main(String[] args) {
         // todo Context — это неизменяемая MAP-а, которую можно использовать для передачи данных(идентификаторы запросов, токены или параметры) по цепочке реактивного программирования.
 
