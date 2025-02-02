@@ -3,12 +3,13 @@ package com.gulash.example.webfluxprj.manual_run.common;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.logging.Level;
 
-public class LogExample {
+public class LogMonoExample {
         // Используем SLF4J для обычного логирования
-        private static final Logger logger = LoggerFactory.getLogger(LogExample.class);
+        private static final Logger logger = LoggerFactory.getLogger(LogMonoExample.class);
 
     public static void main(String[] args) {
 
@@ -21,7 +22,7 @@ public class LogExample {
         */
 
 
-        Flux.just("data1", "data2", "data3")
+        Mono.just("data1")
             // Используем java.util.logging.Level.FINE (эквивалент DEBUG в SLF4J)
             .log("SourceFlow", Level.FINE)
             .log()

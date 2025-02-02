@@ -8,7 +8,7 @@ import reactor.util.function.Tuple2;
 import java.time.Duration;
 import java.util.List;
 
-public class ElapsedExample {
+public class ElapsedFluxExample {
     public static void main(String[] args) {
         // todo предварительно запуск spring-boots/webflux-prj/compose.md
 
