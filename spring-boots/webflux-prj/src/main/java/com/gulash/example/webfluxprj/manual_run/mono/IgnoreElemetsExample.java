@@ -1,4 +1,4 @@
-package com.gulash.example.webfluxprj.manual_run.flux;
+package com.gulash.example.webfluxprj.manual_run.mono;
 
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -16,14 +16,14 @@ public class IgnoreElemetsExample {
 
     private static void example() {
         // возвращает Mono<>
-        Mono<Integer> mono = Flux.range(1, 5)
-            .delayElements(Duration.ofMillis(500))
-            .doOnNext(integer -> System.out.println("выше по потоку " + integer)) // НЕ игнорируется - буду напечатаны
+        Mono<String> mono = Mono
             // todo ignoreElements - отбрасывает элемент потока(дальше он не идут), возвращает Mono<>
             // todo ignoreElements - нужно просто дождаться завершения потока, не занимаясь обработкой данных
-            .ignoreElements() // todo Вернётся Mono empty
+            .ignoreElements(
+                Mono.just("main stream value").delayElement(Duration.ofSeconds(1))
+            ) // todo Вернётся Mono empty
             .doOnNext(System.out::println) // ИГНОРИРУЕСЯ, т.к. будет empty Mono
-            // todo then - Нужные действия после завешения потока
+            // todo then - Нужные действия после завершения потока
             .then(
                 Mono.fromRunnable(
                     () -> System.out.println("Важен факт завершения потока. Тут служебные действия.")
@@ -39,11 +39,6 @@ public class IgnoreElemetsExample {
             );
         waitForDisposableEnd(List.of(disposable));
         /*
-            выше по потоку 1
-            выше по потоку 2
-            выше по потоку 3
-            выше по потоку 4
-            выше по потоку 5
             Важен факт завершения потока. Тут служебные действия.
             Done
         */
