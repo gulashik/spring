@@ -26,7 +26,7 @@ public class FluxGenerateController {
             .doOnNext(val -> log.info("value:{}", val));
     }
 
-    // curl 'http://localhost:8080/demo/flux/range' --header 'Accept: */*' --header 'Content-Type: application/json' --header 'Cache-Control: no-cache'
+    // curl 'http://localhost:8080/demo/flux/generate' --header 'Accept: */*' --header 'Content-Type: application/json' --header 'Cache-Control: no-cache'
     @GetMapping(path = "/demo/flux/generate", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<String> stream() {
         log.info("stream");

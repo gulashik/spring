@@ -6,7 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class WebfluxPrjApplication {
 
-    // todo запуск spring-boots/webflux-prj/compose.md
+    // todo 1 запуск spring-boots/webflux-prj/compose.md
+    // todo 2 руками можно позапускать из spring-boots/webflux-prj/src/main/java/com/gulash/example/webfluxprj/controller/manual
     public static void main(String[] args) {
         SpringApplication.run(WebfluxPrjApplication.class, args);
     }
