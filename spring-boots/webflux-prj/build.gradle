@@ -32,6 +32,8 @@ dependencies {
 
     // todo r2dbc
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+        // todo в том числе
+        //  реактивный connection poll - io.r2dbc:r2dbc-pool https://github.com/r2dbc/r2dbc-pool
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
 
     implementation 'org.jetbrains:annotations:26.0.1'
@@ -41,7 +43,7 @@ dependencies {
     implementation 'org.flywaydb:flyway-database-postgresql'
 
     // todo r2dbc
-    implementation 'org.postgresql:r2dbc-postgresql'
+    implementation 'org.postgresql:r2dbc-postgresql' // todo реактивный драйвер
     implementation 'org.postgresql:postgresql' // для flyway
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
