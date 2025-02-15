@@ -7,7 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class DemoR2dbc {
 
    public static void main(String[] args) {
-       // todo запустить ./runDb.src для создания/пересоздания контейнера
+       // todo запустить из runDb.md для создания/пересоздания контейнера
        // todo HttpRequests.http запускалка запросов
         SpringApplication.run(DemoR2dbc.class, args);
     }
