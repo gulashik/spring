@@ -2,7 +2,9 @@ package com.gulash.example.webfluxprj;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.web.reactive.config.EnableWebFlux;
 
+// @EnableWebFlux // todo уже не нужна
 @SpringBootApplication
 public class WebfluxPrjApplication {
 

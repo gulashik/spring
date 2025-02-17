@@ -1,7 +1,7 @@
 spring:
   application:
     name: webflux-prj
-#  todo реактивный source
+#  todo реактивный source  url: R2DBC
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/testbd
     username: postgres
