@@ -2,6 +2,7 @@ package ru.otus.spring.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,10 +27,14 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // todo Отключение CSRF-защиты. Для RestAPI с JWT не актуально
             .csrf(AbstractHttpConfigurer::disable)
+
+            // todo
             .authorizeHttpRequests(
                 (authorize) -> authorize
-                    .requestMatchers("/public").permitAll() // Доступно всем
+                    // todo requestMatchers - набор шаблонов URL-путей с определённым правилам безопасности.
+                    .requestMatchers(HttpMethod.GET, "/public").permitAll() // Доступно всем
                     // .requestMatchers("/admin/**").hasRole("ADMIN") // Только для администраторов
                     .requestMatchers("/authenticated").authenticated()
 
@@ -37,6 +42,7 @@ public class SecurityConfiguration {
                     .anyRequest().permitAll() // permitAll()- Все остальные запросы доступны всем
                     //.anyRequest().authenticated() // authenticated() - Все остальные запросы требуют аутентификации
             )
+            // todo HTTP Basic Authentication - выпадающее окошко с логином и паролем
             .httpBasic(Customizer.withDefaults());
         return http.build();
     }
