@@ -20,8 +20,9 @@ public class PagesController {
     }
 
     @GetMapping("/public")
-    public String publicPage(/*@RequestParam(name = "SpecialValue") String specialValue, Model model*/) {
-//        model.addAttribute("secret", specialValue);
+    public String publicPage(@RequestParam(name = "SpecialValueExpect") String specialValue, @RequestParam(name = "SpecialValueExpect2") String specialValue2,Model model) {
+        model.addAttribute("secret", specialValue);
+
         SecurityContext securityContext = SecurityContextHolder.getContext();
         Authentication authentication = securityContext.getAuthentication();
         //System.out.println( ((AnonimusUD)(authentication.getPrincipal())).getUsername() );

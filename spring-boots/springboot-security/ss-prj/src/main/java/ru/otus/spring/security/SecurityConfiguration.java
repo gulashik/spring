@@ -3,6 +3,7 @@ package ru.otus.spring.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -29,20 +30,22 @@ public class SecurityConfiguration {
     //  процессом обработки всех HTTP-запросов и их защитой (Аутентификация, Авторизация, Обработка запросов/ответов).
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // todo org.springframework.security.web.FilterChainProxy.doFilter - можно подебажить
         http
             // todo Отключение CSRF-защиты. Для RestAPI с JWT не актуально
             .csrf(AbstractHttpConfigurer::disable)
-            // todo ???
+
+            // todo sessionManagement - настройка сессий
             .sessionManagement(
                 (session) ->
+                    // todo сессия будет создаваться всегда независимо от того, требуется ли она для аутентификации.
                     session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
             )
             // todo ???
             .authorizeHttpRequests(
                 (authorize) -> authorize
                     // todo requestMatchers - набор шаблонов URL-путей с определённым правилам безопасности.
-                    .requestMatchers("/").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/public").permitAll() // Доступно всем
+                    .requestMatchers(HttpMethod.GET, "/","/public").permitAll() // Доступно всем
                     // .requestMatchers("/admin/**").hasRole("ADMIN") // Только для администраторов
                     .requestMatchers("/authenticated", "/success").authenticated()
 
@@ -50,17 +53,30 @@ public class SecurityConfiguration {
                     .anyRequest().permitAll() // permitAll()- Все остальные запросы доступны всем
                    //.anyRequest().authenticated() // authenticated() - Все остальные запросы требуют аутентификации
             )
+            // todo Настройка анонимного пользователя.
+            //  В данном случае анонимному пользователю назначается объект AnonimusUD как principal и роль ROLE_ANONYMOUS.
             .anonymous(a -> a.principal(new AnonimusUD()).authorities("ROLE_ANONYMOUS"))
+
+            // todo добавления своего фильтра после AuthorizationFilter
             .addFilterAfter(new MyOwnFilter(), AuthorizationFilter.class)
+
             // todo HTTP Basic Authentication - выпадающее окошко с логином и паролем
             // .httpBasic(Customizer.withDefaults())
 
-            // .formLogin(Customizer.withDefaults())
+            // todo настройка формы логина
+             //.formLogin(Customizer.withDefaults()) // простое использование
             .formLogin(
                 fm ->
-                    fm.defaultSuccessUrl("/success")
-                        .failureForwardUrl("/fail")
+                    fm
+                        //.loginPage("/extlogin") // опционально URL страницы с логином, если нужно
+                        //.usernameParameter("extuser") // опционально имя параметра в форме входа, который соответствует имени пользователя
+                        //.passwordParameter("extpass") // опционально имя параметра в форме входа, который соответствует паролю
+                        //.loginProcessingUrl("/extlogin_process") // опционально URL, на который отправляются данные формы входа для обработки Spring Security. Spring Security автоматически обрабатывает запросы на этот URL, проверяет учетные данные и выполняет аутентификацию.
+                        .defaultSuccessUrl("/success", true) // при удачной аутентификации, true чтобы редирект был
+                        .failureForwardUrl("/fail") // при не удачной аутентификации
             )
+            // todo функцию "Запомнить меня".
+            //  В данном случае задается ключ (AnyKey) и время жизни токена в секундах (600 секунд, т.е. 10 минут).
             .rememberMe(rm -> rm.key("AnyKey")
                 .tokenValiditySeconds(600))
         ;
