@@ -3,14 +3,12 @@ package ru.otus.spring.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -53,9 +51,19 @@ public class SecurityConfiguration {
                     .anyRequest().permitAll() // permitAll()- Все остальные запросы доступны всем
                    //.anyRequest().authenticated() // authenticated() - Все остальные запросы требуют аутентификации
             )
-            // todo Настройка анонимного пользователя.
+            // todo Настройка анонимного пользователя - включена по умолчанию
             //  В данном случае анонимному пользователю назначается объект AnonimusUD как principal и роль ROLE_ANONYMOUS.
-            .anonymous(a -> a.principal(new AnonimusUD()).authorities("ROLE_ANONYMOUS"))
+            //  при отключении анонимного пользователя Authentication == null, т.е. securityContext.getAuthentication() == null
+            //.anonymous(AbstractHttpConfigurer::disable) // отключение анонимного пользователя
+            .anonymous(
+                a ->
+                    a
+                        .principal(new AnonimusUserDetails())
+                        .authorities("ROLE_ANONYMOUS")
+                /* .principal("guest") // Имя principal для анонимного пользователя
+                    .authorities("ROLE_GUEST") // Роли для анонимного пользователя
+                */
+            )
 
             // todo добавления своего фильтра после AuthorizationFilter
             .addFilterAfter(new MyOwnFilter(), AuthorizationFilter.class)
@@ -76,9 +84,10 @@ public class SecurityConfiguration {
                         .failureForwardUrl("/fail") // при не удачной аутентификации
             )
             // todo функцию "Запомнить меня".
-            //  В данном случае задается ключ (AnyKey) и время жизни токена в секундах (600 секунд, т.е. 10 минут).
-            .rememberMe(rm -> rm.key("AnyKey")
-                .tokenValiditySeconds(600))
+            //  В данном случае задается ключ (AnyKey) и время жизни токена в секундах. ключ используется для создания токена в cookies
+            .rememberMe(rm -> rm.key("AnyKey") // Секретный ключ для HMAC при создании подписи токена
+                .tokenValiditySeconds(600)
+            )
         ;
         return http.build();
     }

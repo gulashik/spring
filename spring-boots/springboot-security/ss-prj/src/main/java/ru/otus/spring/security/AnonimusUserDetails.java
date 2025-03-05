@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 @Data
-public class AnonimusUD implements UserDetails {
+public class AnonimusUserDetails implements UserDetails/*нужна реализация UserDetails*/ {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return null;
