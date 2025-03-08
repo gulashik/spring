@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Edit person</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+
+        h3 {
+            background-image: url("../static/listmark.png");
+            background-repeat: no-repeat;
+            padding: 2px;
+            padding-left: 30px;
+        }
+
+        .errors {
+            color: red;
+        }
+    </style>
+
+    <style type="text/css" th:inline="text">
+        [[h3]] {
+            background-image: url([[@{/listmark.png}]]);
+            background-repeat: no-repeat;
+            padding: 2px;
+            padding-left: 30px;
+        }
+    </style>
+</head>
+<body>
+
+
+<form id="add-form" action="edit.html" th:action="@{/edit(id=${book.id})}" th:method="post">
+    <h3>Book Info:</h3>
+
+    <div class="row">
+        <label for="book-id-input">Id:</label>
+        <input id="book-id-input" readonly="readonly" name="id" th:value="${book.id}" value="1"/>
+    </div>
+
+    <div class="row">
+        <label for="book-name-input">Title:</label>
+        <input id="book-name-input"  name="title" type="text" th:value="${book.title}" value="Some title"/>
+    </div>
+
+    <div class="row">
+        <label for="book-name-input">AuthorID:</label>
+        <input id="book-author-input"  name="authorId" type="text" th:value="${book.getAuthorDto().getId()}" value="author id"/>
+    </div>
+
+    <div class="row">
+        <label for="book-name-input">GenreID:</label>
+        <input id="book-gender-input"  name="genreId" type="text" th:value="${book.getGenreDto().getId()}" value="genre id"/>
+    </div>
+
+    <div class="row">
+        <button type="submit">Save</button>
+        <a href="books.html" th:href="@{/}"><button type="button">Cancel</button></a>
+    </div>
+</form>
+
+</body>
+</html>
