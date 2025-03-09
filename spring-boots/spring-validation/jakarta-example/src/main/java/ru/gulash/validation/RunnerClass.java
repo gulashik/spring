@@ -2,6 +2,7 @@ package ru.gulash.validation;
 
 
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
@@ -32,6 +33,11 @@ public class RunnerClass implements ApplicationRunner {
                         ParentReasonOfValidation.class,
                         DefaultReasonOfValidation.class
                 );
+        // todo выбрасываем исключение
+        /*if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+
+        }*/
         // todo метод validateProperty - проверка конкретного аттрибута
         Set<ConstraintViolation<ParentEntity>> validateProperty = validator.validateProperty(
                 // Что проверяем
