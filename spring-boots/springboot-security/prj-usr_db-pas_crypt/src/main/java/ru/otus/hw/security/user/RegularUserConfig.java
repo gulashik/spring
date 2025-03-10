@@ -12,6 +12,7 @@ public class RegularUserConfig implements ApplicationRunner {
 
     private final UserDetailsServiceImpl userDetailsService;
 
+    // todo создание пользователей при старте
     @Override
     public void run(ApplicationArguments args) {
         userDetailsService.createUser("user", "user", "USER");

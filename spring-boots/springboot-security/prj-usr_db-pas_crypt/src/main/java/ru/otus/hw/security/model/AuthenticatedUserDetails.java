@@ -12,7 +12,8 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "users")
-public class AuthenticatedUserDetails implements UserDetails {
+/*todo аутентифицированный пользователь */
+public class AuthenticatedUserDetails implements UserDetails /*todo наследуемся */ {
     @Id
     @Column(name = "username", nullable = false, unique = true)
     private String username;

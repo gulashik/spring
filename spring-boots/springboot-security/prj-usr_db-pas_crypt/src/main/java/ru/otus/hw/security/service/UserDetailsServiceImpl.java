@@ -18,15 +18,20 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
-public class UserDetailsServiceImpl implements UserDetailsService {
-
+public class UserDetailsServiceImpl
+    /*todo имплементируем UserDetailsService или используем bean UserDetailsManager*/
+    implements UserDetailsService
+{
     private final UserRepository userRepository;
 
+    // todo UserDetailsManager - удобная штатная имплементация UserDetailsService
     // An extension of the UserDetailsService which provides the ability to create new users and update existing ones.
     private final UserDetailsManager userDetailsManager;
 
+    // todo работа с паролями
     private final PasswordEncoder passwordEncoder;
 
+    // todo загрузка пользователя имплементация по UserDetailsService
     @Transactional(readOnly = true)
     @Override
     public UserDetails loadUserByUsername(String username) {
@@ -46,6 +51,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         ).orElse(null);
     }
 
+    // todo создание пользователя
     @Transactional(rollbackFor = Exception.class)
     public UserDetails createUser(String username, String rawPassword, String... authorities) {
 

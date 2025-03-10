@@ -29,13 +29,13 @@ create table if not exists comments
     primary key (id)
 );
 
--- security пользователи
+-- todo security пользователи
 create table users (
     username varchar(50) not null primary key,
     password varchar(100) not null,
     enabled boolean not null
 );
--- security права
+-- todo security права
 create table authorities (
     id bigint auto_increment primary key,
     username varchar(50) not null,

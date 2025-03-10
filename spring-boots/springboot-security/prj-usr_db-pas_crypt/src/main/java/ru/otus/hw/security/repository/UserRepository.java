@@ -6,6 +6,9 @@ import ru.otus.hw.security.model.AuthenticatedUserDetails;
 
 import java.util.Optional;
 
-public interface UserRepository extends JpaRepository<AuthenticatedUserDetails, Long> {
+/*todo JPA репозиторий*/
+public interface UserRepository
+    extends JpaRepository<AuthenticatedUserDetails/*todo сущность*/, Long>
+{
     Optional<AuthenticatedUserDetails> findByUsername(String username);
 }

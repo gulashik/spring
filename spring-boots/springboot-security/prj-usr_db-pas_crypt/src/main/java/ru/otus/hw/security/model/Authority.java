@@ -9,7 +9,8 @@ import org.springframework.security.core.GrantedAuthority;
 @Setter
 @Entity
 @Table(name = "authorities")
-public class Authority implements GrantedAuthority {
+/*todo роли пользователя*/
+public class Authority implements GrantedAuthority /*todo наследуемся */{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -61,7 +61,7 @@ class BookControllerTest {
         assertThat(books.get(0)).isEqualTo(expectedBook);
     }
 
-
+    // todo @WithMockUser - указывает что запрос уже аутентифицировал как пользователь
     @WithMockUser(
         username = "user",
         authorities = {"ROLE_USER"}
@@ -89,6 +89,7 @@ class BookControllerTest {
         // authenticated user - got access
         mockMvc.perform(
                 get("/")
+                    // todo указывает что запрос уже аутентифицировал как пользователь
                     .with(user("user").authorities(new SimpleGrantedAuthority("ROLE_USER")))
             )
             .andExpect(status().isOk());
