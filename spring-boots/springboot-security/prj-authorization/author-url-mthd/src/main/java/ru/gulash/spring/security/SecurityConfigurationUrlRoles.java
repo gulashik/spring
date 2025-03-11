@@ -13,8 +13,10 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
 import java.util.ArrayList;
+import java.util.List;
 
 // Может чего доописать?
 @Configuration // todo нужна
@@ -32,7 +34,9 @@ public class SecurityConfigurationUrlRoles {
 
                 // todo наличие ролей для доступа по URL
                 .requestMatchers("/manager").hasAnyRole("MANAGER")
-                .requestMatchers("/user").hasAnyRole("USER")
+                .requestMatchers("/user").hasAnyRole("USER") // todo без префикса ROLE_ = Role
+                //.requestMatchers("/user").hasAnyAuthority("ROLE_USER") // todo с префиксом ROLE_ = Authority
+                .requestMatchers( "/admin" ).access(new AuthorizationService().hasAuthorizationGrant("ADMIN")) // todo можно сделать кастомную проверку
                 //.requestMatchers( "/admin" ).hasAnyRole( "ADMIN" )
 
                 .anyRequest().authenticated()
