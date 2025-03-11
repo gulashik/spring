@@ -46,6 +46,11 @@ public class SecurityFilterConfiguration {
                     // .requestMatchers(HttpMethod.XXX, "/xxx/**").hasRole("XXX")
                     // .requestMatchers("/authenticated", "/success").authenticated()
 
+                    // todo можно увидеть в соседнем проекте AUTHOR-URL-MTHD
+                    //.requestMatchers("/user").hasAnyRole("USER") // todo без префикса ROLE_ = Role
+                    //.requestMatchers("/user").hasAnyAuthority("ROLE_USER") // todo с префиксом ROLE_ = Authority
+                    //.requestMatchers( "/admin" ).access(new AuthorizationService().hasAuthorizationGrant("ADMIN")) // todo можно сделать кастомную проверку
+
                     // todo anyRequest - является "заглушкой" для всех запросов, которые не были явно настроены ранее
                     .anyRequest().authenticated() // Все остальные запросы требуют аутентификации
                 // .anyRequest().permitAll() // permitAll()- Все остальные запросы доступны всем
