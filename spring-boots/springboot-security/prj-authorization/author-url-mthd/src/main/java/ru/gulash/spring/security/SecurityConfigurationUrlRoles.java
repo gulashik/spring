@@ -1,5 +1,6 @@
 package ru.gulash.spring.security;
 
+import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -13,15 +14,17 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 
 import java.util.ArrayList;
-import java.util.List;
 
-// Может чего доописать?
-@Configuration // todo нужна
+@Configuration // todo нужна т.к. @Configuration не во всех версиях @EnableWebSecurity и @EnableMethodSecurity есть
 @EnableWebSecurity // todo аннотация для SecurityFilterChain bean
-@EnableMethodSecurity // todo Включает поддержку всех аннотаций (@PreAuthorize, @PostAuthorize, @Secured, @RolesAllowed)
+// todo Включает поддержку аннотаций
+@EnableMethodSecurity(
+     prePostEnabled = true/* todo default Включает поддержку @PreAuthorize, @PostAuthorize, @PreFilter и @PostFilter*/
+    ,securedEnabled = true /* todo Включает поддержку @Secured*/
+    ,mode = AdviceMode.PROXY /* todo default Стандартные Spring-прокси (например, для Spring-бинов).*/
+)
 public class SecurityConfigurationUrlRoles {
 
     @Bean
@@ -40,6 +43,7 @@ public class SecurityConfigurationUrlRoles {
                 //.requestMatchers( "/admin" ).hasAnyRole( "ADMIN" )
 
                 .anyRequest().authenticated()
+                //.anyRequest().denyAll()
             )
             .formLogin(Customizer.withDefaults())
         ;

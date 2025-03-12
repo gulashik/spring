@@ -6,6 +6,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import ru.gulash.spring.service.MySecureService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -31,8 +32,33 @@ public class PagesController {
 
     @GetMapping("/user")
     public String userPage() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-            .getContext().getAuthentication().getPrincipal();
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // todo PreFilter тест
+        // todo нужная MUTABLE коллекция, т.к. она будет модифицироваться
+        List<String> listBeforePre = new ArrayList<>(List.of("user", "admin", userDetails.getUsername()));
+        System.out.println("listBeforePre: " + listBeforePre);
+        List<String> listAfterPre = mySecureService.preFilter(listBeforePre); // используем @PreFilter
+        System.out.println("listAfterPre: " + listAfterPre);
+        /*
+            listBeforePre: [user, admin, user]
+            Income this method: [user, user]
+            listAfterPre: [user, user]
+        */
+
+        // todo @PostFilter
+        // todo нужная MUTABLE коллекция, т.к. она будет модифицироваться
+        //List<String> listBeforePost = new ArrayList<>(List.of("user", "admin", userDetails.getUsername()));
+        List<String> listBeforePost = List.of("user", "admin", userDetails.getUsername());
+        System.out.println("listBeforePost: " + listBeforePost);
+        List<String> listAfterPost = mySecureService.postFilter(listBeforePost);
+        System.out.println("listAfterPost: " + listAfterPost);
+        /*
+            listBeforePost: [user, admin, user]
+            Income this method: [user, admin, user]
+            listAfterPost: [user, user]
+        */
+
         System.out.println(userDetails.getUsername());
 
         try {
