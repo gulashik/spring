@@ -16,8 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import ru.otus.hw.security.model.AnonymousUserDetails;
 
 @RequiredArgsConstructor
-@Configuration
-@EnableWebSecurity
+@Configuration // todo нужна т.к. @Configuration не во всех версиях @EnableWebSecurity и @EnableMethodSecurity есть
+@EnableWebSecurity // todo аннотация для SecurityFilterChain bean
 public class SecurityFilterConfiguration {
 
     private final UserDetailsManager userDetailsManager;
@@ -53,7 +53,8 @@ public class SecurityFilterConfiguration {
 
                     // todo anyRequest - является "заглушкой" для всех запросов, которые не были явно настроены ранее
                     .anyRequest().authenticated() // Все остальные запросы требуют аутентификации
-                // .anyRequest().permitAll() // permitAll()- Все остальные запросы доступны всем
+                    // .anyRequest().permitAll() // permitAll()- Все остальные запросы доступны всем
+                    // .anyRequest().denyAll() // .denyAll() - Все остальные запросы не доступны никому
             )
             .headers(
                 headers -> headers
