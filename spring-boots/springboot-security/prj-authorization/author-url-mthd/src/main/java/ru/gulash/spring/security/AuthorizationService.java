@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-//@Service // можно не ставить
+//@Service // можно не ставить тут пока не нужно
 public class AuthorizationService {
     public AuthorizationManager<RequestAuthorizationContext> hasAuthorizationGrant(String role) {
         return (authentication, context) -> {

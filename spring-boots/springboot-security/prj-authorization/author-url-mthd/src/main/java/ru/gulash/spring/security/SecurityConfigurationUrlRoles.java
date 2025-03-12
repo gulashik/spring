@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AnonymousConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
@@ -45,6 +46,12 @@ public class SecurityConfigurationUrlRoles {
                 .anyRequest().authenticated()
                 //.anyRequest().denyAll()
             )
+            /*.anonymous( // перенастройка анонимного пользователя если нужно
+                (AnonymousConfigurer<HttpSecurity> anonConfig) ->
+                    anonConfig
+                     .principal("guest") // Имя principal для анонимного пользователя
+                    .authorities("ROLE_GUEST") // Роли для анонимного пользователя
+            )*/
             .formLogin(Customizer.withDefaults())
         ;
         return http.build();
@@ -63,6 +70,9 @@ public class SecurityConfigurationUrlRoles {
             .build());
         users.add(User
             .withUsername("user").password("user").roles("USER")
+            .build());
+        users.add(User
+            .withUsername("manager").password("manager").roles("MANAGER")
             .build());
         return new InMemoryUserDetailsManager(users);
 

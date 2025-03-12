@@ -44,8 +44,7 @@ public class MySecureService {
         authentication — предоставляет доступ к объекту Authentication.
     */
     //@PreAuthorize("hasRole('ROLE_USER') && {new java.util.Random().nextBoolean()}")
-    @PreAuthorize("hasRole('USER')")
-    //@PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('USER')") // или так @PreAuthorize("hasRole('ROLE_USER')")
     public String onlyUser() {
         return "Congratulations! @PreAuthorize has access to the user";
     }
@@ -74,9 +73,12 @@ public class MySecureService {
         return List.of("user") ;
     }
 
-    // todo @Secured и @RolesAllowed - проверяет, имеет ли пользователь указанную роль. Она проще, чем @PreAuthorize, и поддерживает только проверку ролей.
-    @Secured("ADMIN")
+    // todo @Secured("ROLE_XXX") и @RolesAllowed("ROLE_XXX") - проверяет, имеет ли пользователь указанную роль.
+    //  Она проще, чем @PreAuthorize, и поддерживает только проверку ролей.
+    //  указывается через ROLE_XXX
+    @Secured("ROLE_ADMIN")
     public void onlyAdmin() {
+        System.out.println("This method is only for the admin");
     }
 
     // todo @PreFilter - используется для предварительно фильтрации коллекции

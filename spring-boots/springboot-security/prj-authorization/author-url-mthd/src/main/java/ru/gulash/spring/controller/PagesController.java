@@ -48,8 +48,8 @@ public class PagesController {
 
         // todo @PostFilter
         // todo нужная MUTABLE коллекция, т.к. она будет модифицироваться
-        //List<String> listBeforePost = new ArrayList<>(List.of("user", "admin", userDetails.getUsername()));
-        List<String> listBeforePost = List.of("user", "admin", userDetails.getUsername());
+        List<String> listBeforePost = new ArrayList<>(List.of("user", "admin", userDetails.getUsername()));
+        // List<String> listBeforePost = List.of("user", "admin", userDetails.getUsername()); - immutable будет ошибка
         System.out.println("listBeforePost: " + listBeforePost);
         List<String> listAfterPost = mySecureService.postFilter(listBeforePost);
         System.out.println("listAfterPost: " + listAfterPost);
@@ -82,37 +82,32 @@ public class PagesController {
     }
 
     @GetMapping("/admin")
-    // @Secured( "ADMIN" )
     public String adminPage() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-            .getContext().getAuthentication().getPrincipal();
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         System.out.println(userDetails.getUsername());
 
-        //myService.onlyUser();
         mySecureService.onlyAdmin();
         return "admin";
     }
 
     @GetMapping("/manager")
     public String managerPage() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-            .getContext().getAuthentication().getPrincipal();
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         System.out.println(userDetails.getUsername());
         return "manager";
     }
 
     @GetMapping("/authenticated")
     public String authenticatedPage() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-            .getContext().getAuthentication().getPrincipal();
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         System.out.println(userDetails.getUsername());
         return "authenticated";
     }
 
     @GetMapping("/success")
     public String successPage() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder
-            .getContext().getAuthentication().getPrincipal();
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         System.out.println(userDetails.getUsername());
         return "success";
     }
