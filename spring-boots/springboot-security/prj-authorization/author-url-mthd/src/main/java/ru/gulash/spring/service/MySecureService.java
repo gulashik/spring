@@ -74,6 +74,7 @@ public class MySecureService {
     }
 
     // todo @Secured("ROLE_XXX") и @RolesAllowed("ROLE_XXX") - проверяет, имеет ли пользователь указанную роль.
+    //  Концептуально правильно вешать на Service-ы
     //  Она проще, чем @PreAuthorize, и поддерживает только проверку ролей.
     //  указывается через ROLE_XXX
     @Secured("ROLE_ADMIN")

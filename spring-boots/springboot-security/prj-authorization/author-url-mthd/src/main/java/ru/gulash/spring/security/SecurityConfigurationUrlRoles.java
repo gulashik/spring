@@ -22,9 +22,9 @@ import java.util.ArrayList;
 @EnableWebSecurity // todo аннотация для SecurityFilterChain bean
 // todo Включает поддержку аннотаций
 @EnableMethodSecurity(
-     prePostEnabled = true/* todo default Включает поддержку @PreAuthorize, @PostAuthorize, @PreFilter и @PostFilter*/
-    ,securedEnabled = true /* todo Включает поддержку @Secured*/
-    ,mode = AdviceMode.PROXY /* todo default Стандартные Spring-прокси (например, для Spring-бинов).*/
+     prePostEnabled = true/* todo default Включает поддержку @PreAuthorize, @PostAuthorize, @PreFilter и @PostFilter */
+    ,securedEnabled = true /* todo Включает поддержку @Secured */
+    ,mode = AdviceMode.PROXY /* todo default Стандартные Spring-прокси (например, для Spring-бинов) */
 )
 public class SecurityConfigurationUrlRoles {
 
