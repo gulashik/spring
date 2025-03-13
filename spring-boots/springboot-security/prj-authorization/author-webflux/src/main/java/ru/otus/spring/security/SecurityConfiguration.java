@@ -42,7 +42,7 @@ public class SecurityConfiguration {
     public ReactiveUserDetailsService userDetailsService() {
         UserDetails user = User
                 .withUsername( "user" )
-                .password( "password" )
+                .password( "user" )
                 .roles( "USER" )
                 .build();
         return new MapReactiveUserDetailsService( user );

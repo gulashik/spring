@@ -1,1 +1,13 @@
-spring.mongodb.embedded.version: 4.6.1
+# Single properties
+#   spring.data.mongodb.uri="mongodb://admin:password@localhost:27017/baeldung"
+#   шаблон - mongodb://<username>:<password>@<host>:<port>/<database>
+spring:
+  data:
+    mongodb:
+      authentication-database: admin
+      username: root
+      password: root
+      database: user_db
+      port: 27017
+      host: localhost
+      auto-index-creation: true # default false; авто создание индексов

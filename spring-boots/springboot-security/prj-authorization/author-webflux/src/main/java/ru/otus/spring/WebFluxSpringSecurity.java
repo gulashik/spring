@@ -11,9 +11,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @SpringBootApplication
 public class WebFluxSpringSecurity {
 
-    // todo не запускается. Оставил как пример настройки
+    // todo запускаем compose.md
     public static void main( String[] args ) {
         SpringApplication.run( WebFluxSpringSecurity.class );
+
+        System.out.println("""
+            Переходим
+            ->  http://localhost:8080/
+            """);
     }
 
     @Bean
