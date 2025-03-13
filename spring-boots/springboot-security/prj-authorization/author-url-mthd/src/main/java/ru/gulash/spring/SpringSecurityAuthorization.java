@@ -14,7 +14,7 @@ public class SpringSecurityAuthorization {
 				-> http://localhost:9010/
 				
 				Пароли смотрим в ru/gulash/spring/security/SecurityConfigurationUrlRoles.java
-				"""
+            """
         );
     }
 }
