@@ -18,8 +18,10 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @Configuration
 public class SecurityConfiguration {
 
+    // todo bean другой
     @Bean
     public SecurityWebFilterChain springWebFilterChain( ServerHttpSecurity http ) {
+        // todo не много другое название методов
         return http
                 .authorizeExchange((exchanges)->exchanges
                         .pathMatchers( HttpMethod.GET, "/authenticated.html" ).authenticated()
@@ -35,6 +37,7 @@ public class SecurityConfiguration {
         return NoOpPasswordEncoder.getInstance();
     }
 
+    // todo другой bean
     @Bean
     public ReactiveUserDetailsService userDetailsService() {
         UserDetails user = User

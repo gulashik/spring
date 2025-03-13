@@ -9,10 +9,11 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 @SpringBootApplication
-public class WebFluxStarter {
+public class WebFluxSpringSecurity {
 
+    // todo не запускается. Оставил как пример настройки
     public static void main( String[] args ) {
-        SpringApplication.run( WebFluxStarter.class );
+        SpringApplication.run( WebFluxSpringSecurity.class );
     }
 
     @Bean
