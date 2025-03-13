@@ -1,10 +1,10 @@
-package ru.otus.spring.rest;
+package ru.gulash.spring.rest;
 
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.otus.spring.data.Person;
-import ru.otus.spring.data.PersonRepository;
+import ru.gulash.spring.data.Person;
+import ru.gulash.spring.data.PersonRepository;
 
 @RestController
 public class PersonController {

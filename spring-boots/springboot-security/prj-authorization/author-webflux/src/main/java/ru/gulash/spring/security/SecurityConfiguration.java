@@ -1,4 +1,4 @@
-package ru.otus.spring.security;
+package ru.gulash.spring.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

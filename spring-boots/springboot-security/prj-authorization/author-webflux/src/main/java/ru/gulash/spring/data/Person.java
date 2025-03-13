@@ -1,4 +1,4 @@
-package ru.otus.spring.data;
+package ru.gulash.spring.data;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

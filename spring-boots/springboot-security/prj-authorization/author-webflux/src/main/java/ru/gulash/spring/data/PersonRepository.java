@@ -1,4 +1,4 @@
-package ru.otus.spring.data;
+package ru.gulash.spring.data;
 
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
 import org.springframework.stereotype.Repository;
