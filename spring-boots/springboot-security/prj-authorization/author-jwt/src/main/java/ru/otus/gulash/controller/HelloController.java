@@ -1,4 +1,4 @@
-package ru.otus.security.jwt.controller;
+package ru.otus.gulash.controller;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,10 +14,10 @@ public class HelloController {
 
     @GetMapping("/hello")
     public String hello( /*todo Authentication на вход*/Authentication authentication ) {
-        return "Hello, " + authentication.getName() + "!";
+        return "Hello, " + authentication.getName() + "!\n";
     }
 
-
+    // todo можем в контроллере получить JWT или Authentication
     @GetMapping("/userinfo")
     public String getUserInfo(
         /*todo Authentication на вход, так же будет содержать JWT в SecurityContextHolder.getContext().getAuthentication().getPrincipal()*/
@@ -33,11 +33,11 @@ public class HelloController {
         res.append("From JWT. Username: ").append(username)
             .append(", Roles: ").append(roles)
             .append(", Authorities: ").append(authorities);
-
         res.append("\n");
 
         res.append("From Authentication. Username: ").append( ((Jwt)SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getClaim("sub").toString() )
         .append(", Authorities: ").append(authentication.getAuthorities());
+        res.append("\n");
 
         System.out.println(res);
         return res.toString();
