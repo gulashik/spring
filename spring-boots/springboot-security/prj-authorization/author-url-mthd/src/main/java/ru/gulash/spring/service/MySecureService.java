@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.access.prepost.PreFilter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -44,8 +45,8 @@ public class MySecureService {
         authentication — предоставляет доступ к объекту Authentication.
     */
     //@PreAuthorize("hasRole('ROLE_USER') && {new java.util.Random().nextBoolean()}")
-    @PreAuthorize("hasRole('USER')") // или так @PreAuthorize("hasRole('ROLE_USER')")
-    public String onlyUser() {
+    @PreAuthorize("hasRole('USER') && hasPermission(#userDetails,'READ')") // или так @PreAuthorize("hasRole('ROLE_USER')")
+    public String onlyUser(UserDetails userDetails) {
         return "Congratulations! @PreAuthorize has access to the user";
     }
     // #userId == authentication.principal.id — метод доступен только тому пользователю, чей ID совпадает с переданным параметром userId.

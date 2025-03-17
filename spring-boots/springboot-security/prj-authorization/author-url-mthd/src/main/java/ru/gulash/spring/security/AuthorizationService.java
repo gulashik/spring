@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+// todo Кастомная проверка на роли
 //@Service // можно не ставить тут пока не нужно
 public class AuthorizationService {
     public AuthorizationManager<RequestAuthorizationContext> hasAuthorizationGrant(String role) {

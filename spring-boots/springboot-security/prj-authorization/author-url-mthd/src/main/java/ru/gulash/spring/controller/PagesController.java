@@ -62,7 +62,7 @@ public class PagesController {
         System.out.println(userDetails.getUsername());
 
         try {
-            String s = mySecureService.onlyUser();
+            String s = mySecureService.onlyUser(userDetails);
             System.out.println("random fired " + s);
         }
         catch (Exception e) {
