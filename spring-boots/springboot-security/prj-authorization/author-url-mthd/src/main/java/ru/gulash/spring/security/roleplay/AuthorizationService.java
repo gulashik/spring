@@ -1,9 +1,8 @@
-package ru.gulash.spring.security;
+package ru.gulash.spring.security.roleplay;
 
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 

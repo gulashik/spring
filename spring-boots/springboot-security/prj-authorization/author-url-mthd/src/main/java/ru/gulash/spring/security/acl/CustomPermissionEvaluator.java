@@ -1,10 +1,7 @@
-package ru.gulash.spring.security;
+package ru.gulash.spring.security.acl;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.PermissionEvaluator;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.core.Authentication;
 
 import java.io.Serializable;
@@ -12,15 +9,6 @@ import java.io.Serializable;
 // todo Для того чтобы использовать hasPermission, необходимо настроить PermissionEvaluator.
 @Configuration
 public class CustomPermissionEvaluator implements PermissionEvaluator/*todo наследуемся*/ {
-
-    // todo Добавляем bean текущего класса в MethodSecurityExpressionHandler
-    @Bean
-    public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
-        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
-        expressionHandler.setPermissionEvaluator(new CustomPermissionEvaluator());
-
-        return expressionHandler;
-    }
 
     // todo будет вызываться, например через @PreAuthorize("hasRole('USER') && hasPermission(#userDetails,'READ')")
     @Override
@@ -46,4 +34,5 @@ public class CustomPermissionEvaluator implements PermissionEvaluator/*todo на
         // Этот метод используется, если проверка прав осуществляется по ID объекта
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
 }

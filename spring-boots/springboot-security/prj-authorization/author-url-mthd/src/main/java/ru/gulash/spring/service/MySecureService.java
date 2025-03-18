@@ -87,7 +87,10 @@ public class MySecureService {
     //  Обязательно НА ВХОД нужна MUTABLE коллекция, т.к. она будет модифицироваться
     //  filterObject представляет собой каждый элемент коллекции
     //  @myService.methodName(X,Y) используем внешний сервис
-    @PreFilter("filterObject.equals(authentication.name)")
+    @PreFilter(
+        value = "filterObject.equals(authentication.name)",
+        filterTarget = "lst" // todo если коллекций несколько
+    )
     // @PreFilter("filterObject.owner == authentication.name") // если сложный тип можно использовать поля filterObject.filedName
     // @PreFilter("hasRole('ADMIN') or filterObject.owner == authentication.name") // если сложный тип можно использовать поля filterObject.filedName
     // @PreFilter("@mySecurityService.canAccessDocument(filterObject, authentication.principal)")
