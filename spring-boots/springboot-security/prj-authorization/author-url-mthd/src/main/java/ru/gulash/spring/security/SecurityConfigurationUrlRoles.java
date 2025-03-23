@@ -3,11 +3,14 @@ package ru.gulash.spring.security;
 import org.springframework.context.annotation.AdviceMode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.AnonymousConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
@@ -40,21 +43,27 @@ public class SecurityConfigurationUrlRoles {
                 .requestMatchers("/manager").hasAnyRole("MANAGER")
                 .requestMatchers("/user").hasAnyRole("USER") // todo без префикса ROLE_ = Role
                 //.requestMatchers("/user").hasAnyAuthority("ROLE_USER") // todo с префиксом ROLE_ = Authority
-                .requestMatchers( "/admin" ).access(new AuthorizationService().hasAuthorizationGrant("ADMIN")) // todo можно сделать кастомную проверку
-                //.requestMatchers( "/admin" ).hasAnyRole( "ADMIN" )
+                //.requestMatchers( "/admin" ).access(new AuthorizationService().hasAuthorizationGrant("ADMIN")) // todo можно сделать кастомную проверку
+                .requestMatchers( "/admin" ).hasAnyRole( "ADMIN" )
 
                 .anyRequest().authenticated()
                 //.anyRequest().denyAll()
             )
-            /*.anonymous( // перенастройка анонимного пользователя если нужно
+            .anonymous( // перенастройка анонимного пользователя если нужно
                 (AnonymousConfigurer<HttpSecurity> anonConfig) ->
                     anonConfig
                      .principal("guest") // Имя principal для анонимного пользователя
                     .authorities("ROLE_GUEST") // Роли для анонимного пользователя
-            )*/
+            )
             .formLogin(Customizer.withDefaults())
         ;
         return http.build();
+    }
+
+    // todo Указываем нужную иерархию
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("ROLE_ADMIN > ROLE_MANAGER > ROLE_USER");
     }
 
     @Bean
@@ -75,6 +84,5 @@ public class SecurityConfigurationUrlRoles {
             .withUsername("manager").password("manager").roles("MANAGER")
             .build());
         return new InMemoryUserDetailsManager(users);
-
     }
 }

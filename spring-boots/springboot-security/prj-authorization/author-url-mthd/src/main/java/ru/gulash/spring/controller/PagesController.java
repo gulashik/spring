@@ -63,10 +63,10 @@ public class PagesController {
 
         try {
             String s = mySecureService.onlyUser(userDetails);
-            System.out.println("random fired " + s);
+            System.out.println("get - " + s);
         }
         catch (Exception e) {
-            System.out.println("random not fired ");
+            System.out.println("error ");
             return "error";
         }
 

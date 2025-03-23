@@ -45,7 +45,7 @@ public class MySecureService {
         authentication — предоставляет доступ к объекту Authentication.
     */
     //@PreAuthorize("hasRole('ROLE_USER') && {new java.util.Random().nextBoolean()}")
-    @PreAuthorize("hasRole('USER') && hasPermission(#userDetails,'READ')") // или так @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasRole('USER') && hasPermission(#userDetails,'READ') && @mySecureService.canAccessDocument('X')")
     public String onlyUser(UserDetails userDetails) {
         return "Congratulations! @PreAuthorize has access to the user";
     }
@@ -54,7 +54,12 @@ public class MySecureService {
     public void userSpecificMethod(Long userId) {
         System.out.println("This method is only for the user with ID: " + userId);
     }
-
+    // todo использование отдельного метода из SpEL
+    public boolean canAccessDocument(String document) {
+        // Пример использования
+        //  @PreAuthorize("hasRole('USER') && hasPermission(#userDetails,'READ') && @mySecureService.canAccessDocument('X')")
+        return true;
+    }
 
     // todo @PostAuthorize - проверяет условие после выполнения метода.
     //  Можно использовать SpEL(см. выше примеры из @PreAuthorize)

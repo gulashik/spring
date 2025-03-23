@@ -34,5 +34,4 @@ public class CustomPermissionEvaluator implements PermissionEvaluator/*todo на
         // Этот метод используется, если проверка прав осуществляется по ID объекта
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
 }

@@ -11,6 +11,7 @@ public class AclConfig {
     @Bean
     public MethodSecurityExpressionHandler methodSecurityExpressionHandler() {
         DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+        // todo своя реализация hasPermission для @Pre/Post аннотаций
         expressionHandler.setPermissionEvaluator(new CustomPermissionEvaluator());
 
         return expressionHandler;
