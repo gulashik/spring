@@ -94,6 +94,7 @@ public class SecurityFilterConfiguration {
             .rememberMe(rm -> rm.key("AnyKey") // Секретный ключ для HMAC при создании подписи токена
                 .tokenValiditySeconds(600)
             )
+            // todo Настройка по logout-у
             .logout(
                 (logout) ->
                     logout
