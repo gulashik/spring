@@ -1,0 +1,63 @@
+application:
+    source:
+      mongo: true # источником будем CSV и Mongo DB
+
+spring:
+  batch:
+    job:
+      enabled: false #  default - true todo Отключили автовыполнение job-ов при старте
+
+#  main:
+#    allow-circular-references: true
+
+  shell:
+    interactive:
+      enabled: true
+    noninteractive:
+      enabled: false
+
+    # todo убирает ошибку когда в Spring Shell и Embedded Mongo есть бин "version"
+    #  The bean 'version', defined in class path resource [org/springframework/shell/boot/StandardCommandsAutoConfiguration.class],
+    #  could not be registered. A bean with that name has already been defined in class path resource
+    #  [de/flapdoodle/embed/mongo/spring/autoconfigure/EmbeddedMongoAutoConfiguration.class] and overriding is disabled.
+    command:
+      version:
+        enabled: false
+
+  data:
+    mongodb:
+      host: localhost
+      port: 0
+      database: SpringBatchExampleDB
+
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.0.2
+
+mongock:
+  runner-type: "InitializingBean"
+  change-logs-scan-package:
+    - ru.otus.example.springbatch.chandgelogs
+  mongo-db:
+    write-concern:
+      journal: false
+    read-concern: local
+
+app:
+  ages-count-to-add: 1
+  input-file: entries.csv
+  output-file: output.dat
+
+#debug: true
