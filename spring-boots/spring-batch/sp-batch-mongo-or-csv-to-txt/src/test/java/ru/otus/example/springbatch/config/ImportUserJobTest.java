@@ -8,6 +8,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.JobRepositoryTestUtils;
+import org.springframework.batch.test.StepScopeTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,7 +24,7 @@ import static ru.otus.example.springbatch.config.StepConfig.INPUT_FILE_NAME;
 import static ru.otus.example.springbatch.config.StepConfig.OUTPUT_FILE_NAME;
 
 @SpringBootTest
-@SpringBatchTest
+@SpringBatchTest // todo для тестов по SpringBatch
 class ImportUserJobTest {
 
     private static final String TEST_INPUT_FILE_NAME = "test-entries.csv";
@@ -31,14 +32,15 @@ class ImportUserJobTest {
     private static final String TEST_OUTPUT_FILE_NAME = "test-output.dat";
 
     @Autowired
-    private JobLauncherTestUtils jobLauncherTestUtils;
+    private JobLauncherTestUtils jobLauncherTestUtils; // todo тестовый JobLauncher где уже есть ОДНА джоба
 
     @Autowired
-    private JobRepositoryTestUtils jobRepositoryTestUtils;
+    private JobRepositoryTestUtils jobRepositoryTestUtils; // todo тестовый JobRepository
+
 
     @BeforeEach
     void clearMetaData() {
-        jobRepositoryTestUtils.removeJobExecutions();
+        jobRepositoryTestUtils.removeJobExecutions(); // todo чистка JobRepository перед тестами
     }
 
     @Test

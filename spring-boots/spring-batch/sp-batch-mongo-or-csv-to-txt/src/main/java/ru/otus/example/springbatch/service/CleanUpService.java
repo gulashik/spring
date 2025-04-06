@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class CleanUpService {
 
-    @SuppressWarnings("unused")
     public void cleanUp() throws Exception {
         log.info("Выполняю завершающие мероприятия...");
         Thread.sleep(1000);

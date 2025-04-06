@@ -12,9 +12,9 @@ spring:
 
   shell:
     interactive:
-      enabled: true
+      enabled: true # todo true - запуск SpringShell для возможности ввода команд
     noninteractive:
-      enabled: false
+      enabled: false  # todo true - все CLi параметры при запуске SpringShell считать своими. Не всегда это нужно.
 
     # todo убирает ошибку когда в Spring Shell и Embedded Mongo есть бин "version"
     #  The bean 'version', defined in class path resource [org/springframework/shell/boot/StandardCommandsAutoConfiguration.class],
