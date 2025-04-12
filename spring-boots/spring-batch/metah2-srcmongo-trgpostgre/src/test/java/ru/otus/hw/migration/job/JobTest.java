@@ -32,14 +32,14 @@ import static ru.otus.hw.migration.job.Job.MIGRATE_JOB_NAME;
 
 
 @SpringBootTest
-@SpringBatchTest
+@SpringBatchTest// todo нужно указать
 @Testcontainers
 class JobTest {
     @Autowired
-    private JobLauncherTestUtils jobLauncherTestUtils;
+    private JobLauncherTestUtils jobLauncherTestUtils; // todo для тестов
 
     @Autowired
-    private JobRepositoryTestUtils jobRepositoryTestUtils;
+    private JobRepositoryTestUtils jobRepositoryTestUtils; // todo для тестов
 
     @Autowired
     private JpaAuthorRepository jpaAuthorRepository;
@@ -76,7 +76,7 @@ class JobTest {
 
     @Test
     void testJob() throws Exception {
-        // Job
+        // todo Job уже есть один
         final Job job = jobLauncherTestUtils.getJob();
 
         assertThat(job).isNotNull()

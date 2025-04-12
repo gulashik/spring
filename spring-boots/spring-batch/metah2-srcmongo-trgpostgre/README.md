@@ -56,3 +56,8 @@ application.yml - spring.liquibase</br>
 Использование JobLauncher, получаем JobExecution</br>
 [Command.java](src/main/java/ru/otus/hw/command/Command.java)
 
+Item, Step, Job</br>
+[migration](src/main/java/ru/otus/hw/migration)
+
+Test-ы</br>
+[JobTest.java](src/test/java/ru/otus/hw/migration/job/JobTest.java)
