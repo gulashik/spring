@@ -1,19 +1,15 @@
-package ru.otus.hw.config;
+package ru.otus.hw.config.postgre;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.PersistenceContext;
-import liquibase.integration.spring.SpringLiquibase;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
@@ -24,48 +20,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
-@EnableBatchProcessing
+//@EnableBatchProcessing // можно не указывать
 @EnableJpaRepositories(
-    basePackages = {"ru.otus.hw.model.targetdb.entity","ru.otus.hw.repositories"},
-    entityManagerFactoryRef = "postgresEntityManagerFactory",
-    transactionManagerRef = "postgresTransactionManager"
+    basePackages = {
+        "ru.otus.hw.model.targetdb.entity", // todo где лежат JPA сущности
+        "ru.otus.hw.repositories" // todo где лежат JPA репозитории
+    },
+    entityManagerFactoryRef = "postgresEntityManagerFactory", // todo создали сами
+    transactionManagerRef = "postgresTransactionManager" // todo создали сами
 )
-public class DataSourceConfig {
-
-    // H2 для Spring Batch метаданных
-    @Primary
-    @Bean
-    @ConfigurationProperties(prefix = "spring.datasource")
-    public DataSourceProperties dataSourceProperties() {
-        return new DataSourceProperties();
-    }
-
-    @Primary
-    @Bean(name = "dataSource")
-    public DataSource dataSource() {
-        return dataSourceProperties().initializeDataSourceBuilder().build();
-    }
-
-    @Primary
-    @Bean(name = "transactionManager")
-    public PlatformTransactionManager transactionManager() {
-        return new DataSourceTransactionManager(dataSource());
-    }
+public class PostgreDataSourceConfig {
 
     // PostgreSQL для целевых данных
+    // todo DataSourceProperties -> DataSource
     @Bean
-    @ConfigurationProperties(prefix = "spring.target-datasource")
+    @ConfigurationProperties(prefix = "spring.target-datasource") // todo подтягиваем из application.yml
     public DataSourceProperties postgresDataSourceProperties() {
         return new DataSourceProperties();
     }
 
+    // todo DataSource -> EntityManagerFactory
     @Bean(name = "postgresDataSource")
     @Qualifier("postgresDataSource")
     public DataSource postgresDataSource() {
         return postgresDataSourceProperties().initializeDataSourceBuilder().build();
     }
 
-    // Явная настройка EntityManagerFactoryBuilder
+    // todo Явная настройка EntityManagerFactoryBuilder -> EntityManagerFactory
     @Bean
     public EntityManagerFactoryBuilder entityManagerFactoryBuilder() {
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
@@ -75,52 +56,43 @@ public class DataSourceConfig {
         return new EntityManagerFactoryBuilder(vendorAdapter, new HashMap<>(), null);
     }
 
+    // todo EntityManagerFactory = DataSource+EntityManagerFactoryBuilder
     @Bean(name = "postgresEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean postgresEntityManagerFactory(
         EntityManagerFactoryBuilder builder,
-        @Qualifier("postgresDataSource") DataSource dataSource
+        @Qualifier("postgresDataSource") DataSource dataSource // явно нужный postgresDataSource
     ) {
         return builder
             .dataSource(dataSource)
-            .packages("ru.otus.hw.model.targetdb.entity") // Указываем пакеты для сканирования сущностей
+            .packages("ru.otus.hw.model.targetdb.entity") // todo Указываем пакеты для сканирования сущностей
             .persistenceUnit("postgres")
-            .properties(additionalJpaProperties()) // Можно добавить дополнительные свойства, если нужно
+            // todo Можно добавить дополнительные свойства, если нужно. Свойства указаны в application.yml - spring.jpa
+            //.properties(additionalJpaProperties())
             .build();
     }
 
-    private Map<String, String> additionalJpaProperties() {
+/*    private Map<String, String> additionalJpaProperties() {
         Map<String, String> properties = new HashMap<>();
         properties.put("hibernate.hbm2ddl.auto", "none"); // или другое значение в зависимости от ваших потребностей
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         // Можно добавить и другие свойства
         return properties;
-    }
+    }*/
 
-
+    // todo TransactionManager
     @Bean(name = "postgresTransactionManager")
     public PlatformTransactionManager postgresTransactionManager(
-        @Qualifier("postgresEntityManagerFactory") EntityManagerFactory entityManagerFactory
+        @Qualifier("postgresEntityManagerFactory") EntityManagerFactory entityManagerFactory // todo явно указываем
     ) {
         return new JpaTransactionManager(entityManagerFactory);
     }
 
+    // todo EntityManager
     @Bean(name = "postgresEntityManager")
     @PersistenceContext(unitName = "postgresEntityManagerFactory")
     public EntityManager postgresEntityManager(
-        @Qualifier("postgresEntityManagerFactory") EntityManagerFactory entityManagerFactory
+        @Qualifier("postgresEntityManagerFactory") EntityManagerFactory entityManagerFactory // todo явно указываем
     ) {
         return entityManagerFactory.createEntityManager();
     }
-
-    @Bean
-    public SpringLiquibase liquibase(
-        @Qualifier("postgresDataSource") DataSource dataSource
-    ) {
-        SpringLiquibase liquibase = new SpringLiquibase();
-        liquibase.setDataSource(dataSource);
-        liquibase.setChangeLog("classpath:db/changelog/db.changelog-master.yaml");
-
-        return liquibase;
-    }
-
 }

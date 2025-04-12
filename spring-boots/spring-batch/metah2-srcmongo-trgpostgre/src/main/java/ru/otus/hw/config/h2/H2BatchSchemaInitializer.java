@@ -1,4 +1,4 @@
-package ru.otus.hw.config;
+package ru.otus.hw.config.h2;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,12 +9,12 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import javax.sql.DataSource;
 
 @Configuration
-public class BatchSchemaInitializer {
+public class H2BatchSchemaInitializer {
 
     private final DataSource dataSource;
 
     // todo DataSource по H2. application.yml - spring.datasource
-    public BatchSchemaInitializer(DataSource dataSource) {
+    public H2BatchSchemaInitializer(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
