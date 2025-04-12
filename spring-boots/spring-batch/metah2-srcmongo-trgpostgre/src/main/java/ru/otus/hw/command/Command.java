@@ -22,6 +22,7 @@ import java.util.List;
 public class Command {
     private final Job migrateJob;
 
+    // todo привязка
     private final JobLauncher jobLauncher;
 
     private final EntityManager entityManager;
@@ -38,6 +39,7 @@ public class Command {
 
     @ShellMethod(value = "startMigration", key = "sm")
     public void startMigration() throws Exception {
+        // todo используем
         final JobExecution jobExecution = jobLauncher.run(migrateJob, new JobParameters());
         System.out.println(jobExecution);
     }

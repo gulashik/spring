@@ -1,8 +1,5 @@
 package ru.otus.hw.config;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -16,6 +13,7 @@ public class BatchSchemaInitializer {
 
     private final DataSource dataSource;
 
+    // todo DataSource по H2. application.yml - spring.datasource
     public BatchSchemaInitializer(DataSource dataSource) {
         this.dataSource = dataSource;
     }
@@ -23,6 +21,7 @@ public class BatchSchemaInitializer {
     @Bean
     public DataSourceInitializer dataSourceInitializer() {
         ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+        // todo где лежит скрипты наката схемы БД
         populator.addScript(new ClassPathResource("org/springframework/batch/core/schema-h2.sql"));
         populator.setContinueOnError(true);
 
