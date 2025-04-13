@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="SpringBatchJobManualStart" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ALTERNATIVE_JRE_PATH" value="jbr-17" />
-    <module name="sp-batch-mongo-or-csv-to-txt" />
+    <module name="mongo-or-csv-to-txt" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="ru.otus.example.springbatch.Main" />
     <extension name="coverage">
       <pattern>
