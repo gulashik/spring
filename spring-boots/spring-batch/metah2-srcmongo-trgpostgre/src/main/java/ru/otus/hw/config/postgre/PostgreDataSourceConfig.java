@@ -57,7 +57,7 @@ public class PostgreDataSourceConfig {
     }
 
     // todo EntityManagerFactory = DataSource+EntityManagerFactoryBuilder
-    @Bean(name = "postgresEntityManagerFactory")
+    @Bean(name = "postgresEntityManagerFactory") // todo вверху в @EnableJpaRepositories
     public LocalContainerEntityManagerFactoryBean postgresEntityManagerFactory(
         EntityManagerFactoryBuilder builder,
         @Qualifier("postgresDataSource") DataSource dataSource // явно нужный postgresDataSource
@@ -80,7 +80,7 @@ public class PostgreDataSourceConfig {
     }*/
 
     // todo TransactionManager
-    @Bean(name = "postgresTransactionManager")
+    @Bean(name = "postgresTransactionManager") // todo вверху в @EnableJpaRepositories
     public PlatformTransactionManager postgresTransactionManager(
         @Qualifier("postgresEntityManagerFactory") EntityManagerFactory entityManagerFactory // todo явно указываем
     ) {
