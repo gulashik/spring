@@ -14,18 +14,20 @@ public class AuthorItemReader {
 
     private final MongoAuthorRepository mongoAuthorRepository;
 
-    public AuthorItemReader(MongoAuthorRepository mongoAuthorRepository) {
+    public AuthorItemReader(
+        MongoAuthorRepository mongoAuthorRepository // todo репозиторий откуда читаем
+    ) {
         this.mongoAuthorRepository = mongoAuthorRepository;
     }
 
     @Bean
     public RepositoryItemReader<Author> authorReader() {
         return new RepositoryItemReaderBuilder<Author>()
-            .name("authorReader")
-            .repository(mongoAuthorRepository)
-            .methodName("findAll")
-            .pageSize(10)
-            .sorts(new HashMap<>())
+            .name("authorReader") // уникальное имя reader
+            .repository(mongoAuthorRepository) // репозиторий для чтения данных.
+            .methodName("findAll") // метод репозитория, который будет вызываться для получения данных
+            .pageSize(10) // размер страницы для постраничного чтения
+            .sorts(new HashMap<>()) // пустая Map сортировки, что означает использование сортировки по умолчанию
             .build();
     }
 }

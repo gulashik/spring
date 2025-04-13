@@ -1,14 +1,18 @@
 package ru.otus.hw.migration.job;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import ru.otus.hw.migration.step.*;
 
+@Slf4j
 @Configuration
 public class Job {
     public static final String MIGRATE_JOB_NAME = "migrateJob";
@@ -88,6 +92,20 @@ public class Job {
             .next(bookStep.dropTempSeqBook())
             .next(commentStep.dropTempSeqComment())
 
+            // todo Listener-ы можно врезаться в нужный момент
+            .listener(
+                new JobExecutionListener() {
+                    @Override
+                    public void beforeJob(@NonNull JobExecution jobExecution) {
+                        log.info("Начало job");
+                    }
+
+                    @Override
+                    public void afterJob(@NonNull JobExecution jobExecution) {
+                        log.info("Конец job");
+                    }
+                }
+            )
             .build();
         /*
         SELECT * FROM BATCH_JOB_EXECUTION ;
