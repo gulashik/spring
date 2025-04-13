@@ -54,7 +54,7 @@ spring:
 
   # Liquibase
   liquibase:
-    enabled: true
+    enabled: true # todo смысла нет т.к. читаю в LiquibasePropertiesCustom и передаю в ручную
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
 # Embedded Mongo server

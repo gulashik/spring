@@ -3,10 +3,14 @@ package ru.otus.hw;
 import com.github.cloudyrock.spring.v5.EnableMongock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @EnableMongock
 @EnableMongoRepositories
+//@EnableConfigurationProperties//({ru.otus.hw.config.postgre.LiquibaseProperties.class})
+@ConfigurationPropertiesScan//("ru.otus.hw.config.postgre")
 @SpringBootApplication
 public class Application {
     public static void main(String[] args) {

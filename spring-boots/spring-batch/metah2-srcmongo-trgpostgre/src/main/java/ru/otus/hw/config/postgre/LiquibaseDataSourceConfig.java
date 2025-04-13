@@ -13,12 +13,15 @@ public class LiquibaseDataSourceConfig {
     // todo Postgres + Liquibase
     @Bean
     public SpringLiquibase liquibase(
-        @Qualifier("postgresDataSource") DataSource dataSource
+        @Qualifier("postgresDataSource") DataSource dataSource,
+        LiquibasePropertiesCustom liquibasePropertiesCustom
     ) {
         SpringLiquibase liquibase = new SpringLiquibase();
         liquibase.setDataSource(dataSource);
-        liquibase.setChangeLog("classpath:db/changelog/db.changelog-master.yaml");
+        liquibase.setChangeLog(liquibasePropertiesCustom.changeLog());
+        liquibase.setChangeLogParameters(liquibasePropertiesCustom.parameters()); // пока ничего не добавил
 
         return liquibase;
     }
 }
+

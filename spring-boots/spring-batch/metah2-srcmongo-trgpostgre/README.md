@@ -48,6 +48,8 @@ repository</br>
 ---
 ##### Liquibase
 application.yml - spring.liquibase</br>
+[LiquibasePropertiesCustom.java](src/main/java/ru/otus/hw/config/postgre/LiquibasePropertiesCustom.java)</br>
+[LiquibaseDataSourceConfig.java](src/main/java/ru/otus/hw/config/postgre/LiquibaseDataSourceConfig.java)</br>
 [changelog](src/main/resources/db/changelog)
 
 
