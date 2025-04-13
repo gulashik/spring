@@ -117,9 +117,9 @@ public class AuthorStep {
             .reader(reader)
             .processor(processor)
             .writer(writer)
-            .allowStartIfComplete(true)
+            .allowStartIfComplete(true) // позволяет перезапускать шаг, даже если он уже был успешно выполнен
 
-            // todo можно перехватить момент выполнения
+        // todo можно перехватить момент выполнения
             .listener(
                 new ItemReadListener<>() {
                     public void beforeRead() {
