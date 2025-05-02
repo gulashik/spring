@@ -1,0 +1,14 @@
+#spring:
+
+# Количество продуктов, генерируемых за одну итерацию
+product:
+  batch:
+    size: 3
+
+# Настройки логирования
+logging:
+  level:
+    root: INFO
+    ru.otus.hw: DEBUG
+  pattern:
+    console: '%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
