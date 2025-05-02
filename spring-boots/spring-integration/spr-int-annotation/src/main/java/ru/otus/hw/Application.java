@@ -7,8 +7,8 @@ import org.springframework.integration.config.EnableIntegration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableIntegration
-@IntegrationComponentScan
+@EnableIntegration // Включает поддержку Spring Integration
+@IntegrationComponentScan // Сканирует @MessagingGateway и @MessageEndpoint и т.п. (которые не должны быть бинами)
 @EnableScheduling
 public class Application {
 
