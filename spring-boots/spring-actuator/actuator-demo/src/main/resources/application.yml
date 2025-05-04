@@ -1,0 +1,71 @@
+# Конфигурация Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" # Включаем все эндпоинты Actuator
+        exclude: shutdown # Выключаем чувствительные эндпоинты
+      base-path: /actuator # Базовый путь для Actuator эндпоинтов
+  endpoint:
+    health: # Включение подробной информации о состоянии
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true # дополнительные данные liveness, readiness и startup через /actuator/health
+  metrics:
+    enable:
+      all: true # Включение всех групп метрик
+
+  prometheus: # Prometheus endpoint
+    metrics:
+      export:
+        enabled: true
+  info:
+    git:
+      enabled: true # Настройка вывода информации о git в info эндпоинте
+    build:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+
+  traces: # Настройка включения HTTP-трассировки
+    http:
+      include:
+        - request-headers
+        - response-headers
+        - remote-address
+        - session-id
+
+# Пользовательская информация для info эндпоинта
+info:
+  app:
+    name: Spring Boot Actuator Demo
+    description: Демонстрация возможностей Spring Boot Actuator
+    version: 1.0.0
+    contact:
+      email: demo@example.com
+      phone: "+1234567890"
+
+# Настройка данных для подключения к H2
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ""
+  h2:
+    console:
+      enabled: true
+
+# Конфигурация логирования
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    ru.gulash.actuatordemo: DEBUG
+
+
+
+
