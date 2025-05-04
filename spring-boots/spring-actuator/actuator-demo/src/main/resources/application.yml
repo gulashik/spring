@@ -3,7 +3,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*" # Включаем все эндпоинты Actuator
+        include: "*" # Включаем все эндпоинты Actuator * - все или списком health,info,metrics
         exclude: shutdown # Выключаем чувствительные эндпоинты
       base-path: /actuator # Базовый путь для Actuator эндпоинтов
   endpoint:
