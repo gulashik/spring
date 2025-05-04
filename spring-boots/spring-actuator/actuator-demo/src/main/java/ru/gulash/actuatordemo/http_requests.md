@@ -35,3 +35,11 @@ curl --request GET -sL \
      --url 'http://localhost:8080/api/metrics/manual/some_input'
 ```
 
+Эндпоинты для пользователей</br>
+
+GET /api/users - Получить всех пользователей
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/api/users'
+```
+
