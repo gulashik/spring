@@ -10,7 +10,18 @@ curl --request GET -sL \
      | jq -C
 ```
 
-GET /actuator/health - Состояние здоровья приложения 
+POST /actuator/shutdown - Выключение приложения
+```shell
+curl -X POST http://localhost:8080/actuator/shutdown
+```
+
+GET /actuator/custom
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/custom' | jq -C
+```
+
+GET /actuator/health — Состояние здоровья приложения 
 ```shell
 curl --request GET -sL \
      --url 'http://localhost:8080/actuator/health' | jq -C
@@ -40,13 +51,19 @@ curl --request GET -sL \
      --url 'http://localhost:8080/actuator/env'  | jq -C
 ```
 
-GET /actuator/loggers - Информация о логгерах и их уровнях
+GET /actuator/scheduledtasks - Информация о запланированных задачах
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/scheduledtasks'  | jq -C
+```
+
+GET /actuator/loggers — Информация о логгерах и их уровнях
 ```shell
 curl --request GET -sL \
      --url 'http://localhost:8080/actuator/loggers'  | jq -C
 ```
 
-GET /actuator/threaddump - Информация о всех потоках приложения
+GET /actuator/threaddump — Информация о всех потоках приложения
 ```shell
 curl --request GET -sL \
      --url 'http://localhost:8080/actuator/threaddump'  | jq -C
@@ -56,4 +73,22 @@ GET /actuator/mappings - Информация о всех маппингах к�
 ```shell
 curl --request GET -sL \
      --url 'http://localhost:8080/actuator/mappings'  | jq -C
+```
+
+GET /actuator/beans — Список всех бинов и их зависимостей
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/beans'  | jq -C
+```
+
+GET /actuator/conditions - Информация о примененных условиях автоконфигурации
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/conditions'  | jq -C
+```
+
+GET /actuator/configprops - Конфигурационные свойства приложения
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/configprops'  | jq -C
 ```

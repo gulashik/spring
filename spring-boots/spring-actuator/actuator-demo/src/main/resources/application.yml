@@ -4,7 +4,7 @@ management:
     web:
       exposure:
         include: "*" # Включаем все эндпоинты Actuator * - все или списком health,info,metrics
-        exclude: shutdown # Выключаем чувствительные эндпоинты
+        #exclude: shutdown # Выключаем чувствительные эндпоинты
       base-path: /actuator # Базовый путь для Actuator эндпоинтов
   endpoint:
     health: # Включение подробной информации о состоянии
@@ -12,10 +12,13 @@ management:
       show-components: always
       probes:
         enabled: true # дополнительные данные liveness, readiness и startup через /actuator/health
+    env:
+      show-values: always # показывать в /actuator/env значения вместо ***** Default: never
+    shutdown:
+      enabled: true # остановка приложения
   metrics:
     enable:
       all: true # Включение всех групп метрик
-
   prometheus: # Prometheus endpoint
     metrics:
       export:
@@ -29,7 +32,6 @@ management:
       enabled: true
     os:
       enabled: true
-
   traces: # Настройка включения HTTP-трассировки
     http:
       include:
