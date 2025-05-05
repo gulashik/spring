@@ -1,6 +1,8 @@
 package ru.otus.hw.config;
 
+
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.annotation.Router;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -11,12 +13,13 @@ import ru.otus.hw.service.ProductProcessorService;
 import java.util.Collection;
 
 /**
- * Конфигурация Spring Integration.
+ * Вариант 1 Конфигурация Spring Integration Flow Annotation.
  * Определяет Endpoint-ы для потока обработки продуктов.
  */
+@ConditionalOnProperty(name = "flow.dsl.enabled", havingValue = "false", matchIfMissing = true/*true*/)
 @RequiredArgsConstructor
 @Configuration
-public class IntegrationFlowConfig {
+public class IntegrationFlowAnnotationConfig {
 
     private final ProductProcessorService productProcessorService;
 
