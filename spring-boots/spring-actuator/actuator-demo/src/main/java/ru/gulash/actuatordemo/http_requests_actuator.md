@@ -27,6 +27,18 @@ curl --request GET -sL \
      --url 'http://localhost:8080/actuator/health' | jq -C
 ```
 
+GET /actuator/health/readiness — Состояние по readiness  
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/health/readiness' | jq -C
+```
+
+GET /actuator/health/liveness — Состояние по liveness  
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/health/liveness' | jq -C
+```
+
 GET /actuator/info - Информация о приложении
 ```shell
 curl --request GET -sL \
