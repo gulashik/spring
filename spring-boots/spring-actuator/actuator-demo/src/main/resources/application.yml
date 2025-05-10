@@ -6,6 +6,9 @@ management:
         include: "*" # Включаем все эндпоинты Actuator * - все или списком health,info,metrics
         #exclude: shutdown # Выключаем чувствительные эндпоинты
       base-path: /actuator # Базовый путь для Actuator эндпоинтов
+    jmx:
+      exposure:
+        include: "*" # spring.jmx.enabled + management.endpoints.jmx.exposure.include = Spring Bean регситруются как MBeans
   endpoint:
     health: # Включение подробной информации о состоянии
       show-details: always
@@ -17,6 +20,7 @@ management:
       # roles: admin # если используем авторизацию - роли которые могут получить доступ, если пусто то все авторизованные
     shutdown:
       enabled: true # остановка приложения
+  #server.port: 9090 # -1 = выключить всё; 9090 - конкретный порт
   metrics:
     enable:
       all: true # Включение всех групп метрик
@@ -27,6 +31,7 @@ management:
   info:
     git:
       enabled: true # Настройка вывода информации о git в info эндпоинте
+      mode: full
     build:
       enabled: true
     java:
@@ -61,6 +66,8 @@ spring:
   h2:
     console:
       enabled: true
+  jmx:
+    enabled: true # spring.jmx.enabled + management.endpoints.jmx.exposure.include = Spring Bean регситруются как MBeans
 
 # Конфигурация логирования
 logging:
