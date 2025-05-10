@@ -15,6 +15,7 @@ management:
       show-components: always
       probes:
         enabled: true # дополнительные данные liveness, readiness и startup через /actuator/health
+      enabled: true # true - default
     env:
       show-values: always # показывать в /actuator/env значения вместо ***** Default: never
       # roles: admin # если используем авторизацию - роли которые могут получить доступ, если пусто то все авторизованные

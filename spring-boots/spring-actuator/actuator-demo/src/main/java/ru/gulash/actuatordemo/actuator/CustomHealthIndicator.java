@@ -14,7 +14,8 @@ import java.util.Random;
  * для отображения в health эндпоинте.
  */
 @Component
-public class CustomHealthIndicator implements HealthIndicator {
+public class CustomHealthIndicator
+    implements HealthIndicator /* todo имплементируем */{
 
     private final Random random = new Random();
 
@@ -24,7 +25,7 @@ public class CustomHealthIndicator implements HealthIndicator {
      * @return объект Health с информацией о здоровье компонента
      */
     @Override
-    public Health health() {
+    public Health /*todo возврашщаем Health*/ health() {
         // Для демонстрации создаем случайное состояние здоровья
         if (random.nextInt(10) > 8) {
             return Health.down()
@@ -33,7 +34,7 @@ public class CustomHealthIndicator implements HealthIndicator {
                 .build();
         }
 
-        // Дополнительная детальная информация о состоянии
+        // todo Дополнительная детальная информация о состоянии
         Map<String, Object> details = new HashMap<>();
         details.put("version", "1.0.0");
         details.put("memory", Runtime.getRuntime().freeMemory());
