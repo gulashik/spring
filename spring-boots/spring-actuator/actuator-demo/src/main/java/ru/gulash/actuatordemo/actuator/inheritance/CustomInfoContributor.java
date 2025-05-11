@@ -1,4 +1,4 @@
-package ru.gulash.actuatordemo.actuator;
+package ru.gulash.actuatordemo.actuator.inheritance;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.actuate.info.Info;

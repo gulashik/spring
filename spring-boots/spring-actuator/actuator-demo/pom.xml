@@ -20,7 +20,7 @@
     </properties>
     
     <dependencies>
-        <!-- Core Spring Boot -->
+        <!-- todo Core Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -31,7 +31,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        
+
         <!-- todo Micrometer Prometheus Registry for metrics -->
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -49,10 +49,10 @@
             <scope>runtime</scope>
         </dependency>
         
-        <!-- Lombok для уменьшения шаблонного кода -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
             <optional>true</optional>
         </dependency>
         

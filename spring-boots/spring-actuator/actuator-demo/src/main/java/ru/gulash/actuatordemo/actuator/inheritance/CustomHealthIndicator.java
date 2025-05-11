@@ -1,4 +1,4 @@
-package ru.gulash.actuatordemo.actuator;
+package ru.gulash.actuatordemo.actuator.inheritance;
 
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
