@@ -1,0 +1,1 @@
+Проект для демонстрации по Spring Boot Actuator
