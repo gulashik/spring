@@ -3,6 +3,7 @@ package org.gualsh.demo.spdrest.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -88,7 +89,7 @@ public class Book {
      * Авторы книги.
      * Связь многие-ко-многим.
      */
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
         name = "book_authors",
         joinColumns = @JoinColumn(name = "book_id"),

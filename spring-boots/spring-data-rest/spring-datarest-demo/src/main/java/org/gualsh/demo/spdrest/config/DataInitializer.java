@@ -20,7 +20,7 @@ import java.time.LocalDate;
  * Заполняет базу данных тестовыми данными при запуске приложения.
  */
 @Configuration
-@Profile("dev")
+//@Profile("dev")
 public class DataInitializer {
 
     /**
@@ -98,7 +98,7 @@ public class DataInitializer {
             book1.setCategory(fiction);
             book1.setLanguage("Русский");
             book1.setPublisher("ACT");
-            book1.addAuthor(author1);
+            book1.getAuthors().add(author1); // Используем getAuthors().add() вместо addAuthor
             bookRepository.save(book1);
 
             Book book2 = new Book();
@@ -110,7 +110,7 @@ public class DataInitializer {
             book2.setCategory(fiction);
             book2.setLanguage("Русский");
             book2.setPublisher("ACT");
-            book2.addAuthor(author1);
+            book2.getAuthors().add(author1);
             bookRepository.save(book2);
 
             Book book3 = new Book();
@@ -122,7 +122,7 @@ public class DataInitializer {
             book3.setCategory(scienceFiction);
             book3.setLanguage("Английский");
             book3.setPublisher("Эксмо");
-            book3.addAuthor(author2);
+            book3.getAuthors().add(author2);
             bookRepository.save(book3);
 
             Book book4 = new Book();
@@ -134,7 +134,7 @@ public class DataInitializer {
             book4.setCategory(programming);
             book4.setLanguage("Английский");
             book4.setPublisher("Питер");
-            book4.addAuthor(author3);
+            book4.getAuthors().add(author3);
             bookRepository.save(book4);
 
             Book book5 = new Book();
@@ -146,7 +146,7 @@ public class DataInitializer {
             book5.setCategory(programming);
             book5.setLanguage("Английский");
             book5.setPublisher("Диалектика");
-            book5.addAuthor(author4);
+            book5.getAuthors().add(author4);
             bookRepository.save(book5);
         };
     }
