@@ -1,0 +1,203 @@
+# Spring Data REST Demo - Примеры запросов
+# Файл для использования с инструментами типа curl, httpie или Postman
+
+### 1. Базовые операции CRUD
+
+## 1.1 Получение списка ресурсов
+GET http://localhost:8080/api
+Accept: application/json
+
+###
+
+## 1.2 Получение списка книг
+GET http://localhost:8080/api/books
+Accept: application/json
+
+###
+
+## 1.3 Получение конкретной книги по ID
+GET http://localhost:8080/api/books/1
+Accept: application/json
+
+###
+
+## 1.4 Создание новой книги
+POST http://localhost:8080/api/books
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Spring Data REST на практике",
+  "isbn": "978-1-234567-89-0",
+  "publicationDate": "2025-01-15",
+  "pageCount": 350,
+  "description": "Подробное руководство по использованию Spring Data REST",
+  "language": "Русский",
+  "publisher": "Технолитература"
+}
+
+###
+
+## 1.5 Обновление существующей книги
+PATCH http://localhost:8080/api/books/1
+Content-Type: application/json
+Accept: application/json
+
+{
+  "description": "Обновленное описание книги",
+  "pageCount": 680
+}
+
+###
+
+## 1.6 Удаление книги
+DELETE http://localhost:8080/api/books/6
+Accept: application/json
+
+### 2. Работа со связями между сущностями
+
+## 2.1 Привязка категории к книге
+PUT http://localhost:8080/api/books/6/category
+Content-Type: text/uri-list
+
+http://localhost:8080/api/categories/4
+
+###
+
+## 2.2 Добавление автора к книге
+PUT http://localhost:8080/api/books/6/authors
+Content-Type: text/uri-list
+
+http://localhost:8080/api/authors/3
+
+###
+
+## 2.3 Получение всех авторов книги
+GET http://localhost:8080/api/books/1/authors
+Accept: application/json
+
+###
+
+## 2.4 Получение всех книг автора
+GET http://localhost:8080/api/authors/1/books
+Accept: application/json
+
+### 3. Пагинация и сортировка
+
+## 3.1 Пагинация: получение первой страницы книг (5 книг на страницу)
+GET http://localhost:8080/api/books?page=0&size=5
+Accept: application/json
+
+###
+
+## 3.2 Пагинация: получение второй страницы книг (5 книг на страницу)
+GET http://localhost:8080/api/books?page=1&size=5
+Accept: application/json
+
+###
+
+## 3.3 Сортировка: получение книг, отсортированных по названию (по возрастанию)
+GET http://localhost:8080/api/books?sort=title,asc
+Accept: application/json
+
+###
+
+## 3.4 Сортировка: получение книг, отсортированных по дате публикации (по убыванию)
+GET http://localhost:8080/api/books?sort=publicationDate,desc
+Accept: application/json
+
+###
+
+## 3.5 Комбинированный запрос: пагинация + сортировка
+GET http://localhost:8080/api/books?page=0&size=3&sort=title,asc&sort=publicationDate,desc
+Accept: application/json
+
+### 4. Методы поиска
+
+## 4.1 Поиск книг по названию
+GET http://localhost:8080/api/books/search/byTitle?title=основание
+Accept: application/json
+
+###
+
+## 4.2 Поиск книг по категории
+GET http://localhost:8080/api/books/search/byCategoryName?categoryName=Programming
+Accept: application/json
+
+###
+
+## 4.3 Поиск книг по автору
+GET http://localhost:8080/api/books/search/byAuthorId?authorId=1
+Accept: application/json
+
+###
+
+## 4.4 Поиск книг по языку
+GET http://localhost:8080/api/books/search/byLanguage?language=Русский
+Accept: application/json
+
+###
+
+## 4.5 Поиск книг, опубликованных после указанной даты
+GET http://localhost:8080/api/books/search/publishedAfter?date=2000-01-01
+Accept: application/json
+
+###
+
+## 4.6 Поиск авторов по имени
+GET http://localhost:8080/api/authors/search/byFirstName?name=Роберт
+Accept: application/json
+
+###
+
+## 4.7 Поиск категорий по названию
+GET http://localhost:8080/api/categories/search/byName?name=Fiction
+Accept: application/json
+
+###
+
+## 4.8 Сложный поиск книг по нескольким критериям
+GET http://localhost:8080/api/books/search/byMultipleCriteria?title=код&categoryId=4&language=Английский
+Accept: application/json
+
+### 5. Проекции
+
+## 5.1 Получение книг с использованием проекции BookSummary
+GET http://localhost:8080/api/books?projection=bookSummary
+Accept: application/json
+
+###
+
+## 5.2 Получение конкретной книги с использованием проекции BookSummary
+GET http://localhost:8080/api/books/1?projection=bookSummary
+Accept: application/json
+
+###
+
+## 5.3 Получение авторов с использованием проекции AuthorWithBooks
+GET http://localhost:8080/api/authors?projection=authorWithBooks
+Accept: application/json
+
+###
+
+## 5.4 Получение конкретного автора с использованием проекции AuthorWithBooks
+GET http://localhost:8080/api/authors/1?projection=authorWithBooks
+Accept: application/json
+
+### 6. Кастомные эндпоинты
+
+## 6.1 Получение статистики по языкам книг
+GET http://localhost:8080/api/books/stats/by-language
+Accept: application/json
+
+###
+
+## 6.2 Фильтрация книг по нескольким параметрам
+GET http://localhost:8080/api/books/filter?language=Английский&publisher=Питер&minPages=400
+Accept: application/json
+
+###
+
+## 6.3 Получение рекомендаций по книгам
+GET http://localhost:8080/api/books/1/recommend
+Accept: application/json
