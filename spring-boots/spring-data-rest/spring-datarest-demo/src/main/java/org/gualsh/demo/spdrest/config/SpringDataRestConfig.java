@@ -11,11 +11,15 @@ import org.gualsh.demo.spdrest.model.Book;
 import org.gualsh.demo.spdrest.model.Category;
 import org.gualsh.demo.spdrest.repository.AuthorRepository;
 import org.gualsh.demo.spdrest.repository.BookRepository;
+import org.gualsh.demo.spdrest.validator.AuthorValidator;
+import org.gualsh.demo.spdrest.validator.BookValidator;
+import org.gualsh.demo.spdrest.validator.DeletionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.support.ConfigurableConversionService;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
+import org.springframework.data.rest.core.event.ValidatingRepositoryEventListener;
 import org.springframework.data.rest.core.mapping.ExposureConfiguration;
 import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
 import org.springframework.http.HttpMethod;
@@ -36,6 +40,8 @@ import java.util.List;
  * - разрешенные операции для сущностей
  * - CORS-настройки
  * - настройки сериализации/десериализации Jackson
+ * - настройки конвертации типов
+ * - настройки валидации сущностей
  */
 @Configuration
 public class SpringDataRestConfig {
@@ -216,8 +222,36 @@ public class SpringDataRestConfig {
                             ". Используйте формат 'Имя Фамилия'"
                     );
                 });
+            }
 
-                // Добавляем другие необходимые конвертеры здесь
+            /**
+             * Настраивает валидацию событий репозитория.
+             * Этот метод регистрирует валидаторы, которые будут применяться
+             * на разных этапах жизненного цикла сущностей.
+             *
+             * @param validatingListener слушатель событий валидации
+             */
+            @Override
+            public void configureValidatingRepositoryEventListener(ValidatingRepositoryEventListener validatingListener) {
+
+                // Регистрируем валидатор для книг перед созданием
+                // Это обеспечивает валидацию всех новых книг перед сохранением в БД
+                validatingListener.addValidator("beforeCreate", new BookValidator());
+
+                // Регистрируем валидатор для книг перед обновлением
+                // Это обеспечивает валидацию книг при их обновлении
+                validatingListener.addValidator("beforeSave", new BookValidator());
+
+                // Регистрируем валидатор для авторов перед созданием
+                validatingListener.addValidator("beforeCreate", new AuthorValidator());
+
+                // Регистрируем валидатор для авторов перед обновлением
+                validatingListener.addValidator("beforeSave", new AuthorValidator());
+
+                // Для событий, связанных с удалением, добавляем валидатор
+                // DeletionValidator проверяет, можно ли безопасно удалить сущность
+                // (например, запрещает удаление автора, у которого есть книги)
+                validatingListener.addValidator("beforeDelete", new DeletionValidator());
             }
 
             /**

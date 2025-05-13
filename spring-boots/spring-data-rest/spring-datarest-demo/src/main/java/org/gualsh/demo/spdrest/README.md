@@ -27,6 +27,10 @@ src/main/java/org/gualsh/demo/spdrest/
 ├── projection/                           # Проекции для REST API
 │   ├── AuthorWithBooks.java              # Проекция для автора с книгами
 │   └── BookSummary.java                  # Проекция для книги
+├── validator/                            
+│   ├── AuthorValidator.java              
+│   ├── BookValidator.java                
+│   └── DeletionValidator.java            
 └── repository/                           # Репозитории
     ├── AuthorRepository.java             # Репозиторий для автора
     ├── BookRepository.java               # Репозиторий для книги
