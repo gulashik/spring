@@ -201,3 +201,10 @@ Accept: application/json
 ## 6.3 Получение рекомендаций по книгам
 GET http://localhost:8080/api/books/1/recommend
 Accept: application/json
+
+
+###
+
+## 7.1
+GET  http://localhost:8080/api/authors/search/byFullName?name=Фёдор Достоевский
+Accept: application/json

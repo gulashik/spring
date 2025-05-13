@@ -5,25 +5,25 @@
 Этот проект демонстрирует использование Spring Data REST для автоматического создания REST API на основе репозиториев Spring Data JPA. 
 Приложение представляет собой простую библиотечную систему с сущностями Author (Автор), Book (Книга) и Category (Категория).
 
-## Структура проекта
+## Структура проекта в контексте Data Rest
 
 ```
 src/main/java/org/gualsh/demo/spdrest/
-├── SpringDataRestDemoApplication.java    # Главный класс приложения
+├── SpringDataRestDemoApplication.java    
 ├── config/                               # Конфигурационные классы
-│   ├── JpaConfig.java                    # Конфигурация JPA
-│   ├── OpenApiConfig.java                # Конфигурация OpenAPI
+│   ├── JpaConfig.java                    
+│   ├── OpenApiConfig.java                
 │   ├── SpringDataRestConfig.java         # Конфигурация Spring Data REST
-│   └── DataInitializer.java              # Инициализация тестовых данных
+│   └── DataInitializer.java              
 ├── controller/                           # Контроллеры
 │   ├── CustomBookController.java         # Расширение функциональности REST API
-│   └── HomeController.java               # Контроллер главной страницы
+│   └── HomeController.java               
 ├── eventhandler/                         # Обработчики событий
 │   └── BookEventHandler.java             # Обработчик событий для книг
-├── model/                                # Модели данных
-│   ├── Author.java                       # Модель автора
-│   ├── Book.java                         # Модель книги
-│   └── Category.java                     # Модель категории
+├── model/                                
+│   ├── Author.java                       
+│   ├── Book.java                         
+│   └── Category.java                     
 ├── projection/                           # Проекции для REST API
 │   ├── AuthorWithBooks.java              # Проекция для автора с книгами
 │   └── BookSummary.java                  # Проекция для книги
