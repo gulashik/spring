@@ -1,10 +1,10 @@
 spring:
-  # ????????? ???? ?????? PostgreSQL
+  # Настройки базы данных PostgreSQL
   datasource:
     url: jdbc:postgresql://localhost:5432/librarydb
     username: postgres
     password: postgres
-  # JPA/Hibernate ?????????
+  # JPA/Hibernate настройки
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -13,7 +13,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  # ????????? Spring Data REST
+  # Настройки Spring Data REST
   data:
     rest:
       base-path: /api
@@ -22,7 +22,7 @@ spring:
       return-body-on-create: true
       return-body-on-update: true
 
-# ????????? ???????????
+# Настройки логирования
 logging:
   level:
     org:
@@ -39,6 +39,6 @@ logging:
         demo:
           spdrest: DEBUG
 
-# ????????? ???????
+# Настройки сервера
 server:
   port: 8080
