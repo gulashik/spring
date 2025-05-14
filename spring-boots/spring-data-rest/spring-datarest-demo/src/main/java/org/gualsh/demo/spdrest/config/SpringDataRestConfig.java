@@ -9,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.gualsh.demo.spdrest.model.Author;
 import org.gualsh.demo.spdrest.model.Book;
 import org.gualsh.demo.spdrest.model.Category;
+import org.gualsh.demo.spdrest.projection.AuthorWithBooks;
 import org.gualsh.demo.spdrest.repository.AuthorRepository;
 import org.gualsh.demo.spdrest.repository.BookRepository;
 import org.gualsh.demo.spdrest.validator.AuthorValidator;
@@ -80,6 +81,10 @@ public class SpringDataRestConfig {
                 // Устанавливаем базовый путь API
                 // Все эндпоинты Spring Data REST будут доступны по этому пути
                 config.setBasePath("/api");
+
+                // Регистрируем Проекции, которые находятся не в папке с сущностью
+                config.getProjectionConfiguration()
+                    .addProjection(AuthorWithBooks.class);
 
                 // Настраиваем разрешенные операции для сущностей
                 // Это позволяет ограничить доступные HTTP-методы для определенных сущностей

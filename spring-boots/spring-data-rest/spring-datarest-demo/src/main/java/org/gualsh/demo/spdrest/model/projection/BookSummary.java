@@ -1,4 +1,4 @@
-package org.gualsh.demo.spdrest.projection;
+package org.gualsh.demo.spdrest.model.projection;
 
 import org.gualsh.demo.spdrest.model.Author;
 import org.gualsh.demo.spdrest.model.Book;
