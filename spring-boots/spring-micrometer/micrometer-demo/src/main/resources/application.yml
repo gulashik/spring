@@ -1,0 +1,80 @@
+# Имя приложения
+spring:
+  application:
+    name: micromet-demo
+
+# Конфигурация сервера
+server:
+  port: 8080
+  tomcat:
+    mbeanregistry:
+      enabled: true # Важно для JMX метрик
+
+# Конфигурация Actuator
+management:
+  # Конфигурация эндпоинтов
+  endpoints:
+    web:
+      exposure:
+        include: "*"  # Экспозиция всех эндпоинтов (в production лучше ограничить)
+      base-path: /actuator
+    enabled-by-default: true # Все эндпоинты активны по умолчанию
+
+  # Конфигурация информационного эндпоинта
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+    git:
+      enabled: true
+
+  # Конфигурация health эндпоинта
+  endpoint:
+    health:
+      show-details: always # Отображать детали для health endpoint
+      show-components: always
+      probes:
+        enabled: true # Включить liveness и readiness probes для Kubernetes
+    prometheus:
+      enabled: true # Включает prometheus endpoint
+
+  # Конфигурация метрик
+  metrics:
+    enable:
+      all: true # Включить все метрики по умолчанию
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true # Гистограмма для HTTP запросов
+      slo:
+        http.server.requests: 50ms, 100ms, 200ms, 500ms # SLO (Service Level Objectives) определение целевых показателей производительности
+    tags:
+      application: ${spring.application.name}
+
+  # Конфигурация tracing
+  tracing:
+    sampling:
+      probability: 1.0 # 100% sampling для демо (в production обычно меньше)
+    propagation:
+      type: w3c # Стандарт W3C для propagation
+
+  # Observation конфигурация (новое в Spring Boot 3.x)
+  observations:
+    http:
+      server:
+        requests:
+          name: http.server.requests # Имя метрики
+
+# Информация о приложении, отображаемая в info endpoint
+info:
+  app:
+    name: Micrometer and Actuator Demo
+    description: Demo application for Spring Boot Actuator and Micrometer
+    version: 1.0.0
+    java:
+      version: ${java.version}
+  contact:
+    name: Developer
+    email: dev@example.com
