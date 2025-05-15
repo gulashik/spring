@@ -57,10 +57,10 @@ Accept: application/json
 ### 2. Работа со связями между сущностями
 
 ## 2.1 Привязка категории к книге
-PUT http://localhost:8080/api/books/6/category
+PUT http://localhost:8080/api/books/5/category
 Content-Type: text/uri-list
 
-http://localhost:8080/api/categories/4
+http://localhost:8080/api/categories/3
 
 ###
 

@@ -1,29 +1,33 @@
 package org.gualsh.demo.spdrest.repository;
 
 import org.gualsh.demo.spdrest.model.Book;
+import org.gualsh.demo.spdrest.model.projection.BookSummary;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.rest.core.annotation.Description;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.data.rest.core.annotation.RestResource;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 /**
- * Репозиторий для сущности Book.
+ * Репозиторий для сущности Book.<p>
  *
  * Аннотация @RepositoryRestResource конфигурирует REST-ресурс:
- * - path: определяет путь для доступа к ресурсу (/books)
- * - collectionResourceRel: определяет имя элемента в коллекции ресурсов (books)
+ * <li> path: определяет путь для доступа к ресурсу (/books)</li>
+ * <li> collectionResourceRel: определяет имя элемента в коллекции ресурсов (books)</li>
  */
 @RepositoryRestResource(
-    path = "books",
-    collectionResourceRel = "books"
+    path = "books", // путь в URL (по умолчанию совпадает с именем сущности) (/books)
+    collectionResourceRel = "booksCollResourceRel", // имя коллекции в JSON (ключ для массива)
+    excerptProjection = BookSummary.class, // проекция по умолчанию
+    itemResourceRel = "bookItemResRel"     // имя отдельного элемента HAL в JSON
 )
+// @RepositoryRestResource(exported = false) // // todo exported = false - не будет автогенерации REST API
 public interface BookRepository extends JpaRepository<Book, Long> {
 
     /**
@@ -33,7 +37,12 @@ public interface BookRepository extends JpaRepository<Book, Long> {
      * @param isbn ISBN книги
      * @return книга с указанным ISBN
      */
-    @RestResource(path = "byIsbn")
+    @RestResource(
+        path = "byIsbn", // доопределяет путь в URL
+        rel = "byIsbnInBook", // rel - определяет имя отношения в HAL-ссылках, которое используется как ключ в JSON ("findByTitle")
+        description = @Description("some description")
+    )
+    // @RestResource(exported = false) // todo exported = false - не будет доступен через REST API
     Optional<Book> findByIsbn(@Param("isbn") String isbn);
 
     /**

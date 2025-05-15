@@ -1,6 +1,7 @@
 package org.gualsh.demo.spdrest.repository;
 
 import org.gualsh.demo.spdrest.model.Author;
+import org.gualsh.demo.spdrest.projection.AuthorWithBooks;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -18,9 +19,10 @@ import java.util.List;
  * - path: определяет путь для доступа к ресурсу (/authors)
  * - collectionResourceRel: определяет имя элемента в коллекции ресурсов (authors)
  */
-@RepositoryRestResource(
+@RepositoryRestResource( // см BookRepository.java
     path = "authors",
-    collectionResourceRel = "authors"
+    collectionResourceRel = "authors",
+    excerptProjection = AuthorWithBooks.class
 )
 public interface AuthorRepository extends JpaRepository<Author, Long> {
 
