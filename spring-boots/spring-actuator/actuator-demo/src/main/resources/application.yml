@@ -21,6 +21,8 @@ management:
       # roles: admin # если используем авторизацию - роли которые могут получить доступ, если пусто то все авторизованные
     shutdown:
       enabled: true # остановка приложения
+    logfile:
+      enabled: true # включен по умолчанию. # logging.file.name указываем совместно с management.endpoint.logfile.enabled - true
   #server.port: 9090 # -1 = выключить всё; 9090 - конкретный порт
   metrics:
     enable:
@@ -76,7 +78,5 @@ logging:
     root: INFO
     org.springframework.web: INFO
     ru.gulash.actuatordemo: DEBUG
-
-
-
-
+  file:
+    name: logs/application.log # logging.file.name указываем совместно с management.endpoint.logfile.enabled - true

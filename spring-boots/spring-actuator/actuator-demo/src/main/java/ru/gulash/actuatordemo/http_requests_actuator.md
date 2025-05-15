@@ -39,6 +39,12 @@ curl --request GET -sL \
      --url 'http://localhost:8080/actuator/health/liveness' | jq -C
 ```
 
+GET /actuator/logfile — Логи из файла  
+```shell
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/logfile'
+```
+
 GET /actuator/info - Информация о приложении
 ```shell
 curl --request GET -sL \

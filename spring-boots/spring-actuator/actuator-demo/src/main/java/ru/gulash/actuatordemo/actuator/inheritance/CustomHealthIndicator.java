@@ -14,6 +14,10 @@ import java.util.Random;
  * для отображения в health эндпоинте.
  */
 @Component
+/* todo имя класса влияет на имя в запросе
+    CustomHealthInidicator = http://localhost:8080/actuator/health/custom, a
+    MyCustomHealthInidicator = http://localhost:8080/actuator/health/myCustom
+*/
 public class CustomHealthIndicator
     implements HealthIndicator /* todo имплементируем */{
 
