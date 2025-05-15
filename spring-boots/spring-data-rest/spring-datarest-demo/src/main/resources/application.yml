@@ -31,6 +31,57 @@ spring:
       return-body-on-create: true
       return-body-on-update: true
 
+# Конфигурация Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*" # Включаем все эндпоинты Actuator * - все или списком health,info,metrics
+        #exclude: shutdown # Выключаем чувствительные эндпоинты
+      base-path: /actuator # Базовый путь для Actuator эндпоинтов
+    jmx:
+      exposure:
+        include: "*" # spring.jmx.enabled + management.endpoints.jmx.exposure.include = Spring Bean регситруются как MBeans
+  endpoint:
+    health: # Включение подробной информации о состоянии
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true # дополнительные данные liveness, readiness и startup через /actuator/health
+      enabled: true # true - default
+    env:
+      show-values: always # показывать в /actuator/env значения вместо ***** Default: never
+      # roles: admin # если используем авторизацию - роли которые могут получить доступ, если пусто то все авторизованные
+    shutdown:
+      enabled: true # остановка приложения
+    logfile:
+      enabled: true # включен по умолчанию. # logging.file.name указываем совместно с management.endpoint.logfile.enabled - true
+  #server.port: 9090 # -1 = выключить всё; 9090 - конкретный порт
+  metrics:
+    enable:
+      all: true # Включение всех групп метрик
+  prometheus: # Prometheus endpoint
+    metrics:
+      export:
+        enabled: true
+  info:
+    git:
+      enabled: true # Настройка вывода информации о git в info эндпоинте
+      mode: full
+    build:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+  traces: # Настройка включения HTTP-трассировки
+    http:
+      include:
+        - request-headers
+        - response-headers
+        - remote-address
+        - session-id
+
 # Настройки логирования
 logging:
   level:

@@ -1,6 +1,12 @@
 # Spring Data REST Demo - Примеры запросов
 # Файл для использования с инструментами типа curl, httpie или Postman
 
+### 0. Actuator
+
+GET http://localhost:8080/actuator
+
+###
+
 ### 1. Базовые операции CRUD
 
 ## 1.1 Получение списка ресурсов
