@@ -53,6 +53,7 @@ curl --request GET -sL \
 
 GET /actuator/metrics - Список доступных метрик
 ```shell
+clear
 curl --request GET -sL \
      --url 'http://localhost:8080/actuator/metrics' | jq -C
 ```
