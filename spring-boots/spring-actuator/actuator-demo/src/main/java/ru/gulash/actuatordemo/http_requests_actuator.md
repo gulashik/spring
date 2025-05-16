@@ -80,6 +80,18 @@ GET /actuator/loggers — Информация о логгерах и их ур�
 curl --request GET -sL \
      --url 'http://localhost:8080/actuator/loggers'  | jq -C
 ```
+POST /actuator/loggers/{logger.name} - меняет уровень логирования
+```shell
+clear 
+# устанавливает нужный уровень логирования
+curl -i --request POST http://localhost:8080/actuator/loggers/org.springframework.web \
+  -H "Content-Type: application/json" \
+  -d '{"configuredLevel": "DEBUG"}'
+  
+# проверяем уровень логирования
+curl --request GET -sL \
+     --url 'http://localhost:8080/actuator/loggers/org.springframework.web'  | jq -C
+```
 
 GET /actuator/threaddump — Информация о всех потоках приложения
 ```shell
