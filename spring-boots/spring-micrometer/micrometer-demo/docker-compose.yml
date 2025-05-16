@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Spring Boot приложение
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
+    depends_on:
+      - prometheus
+      - grafana
+    networks:
+      - monitoring-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # Prometheus для сбора метрик
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring-network
+    restart: unless-stopped
+
+  # Grafana для визуализации метрик
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - monitoring-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+networks:
+  monitoring-network:
+    driver: bridge
+
+volumes:
+  grafana-storage:
