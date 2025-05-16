@@ -3,6 +3,7 @@ package org.gualsh.demo.micromet.metric;
 import io.micrometer.core.instrument.*;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.ToDoubleFunction;
 import java.util.ArrayList;

@@ -3,6 +3,7 @@ package org.gualsh.demo.micromet.config;
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,14 +44,13 @@ public class MetricsConfig {
             // Настройка гистограмм для определенных метрик
             registry.config()
                 .meterFilter(
-                    MeterFilter.histogram(
-                        id -> id.getName().startsWith("http.server.requests"),
-                        true
+                    MeterFilter.replaceTagValues(
+                        "http.server.requests",
+                        id -> DistributionStatisticConfig.builder().percentilesHistogram(true).build().toString()
                     )
                 );
         };
     }
-
     /**
      * Включает поддержку аннотации @Timed для методов.
      *
