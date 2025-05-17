@@ -7,8 +7,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 /**
  * Основной класс приложения.
  *
- * @EnableScheduling - включает поддержку для запланированных задач, которые используются
- * для генерации тестовых метрик
+ * Использует аннотацию EnableScheduling для включения поддержки запланированных задач,
+ * которые используются для генерации тестовых метрик.
  */
 @SpringBootApplication
 @EnableScheduling
