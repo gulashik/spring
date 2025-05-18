@@ -19,6 +19,8 @@ management:
       enabled: true
     prometheus:
       enabled: true
+    info:
+      enabled: true
   tracing:
     sampling:
       probability: 1.0  # Для демонстрации используем 100% сэмплирование

@@ -1,20 +1,20 @@
 version: '3.8'
 
 services:
-  app:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    networks:
-      - micrometer-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
+#  app:
+#    build: .
+#    ports:
+#      - "8080:8080"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+##    networks:
+##      - micrometer-net
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 3
+#      start_period: 30s
 
   prometheus:
     image: prom/prometheus:latest
@@ -22,10 +22,10 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - micrometer-net
-    depends_on:
-      - app
+#    networks:
+#      - micrometer-net
+#    depends_on:
+#      - app
 
   grafana:
     image: grafana/grafana:latest
@@ -37,8 +37,8 @@ services:
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning
       - grafana-data:/var/lib/grafana
-    networks:
-      - micrometer-net
+#    networks:
+#      - micrometer-net
     depends_on:
       - prometheus
 
@@ -46,12 +46,12 @@ services:
     image: openzipkin/zipkin:latest
     ports:
       - "9411:9411"
-    networks:
-      - micrometer-net
+#    networks:
+#      - micrometer-net
 
-networks:
-  micrometer-net:
-    driver: bridge
+#networks:
+#  micrometer-net:
+#    driver: bridge
 
 volumes:
   grafana-data:
