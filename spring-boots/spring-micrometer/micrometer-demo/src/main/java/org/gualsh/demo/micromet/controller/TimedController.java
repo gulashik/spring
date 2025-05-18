@@ -15,32 +15,32 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
- * REST контроллер для демонстрации возможностей Micrometer при работе с HTTP запросами.
- * <p>
- * Этот контроллер предоставляет несколько конечных точек, которые демонстрируют
- * различные способы измерения производительности, использование таймеров и
- * автоматическое создание метрик для веб-запросов.
- * </p>
+ * REST контроллер демонстрируют
+ * различные способы измерения производительности, использование таймеров.
  */
 @RestController
 @RequestMapping("/api")
 @Slf4j
 public class TimedController {
 
-    private final OrderProcessingService orderProcessingService;
     private final MeterRegistry meterRegistry;
+    private final OrderProcessingService orderProcessingService;
+
     private final Random random = new Random();
     private final String[] regions = {"us", "eu", "asia", "africa"};
+    private final Timer resourcesTimer;
 
-    /**
-     * Создает новый экземпляр контроллера.
-     *
-     * @param orderProcessingService сервис обработки заказов для демонстрации
-     * @param meterRegistry регистр метрик для ручного создания метрик
-     */
-    public TimedController(OrderProcessingService orderProcessingService, MeterRegistry meterRegistry) {
-        this.orderProcessingService = orderProcessingService;
+    public TimedController(MeterRegistry meterRegistry, OrderProcessingService orderProcessingService) {
         this.meterRegistry = meterRegistry;
+        
+        // todo Регистрируем Timer один раз при создании контроллера
+        //  Создается с помощью билдера и регистрируется в MeterRegistry
+        this.resourcesTimer = Timer.builder("api.resources.request")
+            .description("Time taken to return resources info")
+            .tag("method", "GET")
+            .register(meterRegistry);
+
+        this.orderProcessingService = orderProcessingService;
     }
 
     /**
@@ -77,12 +77,6 @@ public class TimedController {
     @GetMapping("/resources")
     public ResponseEntity<Map<String, Object>> getResources() {
         // todo Используем Timer напрямую вместо аннотации
-        //  Создается с помощью билдера и регистрируется в MeterRegistry
-        Timer timer = Timer.builder("api.resources.request")
-            .description("Time taken to return resources info")
-            .tag("method", "GET")
-            .register(meterRegistry);
-
         Timer.Sample sample = Timer.start(meterRegistry);
 
         try {
@@ -97,8 +91,8 @@ public class TimedController {
 
             return ResponseEntity.ok(resources);
         } finally {
-            // Обязательно останавливаем таймер и записываем результат
-            sample.stop(timer);
+            // todo Обязательно останавливаем таймер и записываем результат
+            sample.stop(resourcesTimer);
         }
     }
 
