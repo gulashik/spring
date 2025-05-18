@@ -2,21 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.3.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+
     <groupId>org.gualsh.demo</groupId>
     <artifactId>micromet</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>micromet</name>
-    <description>Demo project for Spring Boot Actuator and Micrometer</description>
+    <name>micrometer-demo</name>
+    <description>Демонстрация возможностей Micrometer</description>
 
     <properties>
-        <java.version>17</java.version>
-        <micrometer.version>1.13.1</micrometer.version>
+        <java.version>21</java.version>
+        <micrometer-tracing.version>1.2.8</micrometer-tracing.version>
     </properties>
 
     <dependencies>
@@ -26,61 +28,41 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- todo Spring Boot Actuator для мониторинга -->
+        <!-- Micrometer и актуаторы -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- todo Дополнительные метрики для JVM -->
-        <!--
-        Базовая библиотека Micrometer, предоставляющая абстракцию для сбора метрик приложения.
-        Эта зависимость добавляет основные счетчики, таймеры, датчики и другие инструменты для измерения производительности приложения.
-        -->
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-        </dependency>
-
-        <!-- todo Дополнительные экспортеры метрик для Micrometer -->
-        <!--
-        Добавляет поддержку экспорта метрик в формате Prometheus.
-        Эта зависимость обеспечивает автоматическую настройку эндпоинта `/actuator/prometheus`, который возвращает метрики в формате, понятном Prometheus.
-        -->
+        <!-- Micrometer регистры для разных систем мониторинга -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
-
-        <!-- todo Дополнительная поддержка метрик для JVM через Prometheus JMX exporter -->
-        <!--
-        Prometheus JMX Exporter собирает JMX-метрики JVM и экспортирует их в формате, понятном для Prometheus.
-        Эта библиотека позволяет отслеживать эти важные параметры JVM вместе с метриками вашего приложения.
-        -->
         <dependency>
-            <groupId>io.prometheus.jmx</groupId>
-            <artifactId>collector</artifactId>
-            <version>0.20.0</version>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-influx</artifactId>
         </dependency>
 
-        <!-- todo Tracing с Micrometer -->
-        <!--
-        Обеспечивает интеграцию между Micrometer Tracing API и библиотекой Brave.
-        Brave - это реализация распределенной трассировки, которая собирает временные данные о микросервисных вызовах.
-        Этот мост позволяет вашему приложению создавать трассировки, которые могут быть собраны и проанализированы системами мониторинга.
-        -->
+        <!-- Трассировка с Micrometer -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-brave</artifactId>
         </dependency>
-        <!--
-        Предоставляет возможность отправки данных трассировки, собранных с помощью Brave, в систему Zipkin.
-        Zipkin - это распределенная система трассировки, которая помогает собирать и искать данные о задержках в микросервисной архитектуре.
-        Эта зависимость позволяет экспортировать трассировки в Zipkin для визуализации и анализа.
-        -->
         <dependency>
             <groupId>io.zipkin.reporter2</groupId>
             <artifactId>zipkin-reporter-brave</artifactId>
+        </dependency>
+
+        <!-- Другие полезные зависимости -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- Тестирование -->
@@ -97,9 +79,12 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <image>
-                        <name>gualsh/${project.artifactId}:${project.version}</name>
-                    </image>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>
