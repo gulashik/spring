@@ -1,5 +1,6 @@
 package org.gualsh.demo.micromet.config;
 
+import io.micrometer.core.aop.CountedAspect;
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -42,6 +43,26 @@ public class MicrometerConfig {
     public TimedAspect timedAspect(MeterRegistry registry) {
         return new TimedAspect(registry);
     }
+
+    /**
+     * Регистрирует CountedAspect для поддержки аннотации @Counted на методах.
+     * <p>
+     * Этот бин позволяет использовать аннотацию @Counted для автоматического
+     * подсчета количества вызовов методов. Аннотация может включать дополнительные
+     * теги и описание для более точной идентификации точек подсчета.
+     * </p>
+     * <p>
+     * Без регистрации этого аспекта аннотация @Counted не будет работать.
+     * </p>
+     *
+     * @param registry основной регистр метрик
+     * @return настроенный CountedAspect
+     */
+    @Bean
+    public CountedAspect countedAspect(MeterRegistry registry) {
+        return new CountedAspect(registry);
+    }
+
 
     /**
      * Кастомизирует MeterRegistry, добавляя общие теги ко всем метрикам.
