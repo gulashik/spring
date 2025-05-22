@@ -1,0 +1,59 @@
+server:
+  port: 8080
+
+# Настройки Spring Cache
+spring:
+  cache:
+    type: simple # Использует ConcurrentHashMap
+    cache-names:
+      - users
+      - posts
+
+  # Настройки Jackson для JSON
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+# Настройки управления и мониторинга
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,caches
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# Кастомные настройки для RestTemplate
+app:
+  rest-template:
+    # Таймауты в миллисекундах
+    connect-timeout: 5000
+    read-timeout: 10000
+    # Настройки пула соединений
+    max-connections: 100
+    max-connections-per-route: 20
+    # Настройки retry
+    retry:
+      max-attempts: 3
+      backoff-delay: 1000
+    # URL внешних сервисов
+    external-apis:
+      jsonplaceholder: "https://jsonplaceholder.typicode.com"
+      httpbin: "https://httpbin.org"
+
+# Настройки логирования
+logging:
+  level:
+    org.gualsh.demo.resttmplt: DEBUG
+    org.springframework.web.client: DEBUG
+    org.apache.http: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
