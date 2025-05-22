@@ -9,15 +9,67 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>org.gualsh.demo.spdrest</groupId>
-    <artifactId>spring-rest-template-demo</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    
+    <groupId>org.gualsh.demo</groupId>
+    <artifactId>resttmplt-demo</artifactId>
+    <version>1.0.0</version>
+    <name>RestTemplate Demo</name>
+    <description>Демонстрация возможностей Spring RestTemplate</description>
+
     <properties>
-        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
-    
+
     <dependencies>
+        <!-- Spring Boot Web Starter
+            Включает: Spring MVC, RestTemplate, Jackson, Tomcat, Validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Cache Starter
+             Включает: Spring Cache abstraction, ConcurrentMap-based cache -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- Spring Retry
+             Включает: @Retryable, @Recover, экспоненциальные задержки -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+
+        <!-- Spring AOP для работы @Retry
+            Включает: AspectJ weaving, проксирование методов -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- Apache HttpClient
+             Более производительная и функциональная альтернатива HttpURLConnection -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Actuator
+             Включает: health checks, metrics, management endpoints -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Micrometer для метрик
+             Включает: таймеры, счетчики, мониторинг HTTP запросов -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
 
         <!-- Lombok -->
         <dependency>
@@ -26,10 +78,20 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Spring Boot Test -->
+        <!-- Spring Boot Test Starter
+             Включает: JUnit 5, Mockito, TestContainers support -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- WireMock для тестирования HTTP взаимодействий
+             Позволяет мокать внешние HTTP сервисы -->
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.3.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
