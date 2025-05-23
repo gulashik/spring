@@ -35,15 +35,15 @@ management:
 app:
   rest-template:
     # Таймауты в миллисекундах
-    connect-timeout: 5000
-    read-timeout: 10000
+    connect-timeout: 5000  # Таймаут соединения (мс)
+    read-timeout: 10000 # Таймаут чтения (мс)
     # Настройки пула соединений
-    max-connections: 100
-    max-connections-per-route: 20
+    max-connections: 100 # Макс. соединений в пуле
+    max-connections-per-route: 20 # Макс. соединений на маршрут
     # Настройки retry
     retry:
-      max-attempts: 3
-      backoff-delay: 1000
+      max-attempts: 3 # Количество попыток
+      backoff-delay: 1000 # Задержка между попытками (мс)
     # URL внешних сервисов
     external-apis:
       jsonplaceholder: "https://jsonplaceholder.typicode.com"

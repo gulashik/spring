@@ -16,14 +16,14 @@ import lombok.*;
  *   <li>@JsonIgnoreProperties - игнорирует неизвестные поля в JSON</li>
  *   <li>@JsonProperty - явное указание имени поля в JSON</li>
  * </ul>
- *
  */
 
 @NoArgsConstructor // todo Конструктор по умолчанию. Необходим для Jackson десериализации.
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode
-@Setter @Getter
+@Setter
+@Getter
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User {
 

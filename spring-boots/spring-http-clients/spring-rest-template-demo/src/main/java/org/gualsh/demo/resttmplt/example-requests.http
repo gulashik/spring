@@ -1,0 +1,212 @@
+### RestTemplate Demo - Примеры HTTP запросов
+### Используйте эти запросы для тестирования API через IDE или REST клиенты
+
+#########################################################################
+# ПОЛЬЗОВАТЕЛИ
+#########################################################################
+
+### Получение всех пользователей (демонстрация ParameterizedTypeReference и кэширования)
+GET http://localhost:8080/api/users
+Accept: application/json
+
+### Получение пользователя по ID (демонстрация getForObject и retry)
+GET http://localhost:8080/api/users/1
+Accept: application/json
+
+### Получение пользователя с деталями ответа (демонстрация getForEntity)
+GET http://localhost:8080/api/users/1/details
+Accept: application/json
+
+### Получение постов пользователя (демонстрация path параметров)
+GET http://localhost:8080/api/users/1/posts
+Accept: application/json
+
+### Тест несуществующего пользователя (демонстрация @Recover fallback)
+GET http://localhost:8080/api/users/999
+Accept: application/json
+
+#########################################################################
+# ПОСТЫ
+#########################################################################
+
+### Создание нового поста (демонстрация POST с exchange и кастомными заголовками)
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+X-Request-ID: test-request-123
+
+{
+  "userId": 1,
+  "title": "Тестовый пост из RestTemplate Demo",
+  "body": "Этот пост создан для демонстрации возможностей RestTemplate при работе с POST запросами. Показывает отправку JSON данных и получение ответа с присвоенным ID."
+}
+
+### Обновление поста (демонстрация PUT запроса)
+PUT http://localhost:8080/api/posts/1
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "title": "Обновленный заголовок поста",
+  "body": "Обновленное содержимое поста. Демонстрирует использование PUT метода для полного обновления ресурса."
+}
+
+### Удаление поста (демонстрация DELETE и обработки статус-кодов)
+DELETE http://localhost:8080/api/posts/1
+
+#########################################################################
+# ДЕМОНСТРАЦИОННЫЕ ENDPOINTS
+#########################################################################
+
+### Демонстрация работы с заголовками (отправка и получение кастомных заголовков)
+GET http://localhost:8080/api/demo/headers
+Accept: application/json
+X-Custom-Header: test-value
+User-Agent: RestTemplate-Demo-Client/1.0
+
+### Информация о кэше
+GET http://localhost:8080/api/cache/info
+Accept: application/json
+
+### Очистка кэша (для тестирования кэширования)
+DELETE http://localhost:8080/api/cache/clear
+
+#########################################################################
+# МОНИТОРИНГ И УПРАВЛЕНИЕ (ACTUATOR)
+#########################################################################
+
+### Проверка здоровья приложения
+GET http://localhost:8080/actuator/health
+
+### Общая информация о приложении
+GET http://localhost:8080/actuator/info
+
+### Все доступные actuator endpoints
+GET http://localhost:8080/actuator
+
+### Метрики HTTP клиента RestTemplate
+GET http://localhost:8080/actuator/metrics/http.client.requests
+
+### Метрики JVM (память)
+GET http://localhost:8080/actuator/metrics/jvm.memory.used
+
+### Информация о кэшах
+GET http://localhost:8080/actuator/caches
+
+### Метрики в формате Prometheus
+GET http://localhost:8080/actuator/prometheus
+
+#########################################################################
+# ТЕСТИРОВАНИЕ ОШИБОК И RETRY
+#########################################################################
+
+### Тест с недопустимым ID (вызовет retry и fallback)
+GET http://localhost:8080/api/users/-1
+Accept: application/json
+
+### Тест большого количества запросов (для проверки пула соединений)
+### Выполните несколько раз подряд:
+GET http://localhost:8080/api/users
+Accept: application/json
+
+### Тест создания поста с некорректными данными
+POST http://localhost:8080/api/posts
+Content-Type: application/json
+
+{
+  "title": "",
+  "body": ""
+}
+
+#########################################################################
+# ПРИМЕРЫ С РАЗЛИЧНЫМИ ЗАГОЛОВКАМИ
+#########################################################################
+
+### Запрос с Accept-Language заголовком
+GET http://localhost:8080/api/users/1
+Accept: application/json
+Accept-Language: ru-RU,ru;q=0.9,en;q=0.8
+
+### Запрос с кастомными заголовками для трассировки
+GET http://localhost:8080/api/users/1
+Accept: application/json
+X-Trace-ID: trace-12345
+X-Span-ID: span-67890
+X-Client-Version: 1.0.0
+
+### Запрос с условными заголовками
+GET http://localhost:8080/api/users/1
+Accept: application/json
+If-None-Match: "etag-value"
+If-Modified-Since: Wed, 21 Oct 2015 07:28:00 GMT
+
+#########################################################################
+# BATCH ОПЕРАЦИИ (множественные запросы)
+#########################################################################
+
+### Получение нескольких пользователей (выполните несколько раз для тестирования кэша)
+GET http://localhost:8080/api/users/1
+
+###
+GET http://localhost:8080/api/users/2
+
+###
+GET http://localhost:8080/api/users/3
+
+### Получение постов разных пользователей
+GET http://localhost:8080/api/users/1/posts
+
+###
+GET http://localhost:8080/api/users/2/posts
+
+#########################################################################
+# ПРОИЗВОДИТЕЛЬНОСТЬ И НАГРУЗОЧНОЕ ТЕСТИРОВАНИЕ
+#########################################################################
+
+### Запросы для проверки производительности кэша
+### Первый запрос - холодный (без кэша)
+GET http://localhost:8080/api/users
+Accept: application/json
+
+### Второй запрос - горячий (из кэша, должен быть быстрее)
+GET http://localhost:8080/api/users
+Accept: application/json
+
+### Проверка метрик после нагрузки
+GET http://localhost:8080/actuator/metrics/cache.gets
+Accept: application/json
+
+### Проверка метрик HTTP запросов
+GET http://localhost:8080/actuator/metrics/http.client.requests
+Accept: application/json
+
+#########################################################################
+# ОТЛАДОЧНЫЕ ЗАПРОСЫ
+#########################################################################
+
+### Запрос с подробным логированием (если включен DEBUG уровень)
+GET http://localhost:8080/api/users/1
+Accept: application/json
+X-Debug: true
+
+### Запрос для проверки таймаутов (если внешний API медленный)
+GET http://localhost:8080/api/users
+Accept: application/json
+X-Timeout-Test: true
+
+#########################################################################
+# ПРИМЕРЫ CURL КОМАНД
+#########################################################################
+
+# Получение пользователя
+# curl -X GET "http://localhost:8080/api/users/1" -H "Accept: application/json"
+
+# Создание поста
+# curl -X POST "http://localhost:8080/api/posts" \
+#      -H "Content-Type: application/json" \
+#      -d '{"userId": 1, "title": "Test", "body": "Test body"}'
+
+# Проверка здоровья
+# curl -X GET "http://localhost:8080/actuator/health"
+
+# Получение метрик
+# curl -X GET "http://localhost:8080/actuator/prometheus"
