@@ -15,19 +15,25 @@ import org.springframework.web.client.RestClient;
 import java.time.Duration;
 
 /**
- * Конфигурация для создания и настройки RestClient бинов.
+ * Конфигурация для создания и настройки RestClient бинов.<p>
  *
  * Этот класс содержит конфигурацию для различных RestClient инстансов,
- * каждый из которых оптимизирован для работы с конкретными внешними API.
- *
+ * каждый из которых оптимизирован для работы с конкретными внешними API.<p>
+ *<ul>
+ * Использование различных реализаций RestClient в одном приложении необходимо для:
+ * <li> Изоляции конфигураций для разных внешних систем (таймауты, заголовки, базовые URL)</li>
+ * <li> Возможности независимой настройки параметров подключения для каждой внешней системы</li>
+ *  <li>Повышения читаемости кода при работе с несколькими внешними API</li>
+ *  <li>Разделения ответственности и упрощения тестирования</li>
+ *  <li>Возможности применения специфичных обработчиков ошибок для конкретных API</li>
+ *</ul>
+ *<ul>
  * Основные возможности конфигурации:
- * - Настройка пула соединений для оптимальной производительности
- * - Настройка таймаутов для различных типов операций
- * - Настройка базовых URL для внешних сервисов
- * - Настройка общих заголовков и обработчиков ошибок
- *
- * @author Demo Author
- * @version 1.0.0
+ * <li> Настройка пула соединений для оптимальной производительности</li>
+ * <li> Настройка таймаутов для различных типов операций</li>
+ * <li> Настройка базовых URL для внешних сервисов</li>
+ * <li> Настройка общих заголовков и обработчиков ошибок</li>
+ *</ul>
  */
 @Configuration
 @Slf4j
@@ -52,14 +58,15 @@ public class RestClientConfiguration {
     private Integer defaultSocketTimeout;
 
     /**
-     * Создает настроенный HTTP клиент с пулом соединений.
+     * Создает настроенный HTTP клиент с пулом соединений.</br>
      *
+     * <ul>
      * Apache HttpClient 5 выбран как реализация по умолчанию из-за:
-     * - Высокой производительности и надежности
-     * - Продвинутых возможностей управления соединениями
-     * - Поддержки HTTP/2
-     * - Гибких настроек таймаутов и retry логики
-     *
+     * <li> Высокой производительности и надежности </li>
+     * <li> Продвинутых возможностей управления соединениями</li>
+     * <li> Поддержки HTTP/2</li>
+     * <li> Гибких настроек таймаутов и retry логики</li>
+     *</ul>
      * @return настроенный HttpClient
      */
     @Bean
@@ -87,22 +94,29 @@ public class RestClientConfiguration {
     }
 
     /**
-     * Создает HttpComponentsClientHttpRequestFactory для интеграции с Spring.
-     *
+     * HttpComponentsClientHttpRequestFactory - класс из Spring Framework, который <b>используется в качестве фабрики
+     *  HTTP-запросов при работе с REST-клиентами</b>, такими как <code>RestClient</code> и <code>RestTemplate</code>.
+     *  <p><b>Затем эта фабрика используется при создании RestClient бинов</b>
+     *  <li><b>Интеграция Apache HttpClient с Spring</b>: Класс реализует интерфейс и служит адаптером между Apache HttpComponents HttpClient
+     *      и HTTP-клиентами Spring ClientHttpRequestFactory</li>
+     *  <li><b>Создание HTTP-запросов</b>: Используется для создания объектов ClientHttpRequest,
+     *      которые выполняют HTTP-запросы к внешним сервисам.</li>
+     *  <li><b>Настройка параметров HTTP-клиента</b>: Позволяет задать различные параметры для выполнения HTTP-запросов</li>
      * @param httpClient настроенный HTTP клиент
      * @return фабрика HTTP запросов
      */
     @Bean
     public HttpComponentsClientHttpRequestFactory httpRequestFactory(HttpClient httpClient) {
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        // Исправлено: используем ofMillis() вместо ofMilliseconds()
+
         factory.setConnectTimeout(Duration.ofMillis(defaultConnectionTimeout));
-        // setReadTimeout удален - этот таймаут настраивается в RequestConfig выше
+        factory.setConnectionRequestTimeout(Duration.ofMillis(defaultConnectionTimeout));
+
         return factory;
     }
 
     /**
-     * Создает RestClient для работы с JSONPlaceholder API.
+     * Создает RestClient для работы с сервисом JSONPlaceholder API.</br>
      *
      * JSONPlaceholder - это популярный fake REST API для тестирования и прототипирования.
      * Этот RestClient оптимизирован для работы с JSON данными.
@@ -112,6 +126,7 @@ public class RestClientConfiguration {
      */
     @Bean("jsonPlaceholderRestClient")
     public RestClient jsonPlaceholderRestClient(HttpComponentsClientHttpRequestFactory requestFactory) {
+
         log.info("Создание RestClient для JSONPlaceholder API: {}", jsonPlaceholderBaseUrl);
 
         return RestClient.builder()
