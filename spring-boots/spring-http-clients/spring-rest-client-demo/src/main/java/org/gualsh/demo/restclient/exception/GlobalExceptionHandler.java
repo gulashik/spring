@@ -16,17 +16,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Глобальный обработчик исключений.
+ * Глобальный обработчик исключений.<p>
  *
  * Этот класс обрабатывает различные типы исключений, которые могут возникнуть
- * при работе с RestClient, и возвращает унифицированные ответы об ошибках.
+ * при работе с RestClient, и возвращает унифицированные ответы об ошибках.<p>
  *
- * Обрабатываемые типы исключений:
- * - RestClientResponseException - ошибки HTTP ответов
- * - RestClientException - общие ошибки RestClient
- * - MethodArgumentNotValidException - ошибки валидации
- * - RuntimeException - общие runtime ошибки
- * - Exception - все остальные исключения
+ * Обрабатываемые типы исключений:<p>
+ * - RestClientResponseException - ошибки HTTP ответов<p>
+ * - RestClientException - общие ошибки RestClient<p>
+ * - MethodArgumentNotValidException - ошибки валидации<p>
+ * - RuntimeException - общие runtime ошибки<p>
+ * - Exception - все остальные исключения<p>
  *
  */
 @RestControllerAdvice
@@ -34,10 +34,10 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     /**
-     * Обрабатывает исключения HTTP ответов от внешних сервисов.
+     * Обрабатывает исключения HTTP ответов от внешних сервисов.<p>
      *
      * RestClientResponseException возникает, когда внешний сервис возвращает
-     * HTTP статус ошибки (4xx или 5xx).
+     * HTTP статус ошибки (4xx или 5xx).<p>
      *
      * @param ex исключение RestClientResponseException
      * @param request информация о веб-запросе
@@ -69,10 +69,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Обрабатывает общие исключения RestClient.
+     * Обрабатывает общие исключения RestClient.<p>
      *
      * RestClientException возникает при проблемах с сетью, таймаутах,
-     * проблемах с сериализацией и других технических проблемах.
+     * проблемах с сериализацией и других технических проблемах.<p>
      *
      * @param ex исключение RestClientException
      * @param request информация о веб-запросе
@@ -97,10 +97,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Обрабатывает ошибки валидации входных данных.
+     * Обрабатывает ошибки валидации входных данных.<p>
      *
      * MethodArgumentNotValidException возникает когда объект, помеченный @Valid,
-     * не прошел валидацию Bean Validation.
+     * не прошел валидацию Bean Validation.<p>
      *
      * @param ex исключение валидации
      * @param request информация о веб-запросе
@@ -166,10 +166,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Обрабатывает все остальные исключения.
+     * Обрабатывает все остальные исключения.<p>
      *
      * Этот метод является fallback для всех исключений, которые не были
-     * обработаны более специфичными обработчиками.
+     * обработаны более специфичными обработчиками.<p>
      *
      * @param ex общее исключение
      * @param request информация о веб-запросе
@@ -193,10 +193,10 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Определяет подходящий HTTP статус для ответа на основе статуса внешнего сервиса.
+     * Определяет подходящий HTTP статус для ответа на основе статуса внешнего сервиса.<p>
      *
      * Этот метод помогает избежать прямого проброса статусов внешних сервисов,
-     * что может быть нежелательно с точки зрения безопасности и UX.
+     * что может быть нежелательно с точки зрения безопасности и UX.<p>
      *
      * @param externalStatus HTTP статус от внешнего сервиса
      * @return подходящий HTTP статус для ответа клиенту
@@ -226,7 +226,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Получает человекочитаемое описание HTTP статуса.
+     * Получает человекочитаемое описание HTTP статуса.<p>
      *
      * @param statusCode HTTP статус код
      * @return текстовое описание статуса
