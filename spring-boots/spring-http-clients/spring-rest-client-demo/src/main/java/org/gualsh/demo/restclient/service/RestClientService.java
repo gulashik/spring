@@ -137,24 +137,26 @@ public class RestClientService {
      * @return список пользователей или пустой список при ошибке
      * @throws RestClientException если запрос не удался после всех попыток повтора
      */
-    @Cacheable(value = USERS_CACHE, key = ALL_USERS_CACHE_KEY)
-    @Retryable(
+    @Cacheable(value = USERS_CACHE, key = ALL_USERS_CACHE_KEY) // Кеширует результат запроса
+    @Retryable( // Включает механизм повторных попыток при ошибках
         retryFor = {RestClientException.class},
         maxAttempts = 3,
-        backoff = @Backoff(delay = 1000, multiplier = 2.0)
+        backoff = @Backoff(delay = 1000, multiplier = 2.0) // Задержка между попытками с множителем
     )
     public List<User> getAllUsers() {
         log.info("Выполнение запроса на получение всех пользователей");
         String requestId = generateRequestId();
 
         try {
+            // Выполняем GET запрос к API
             List<User> users = jsonPlaceholderClient
                 .get()
-                .uri(USERS_PATH)
-                .header(REQUEST_ID_HEADER, requestId)
+                .uri(USERS_PATH) // Путь к эндпоинту users
+                .header(REQUEST_ID_HEADER, requestId) // Добавляем идентификатор запроса
                 .retrieve()
+                // Обработка клиентских ошибок (4xx)
                 .onStatus(status -> status.is4xxClientError(), (request, response) -> {
-                    log.error("Клиентская ошибка при получении пользователей: {} (RequestId: {})", 
+                    log.error("Клиентская ошибка при получении пользователей: {} (RequestId: {})",
                         response.getStatusCode(), requestId);
                     throw new RestClientResponseException(
                         "Ошибка клиента при получении пользователей",
@@ -165,8 +167,9 @@ public class RestClientService {
                         null
                     );
                 })
+                // Обработка серверных ошибок (5xx)
                 .onStatus(status -> status.is5xxServerError(), (request, response) -> {
-                    log.error("Серверная ошибка при получении пользователей: {} (RequestId: {})", 
+                    log.error("Серверная ошибка при получении пользователей: {} (RequestId: {})",
                         response.getStatusCode(), requestId);
                     throw new RestClientResponseException(
                         "Серверная ошибка при получении пользователей",
@@ -177,13 +180,17 @@ public class RestClientService {
                         null
                     );
                 })
-                .body(new ParameterizedTypeReference<List<User>>() {});
+                // Преобразование тела ответа в List<User>
+                .body(new ParameterizedTypeReference<List<User>>() {
+                });
 
-            log.info("Успешно получено {} пользователей (RequestId: {})", 
+            // Логируем успешное получение пользователей
+            log.info("Успешно получено {} пользователей (RequestId: {})",
                 users != null ? users.size() : 0, requestId);
             return users;
-
+    
         } catch (Exception e) {
+            // Логируем ошибку и пробрасываем её дальше
             log.error("Ошибка при получении списка пользователей (RequestId: {})", requestId, e);
             throw e;
         }
