@@ -17,11 +17,6 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync        // Включает асинхронное выполнение методов
 public class RestClientDemoApplication {
 
-    /**
-     * Точка входа в приложение.
-     *
-     * @param args аргументы командной строки
-     */
     public static void main(String[] args) {
         SpringApplication.run(RestClientDemoApplication.class, args);
     }
