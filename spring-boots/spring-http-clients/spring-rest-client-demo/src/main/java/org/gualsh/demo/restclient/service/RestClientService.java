@@ -297,21 +297,25 @@ public class RestClientService {
     // =================================
 
     /**
-     * Создает нового пользователя.
+     * Создает нового пользователя, отправляя POST запрос к внешнему API.
      *
      * Демонстрирует:
      * <ul>
-     *     <li>POST запрос с JSON телом</li>
-     *     <li>Обработку различных HTTP статусов</li>
-     *     <li>Возврат полного ResponseEntity для доступа к заголовкам</li>
-     *     <li>Установку типа контента запроса</li>
+     *     <li>Выполнение POST запроса с JSON-телом</li>
+     *     <li>Установку типа контента для запроса (application/json)</li>
+     *     <li>Возврат полного ResponseEntity для доступа к метаданным ответа</li>
+     *     <li>Валидацию входных данных</li>
+     *     <li>Обработку ошибок клиентской части (4xx)</li>
+     *     <li>Идентификацию запросов через уникальный request-id</li>
      * </ul>
      *
-     * @param createRequest данные для создания пользователя (валидируются на уровне контроллера)
-     * @return ResponseEntity, содержащий созданного пользователя и метаданные ответа
-     * @throws RestClientResponseException если произошла ошибка при создании пользователя
+     * @param createRequest данные для создания пользователя (должны быть валидированы на уровне контроллера)
+     * @return ResponseEntity с созданным пользователем и метаданными HTTP-ответа (статус, заголовки)
+     * @throws IllegalArgumentException если данные для создания не предоставлены (null)
+     * @throws RestClientResponseException если внешний API вернул ошибку (например, ошибку валидации)
      */
     public ResponseEntity<User> createUser(CreateUserRequest createRequest) {
+        // Проверка наличия данных для создания пользователя
         if (createRequest == null) {
             throw new IllegalArgumentException("Данные для создания пользователя не могут быть null");
         }
@@ -320,16 +324,28 @@ public class RestClientService {
         String requestId = generateRequestId();
 
         try {
+            // ===Выполнение POST запроса к API===
             ResponseEntity<User> response = jsonPlaceholderClient
+                // Указываем, что будет POST запрос
                 .post()
+                // Указываем адрес (путь) для создания пользователя
                 .uri(USERS_PATH)
+                // Устанавливаем тип содержимого - JSON
                 .contentType(MediaType.APPLICATION_JSON)
+                // Добавляем идентификатор запроса для отслеживания
                 .header(REQUEST_ID_HEADER, requestId)
+                // Устанавливаем тело запроса - объект с данными пользователя
                 .body(createRequest)
+                // Инициируем отправку запроса
                 .retrieve()
+            
+                // ===Обработка возможных ошибок===
+                // Настраиваем обработку клиентских ошибок (4xx)
                 .onStatus(status -> status.is4xxClientError(), (request, responseData) -> {
+                    // Логируем ошибку валидации
                     log.error("Ошибка валидации при создании пользователя: {} (RequestId: {})", 
                         responseData.getStatusCode(), requestId);
+                    // Создаем и выбрасываем исключение с информацией об ошибке
                     throw new RestClientResponseException(
                         "Ошибка валидации при создании пользователя",
                         responseData.getStatusCode(),
@@ -339,22 +355,33 @@ public class RestClientService {
                         null
                     );
                 })
+            
+                // ===Получение полного ответа===
+                // Получаем ResponseEntity с телом ответа, преобразованным в User,
+                // а также со статусом и заголовками
                 .toEntity(User.class);
 
-            User createdUser = response.getBody();
-            log.info("Пользователь успешно создан: {} с ID: {} (RequestId: {})", 
-                createRequest.getUsername(), 
-                createdUser != null ? createdUser.getId() : "unknown", 
-                requestId);
-            
-            return response;
+        // ===Обработка успешного результата===
+        // Извлекаем созданного пользователя из тела ответа
+        User createdUser = response.getBody();
+        // Логируем успешное создание
+        log.info("Пользователь успешно создан: {} с ID: {} (RequestId: {})", 
+            createRequest.getUsername(), 
+            createdUser != null ? createdUser.getId() : "unknown", 
+            requestId);
+        
+        // Возвращаем полный ResponseEntity
+        return response;
 
-        } catch (Exception e) {
-            log.error("Ошибка при создании пользователя {} (RequestId: {})", 
-                createRequest.getUsername(), requestId, e);
-            throw e;
-        }
+    } catch (Exception e) {
+        // ===Обработка непредвиденных ошибок===
+        // Логируем ошибку вместе с идентификатором запроса для отслеживания
+        log.error("Ошибка при создании пользователя {} (RequestId: {})", 
+            createRequest.getUsername(), requestId, e);
+        // Пробрасываем исключение дальше для обработки на более высоком уровне
+        throw e;
     }
+}
 
     /**
      * Отправляет данные формы на HTTPBin для демонстрации.
