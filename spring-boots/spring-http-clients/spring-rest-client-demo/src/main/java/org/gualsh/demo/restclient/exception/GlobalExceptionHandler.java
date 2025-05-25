@@ -3,6 +3,7 @@ package org.gualsh.demo.restclient.exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -93,11 +94,23 @@ public class GlobalExceptionHandler {
         errorResponse.put("error", "Service Unavailable");
         errorResponse.put("message", "Внешний сервис временно недоступен");
         errorResponse.put("details", ex.getMessage());
-        errorResponse.put("path", request.getDescription(false));
+
+        // Исправляем получение пути запроса
+        String path = request.getDescription(false);
+        // Убедимся, что путь не пустой
+        if (path == null || path.isEmpty() || !path.startsWith("uri=")) {
+            path = "uri=" + request.getContextPath();
+        }
+        errorResponse.put("path", path);
+
         errorResponse.put("retryAdvice", "Попробуйте повторить запрос позже");
 
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
+        return ResponseEntity
+            .status(HttpStatus.SERVICE_UNAVAILABLE)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(errorResponse);
     }
+
 
     /**
      * Обрабатывает ошибки валидации входных данных.<p>

@@ -16,10 +16,10 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * REST контроллер для демонстрации возможностей Spring RestClient.<p>
- *
+ * <p>
  * Этот контроллер предоставляет HTTP endpoints для тестирования различных<p>
  * возможностей RestClient через веб-интерфейс или инструменты тестирования API.<p>
- *
+ * <p>
  * Доступные операции:<p>
  * - Получение данных (GET запросы)<p>
  * - Создание ресурсов (POST запросы)<p>
@@ -43,12 +43,12 @@ public class RestClientController {
 
     /**
      * Получает список всех пользователей.
-     *
+     * <p>
      * Демонстрирует:
      * - Кеширование результатов
      * - Автоматические повторы при ошибках
      * - Работу с ParameterizedTypeReference
-     *
+     * <p>
      * GET /api/demo/users
      *
      * @return список всех пользователей
@@ -57,20 +57,14 @@ public class RestClientController {
     public ResponseEntity<List<User>> getAllUsers() {
         log.info("REST: Запрос на получение всех пользователей");
 
-        try {
-            List<User> users = restClientService.getAllUsers();
-            log.info("REST: Успешно получено {} пользователей", users.size());
-            return ResponseEntity.ok(users);
-
-        } catch (Exception e) {
-            log.error("REST: Ошибка при получении пользователей", e);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }
+        List<User> users = restClientService.getAllUsers();
+        log.info("REST: Успешно получено {} пользователей", users.size());
+        return ResponseEntity.ok(users);
     }
 
     /**
      * Получает пользователя по ID.
-     *
+     * <p>
      * GET /api/demo/users/{id}
      *
      * @param userId ID пользователя
@@ -80,25 +74,19 @@ public class RestClientController {
     public ResponseEntity<User> getUserById(@PathVariable("id") Long userId) {
         log.info("REST: Запрос пользователя с ID: {}", userId);
 
-        try {
-            User user = restClientService.getUserById(userId);
-            if (user != null) {
-                log.info("REST: Пользователь найден: {}", user.getUsername());
-                return ResponseEntity.ok(user);
-            } else {
-                log.warn("REST: Пользователь с ID {} не найден", userId);
-                return ResponseEntity.notFound().build();
-            }
-
-        } catch (Exception e) {
-            log.error("REST: Ошибка при получении пользователя с ID {}", userId, e);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        User user = restClientService.getUserById(userId);
+        if (user != null) {
+            log.info("REST: Пользователь найден: {}", user.getUsername());
+            return ResponseEntity.ok(user);
+        } else {
+            log.warn("REST: Пользователь с ID {} не найден", userId);
+            return ResponseEntity.notFound().build();
         }
     }
 
     /**
      * Получает посты определенного пользователя.
-     *
+     * <p>
      * GET /api/demo/users/{id}/posts
      *
      * @param userId ID пользователя
@@ -108,15 +96,9 @@ public class RestClientController {
     public ResponseEntity<List<Post>> getUserPosts(@PathVariable("id") Long userId) {
         log.info("REST: Запрос постов пользователя с ID: {}", userId);
 
-        try {
-            List<Post> posts = restClientService.getUserPosts(userId);
-            log.info("REST: Найдено {} постов для пользователя {}", posts.size(), userId);
-            return ResponseEntity.ok(posts);
-
-        } catch (Exception e) {
-            log.error("REST: Ошибка при получении постов пользователя {}", userId, e);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }
+        List<Post> posts = restClientService.getUserPosts(userId);
+        log.info("REST: Найдено {} постов для пользователя {}", posts.size(), userId);
+        return ResponseEntity.ok(posts);
     }
 
     // =================================
@@ -125,7 +107,7 @@ public class RestClientController {
 
     /**
      * Создает нового пользователя.
-     *
+     * <p>
      * POST /api/demo/users
      * Content-Type: application/json
      *
@@ -136,21 +118,15 @@ public class RestClientController {
     public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserRequest createRequest) {
         log.info("REST: Запрос на создание пользователя: {}", createRequest.getUsername());
 
-        try {
-            ResponseEntity<User> response = restClientService.createUser(createRequest);
-            log.info("REST: Пользователь успешно создан с ID: {}",
-                response.getBody() != null ? response.getBody().getId() : "unknown");
-            return response;
-
-        } catch (Exception e) {
-            log.error("REST: Ошибка при создании пользователя", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+        ResponseEntity<User> response = restClientService.createUser(createRequest);
+        log.info("REST: Пользователь успешно создан с ID: {}",
+            response.getBody() != null ? response.getBody().getId() : "unknown");
+        return response;
     }
 
     /**
      * Отправляет данные формы для демонстрации.
-     *
+     * <p>
      * POST /api/demo/form-data
      * Content-Type: application/json
      *
@@ -161,15 +137,9 @@ public class RestClientController {
     public ResponseEntity<HttpBinResponse> sendFormData(@RequestBody Map<String, String> formData) {
         log.info("REST: Отправка данных формы: {}", formData.keySet());
 
-        try {
             HttpBinResponse response = restClientService.sendFormData(formData);
             log.info("REST: Данные формы успешно отправлены");
             return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("REST: Ошибка при отправке данных формы", e);
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
-        }
     }
 
     // =================================
@@ -178,11 +148,11 @@ public class RestClientController {
 
     /**
      * Полностью обновляет пользователя.
-     *
+     * <p>
      * PUT /api/demo/users/{id}
      * Content-Type: application/json
      *
-     * @param userId ID пользователя
+     * @param userId        ID пользователя
      * @param updateRequest данные для обновления
      * @return обновленный пользователь
      */
@@ -193,24 +163,18 @@ public class RestClientController {
 
         log.info("REST: Запрос на полное обновление пользователя с ID: {}", userId);
 
-        try {
             User updatedUser = restClientService.updateUser(userId, updateRequest);
             log.info("REST: Пользователь с ID {} успешно обновлен", userId);
             return ResponseEntity.ok(updatedUser);
-
-        } catch (Exception e) {
-            log.error("REST: Ошибка при обновлении пользователя с ID {}", userId, e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
     }
 
     /**
      * Частично обновляет пользователя.
-     *
+     * <p>
      * PATCH /api/demo/users/{id}
      * Content-Type: application/json
      *
-     * @param userId ID пользователя
+     * @param userId        ID пользователя
      * @param partialUpdate данные для частичного обновления
      * @return обновленный пользователь
      */
@@ -238,7 +202,7 @@ public class RestClientController {
 
     /**
      * Удаляет пользователя по ID.
-     *
+     * <p>
      * DELETE /api/demo/users/{id}
      *
      * @param userId ID пользователя для удаления
@@ -248,27 +212,17 @@ public class RestClientController {
     public ResponseEntity<Map<String, Object>> deleteUser(@PathVariable("id") Long userId) {
         log.info("REST: Запрос на удаление пользователя с ID: {}", userId);
 
-        try {
-            boolean deleted = restClientService.deleteUser(userId);
-            Map<String, Object> response = Map.of(
-                "success", deleted,
-                "message", deleted ? "Пользователь успешно удален" : "Пользователь не найден",
-                "userId", userId
-            );
+        boolean deleted = restClientService.deleteUser(userId);
+        Map<String, Object> response = Map.of(
+            "success", deleted,
+            "message", deleted ? "Пользователь успешно удален" : "Пользователь не найден",
+            "userId", userId
+        );
 
-            HttpStatus status = deleted ? HttpStatus.OK : HttpStatus.NOT_FOUND;
-            log.info("REST: Результат удаления пользователя с ID {}: {}", userId, deleted);
-            return ResponseEntity.status(status).body(response);
+        HttpStatus status = deleted ? HttpStatus.OK : HttpStatus.NOT_FOUND;
+        log.info("REST: Результат удаления пользователя с ID {}: {}", userId, deleted);
+        return ResponseEntity.status(status).body(response);
 
-        } catch (Exception e) {
-            log.error("REST: Ошибка при удалении пользователя с ID {}", userId, e);
-            Map<String, Object> errorResponse = Map.of(
-                "success", false,
-                "message", "Ошибка при удалении пользователя",
-                "userId", userId
-            );
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(errorResponse);
-        }
     }
 
     // =================================
@@ -277,7 +231,7 @@ public class RestClientController {
 
     /**
      * Асинхронно получает пользователя по ID.
-     *
+     * <p>
      * GET /api/demo/users/{id}/async
      *
      * @param userId ID пользователя
@@ -307,7 +261,7 @@ public class RestClientController {
 
     /**
      * Асинхронно получает несколько пользователей.
-     *
+     * <p>
      * POST /api/demo/users/batch-async
      * Content-Type: application/json
      * Body: [1, 2, 3, 4, 5]
@@ -336,7 +290,7 @@ public class RestClientController {
 
     /**
      * Демонстрирует работу с заголовками запроса.
-     *
+     * <p>
      * POST /api/demo/headers
      * Content-Type: application/json
      * Body: {"Custom-Header": "value", "Another-Header": "another-value"}
@@ -361,7 +315,7 @@ public class RestClientController {
 
     /**
      * Демонстрирует работу с параметрами запроса.
-     *
+     * <p>
      * GET /api/demo/query-params?param1=value1&param2=value2
      *
      * @param queryParams параметры запроса
@@ -384,7 +338,7 @@ public class RestClientController {
 
     /**
      * Демонстрирует обработку различных HTTP ошибок.
-     *
+     * <p>
      * GET /api/demo/error/{statusCode}
      *
      * @param statusCode HTTP статус код для имитации (400, 404, 500, etc.)
@@ -411,7 +365,7 @@ public class RestClientController {
 
     /**
      * Предоставляет информацию о доступных endpoints для тестирования.
-     *
+     * <p>
      * GET /api/demo/info
      *
      * @return информация о доступных endpoints
@@ -464,7 +418,7 @@ public class RestClientController {
 
     /**
      * Проверяет состояние внешних API.
-     *
+     * <p>
      * GET /api/demo/health
      *
      * @return статус внешних сервисов
