@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.restclient.dto.*;
 import org.gualsh.demo.restclient.service.RestClientService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -290,7 +291,9 @@ public class RestClientController {
             .thenApply(user -> {
                 if (user != null) {
                     log.info("REST: Асинхронно получен пользователь: {}", user.getUsername());
-                    return ResponseEntity.ok(user);
+                    return ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(user);
                 } else {
                     log.warn("REST: Пользователь с ID {} не найден (async)", userId);
                     return ResponseEntity.notFound().<User>build();
