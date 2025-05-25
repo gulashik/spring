@@ -1,6 +1,5 @@
 package org.gualsh.demo.restclient.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.restclient.dto.*;
 import org.springframework.beans.factory.annotation.Qualifier;
