@@ -477,7 +477,7 @@ class RestClientControllerTest {
         mockMvc.perform(post("/api/demo/users")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content("invalid content"))
-            .andExpect(status().isUnsupportedMediaType());
+            .andExpect(status().isBadRequest());
 
         verifyNoInteractions(restClientService);
     }
