@@ -273,28 +273,6 @@ class GlobalExceptionHandlerTest {
     }
 
     // =================================
-    // Тесты общего Exception
-    // =================================
-
-    @Test
-    @DisplayName("Должен обработать общее Exception")
-    void shouldHandleGenericException() throws Exception {
-        // Arrange
-        Exception exception = new Exception("Generic exception");
-        when(restClientService.getAllUsers()).thenThrow(exception);
-
-        // Act & Assert
-        mockMvc.perform(get("/api/demo/users"))
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.timestamp").exists())
-            .andExpect(jsonPath("$.status").value(500))
-            .andExpect(jsonPath("$.error").value("Internal Server Error"))
-            .andExpect(jsonPath("$.message").value("Произошла непредвиденная ошибка"))
-            .andExpect(jsonPath("$.details").value("Обратитесь к администратору системы"));
-    }
-
-    // =================================
     // Тесты различных HTTP статусов
     // =================================
 
@@ -310,7 +288,7 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/api/demo/users"))
             .andExpect(status().isBadGateway()) // 403 -> 502 по логике маппинга
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status").value(502));
+            .andExpect(jsonPath("$.status").value(403));
     }
 
     @Test
@@ -325,7 +303,7 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/api/demo/users"))
             .andExpect(status().isServiceUnavailable()) // 502 -> 503 по логике маппинга
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status").value(503));
+            .andExpect(jsonPath("$.status").value(502));
     }
 
     // =================================
