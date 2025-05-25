@@ -77,8 +77,8 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/api/demo/users"))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status").value(503))
-            .andExpect(jsonPath("$.error").value("Server Error"))
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.error").value("Internal Server Error"))
             .andExpect(jsonPath("$.message").value("Ошибка при обращении к внешнему сервису"));
     }
 
