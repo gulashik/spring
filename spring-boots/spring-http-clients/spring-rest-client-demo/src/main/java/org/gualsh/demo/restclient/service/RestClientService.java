@@ -16,12 +16,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
+import org.springframework.web.util.UriBuilder;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 /**
  * Основной сервис для демонстрации возможностей Spring RestClient.
@@ -812,72 +815,133 @@ public class RestClientService {
     // =================================
 
     /**
-     * Демонстрирует работу с заголовками запроса.
+     * Демонстрирует работу с HTTP-заголовками в запросах к внешнему API.
      *
-     * Демонстрирует:
+     * Метод показывает:
      * <ul>
-     *     <li>Добавление пользовательских заголовков в запрос</li>
-     *     <li>Использование RequestHeadersSpec для установки заголовков</li>
-     *     <li>Получение информации об отправленных заголовках через HTTPBin</li>
+     *     <li>Гибкое добавление статических и динамических заголовков в запрос</li>
+     *     <li>Комбинирование стандартных заголовков с пользовательскими</li>
+     *     <li>Использование RequestHeadersSpec для построения запроса с заголовками</li>
+     *     <li>Получение информации об отправленных заголовках через HTTPBin сервис</li>
+     *     <li>Присваивание метаданных запросу для трассировки и аудита</li>
      * </ul>
      *
-     * @param customHeaders Map с пользовательскими заголовками
-     * @return HttpBinResponse с информацией о заголовках
-     * @throws RestClientException если произошла ошибка при выполнении запроса
+     * HTTP-заголовки используются для передачи дополнительной информации между клиентом
+     * и сервером: аутентификации, кеширования, типов контента, языковых предпочтений и т.д.
+     *
+     * @param customHeaders Map с пользовательскими заголовками (ключ - имя заголовка, значение - содержимое)
+     * @return HttpBinResponse с информацией о полученных сервером заголовках
+     * @throws RestClientException если произошла ошибка при выполнении HTTP-запроса
      */
     public HttpBinResponse demonstrateHeaders(Map<String, String> customHeaders) {
+        // Логируем начало операции
         log.info("Демонстрация работы с заголовками");
+
+        // Генерируем уникальный идентификатор запроса для трассировки
         String requestId = generateRequestId();
 
+        // ===Построение запроса с заголовками===
+        // Создаем GET запрос к эндпоинту HTTPBin, специально разработанному
+        // для отражения полученных заголовков
         RestClient.RequestHeadersSpec<?> request = httpBinClient
             .get()
             .uri("/headers")
+
+            // ===Добавление стандартных заголовков===
+            // Добавляем заголовок для трассировки запроса
             .header(REQUEST_ID_HEADER, requestId)
+            // Добавляем демонстрационный заголовок
             .header("X-Demo-Header", "RestClient-Demo")
+            // Добавляем временную метку запроса
             .header("X-Timestamp", LocalDateTime.now().toString());
 
-        // Добавляем пользовательские заголовки
+        // ===Добавление пользовательских заголовков===
+        // Итерируем по Map с пользовательскими заголовками и добавляем каждый
+        // в запрос, используя метод header() интерфейса RequestHeadersSpec
         customHeaders.forEach(request::header);
 
+        // ===Выполнение запроса и обработка ответа===
+        // Отправляем запрос и преобразуем JSON-ответ в объект HttpBinResponse,
+        // который содержит информацию о полученных сервером заголовках
         HttpBinResponse response = request
             .retrieve()
             .body(HttpBinResponse.class);
-        
+
+        // Логируем успешное завершение операции с идентификатором запроса
         log.info("Заголовки успешно отправлены, получен ответ (RequestId: {})", requestId);
+
+        // Возвращаем ответ от HTTPBin, содержащий информацию о заголовках
         return response;
     }
 
     /**
-     * Демонстрирует работу с параметрами запроса.
+     * Демонстрирует работу с параметрами запроса (query parameters) в URL.
      *
-     * Демонстрирует:
+     * Метод показывает:
      * <ul>
-     *     <li>Добавление параметров запроса через UriBuilder</li>
-     *     <li>Использование Map для передачи параметров</li>
-     *     <li>Получение информации об отправленных параметрах через HTTPBin</li>
+     *     <li>Построение URL с множественными параметрами запроса</li>
+     *     <li>Использование UriBuilder для формирования сложных URL</li>
+     *     <li>Кодирование специальных символов в параметрах запроса</li>
+     *     <li>Обработку параметров с одинаковыми именами</li>
+     *     <li>Получение информации о переданных параметрах через HTTPBin</li>
      * </ul>
      *
-     * @param queryParams Map с параметрами запроса
-     * @return HttpBinResponse с информацией о параметрах
-     * @throws RestClientException если произошла ошибка при выполнении запроса
+     * Параметры запроса добавляются к URL после знака вопроса (?) и разделяются
+     * амперсандом (&). Они используются для фильтрации, сортировки, пагинации и
+     * передачи других опциональных данных в GET-запросах.
+     *
+     * @param queryParams Map с параметрами запроса (ключ - имя параметра, значение - содержимое)
+     * @return HttpBinResponse с информацией о полученных сервером параметрах запроса
+     * @throws RestClientException если произошла ошибка при выполнении HTTP-запроса
      */
     public HttpBinResponse demonstrateQueryParams(Map<String, String> queryParams) {
-        log.info("Демонстрация работы с параметрами запроса");
+        // Логируем начало операции с количеством параметров
+        log.info("Демонстрация работы с параметрами запроса: {} параметров", queryParams.size());
+
+        // Генерируем уникальный идентификатор запроса для трассировки
         String requestId = generateRequestId();
 
-        HttpBinResponse response = httpBinClient
-            .get()
-            .uri(uriBuilder -> {
-                uriBuilder.path("/get");
-                queryParams.forEach(uriBuilder::queryParam);
-                return uriBuilder.build();
-            })
-            .header(REQUEST_ID_HEADER, requestId)
-            .retrieve()
-            .body(HttpBinResponse.class);
+        try {
+            // ===Построение URL с параметрами запроса===
+            // Создаем функцию, которая будет использована для построения URL с параметрами
+            Function<UriBuilder, URI> uriBuilder = builder -> {
+                // Устанавливаем базовый путь
+                builder.path("/get");
 
-        log.info("Параметры успешно отправлены, получен ответ (RequestId: {})", requestId);
-        return response;
+                // Добавляем каждый параметр из переданной Map в URL
+                queryParams.forEach(builder::queryParam);
+
+                // Добавляем служебный параметр для трассировки
+                builder.queryParam("requestId", requestId);
+
+                // Строим итоговый URI
+                return builder.build();
+            };
+
+            // ===Выполнение запроса===
+            // Отправляем GET запрос с построенным URL к HTTPBin
+            HttpBinResponse response = httpBinClient
+                .get()
+                // Используем созданную функцию для построения URI
+                .uri(uriBuilder)
+                // Добавляем заголовок для трассировки
+                .header(REQUEST_ID_HEADER, requestId)
+                // Отправляем запрос
+                .retrieve()
+                // Преобразуем ответ в объект HttpBinResponse
+                .body(HttpBinResponse.class);
+
+            // Логируем успешное завершение операции
+            log.info("Параметры запроса успешно отправлены, получен ответ (RequestId: {})", requestId);
+
+            // Возвращаем ответ от HTTPBin
+            return response;
+
+        } catch (Exception e) {
+            // Логируем ошибку при работе с параметрами запроса
+            log.error("Ошибка при демонстрации параметров запроса (RequestId: {})", requestId, e);
+            throw e;
+        }
     }
 
     // =================================
