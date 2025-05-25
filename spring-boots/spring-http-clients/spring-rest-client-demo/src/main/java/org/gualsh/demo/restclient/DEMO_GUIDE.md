@@ -84,7 +84,7 @@ curl -X PATCH http://localhost:8080/api/demo/users/1 \
 - Очистка кеша
 ```bash
 clear
-curl -X DELETE http://localhost:8080/api/demo/users/1 \
+curl -s -X DELETE http://localhost:8080/api/demo/users/1 \
   -H "Accept: application/json" | jq
 ```
 

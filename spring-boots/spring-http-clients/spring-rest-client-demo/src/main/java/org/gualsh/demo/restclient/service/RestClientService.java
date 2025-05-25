@@ -429,22 +429,29 @@ public class RestClientService {
     // =================================
 
     /**
-     * Полностью обновляет пользователя (PUT).
+     * Полностью обновляет пользователя, отправляя PUT запрос к внешнему API.
      *
      * Демонстрирует:
      * <ul>
-     *     <li>PUT запрос для полного обновления ресурса</li>
-     *     <li>Работа с JSON в теле запроса</li>
-     *     <li>Обработка ошибок при обновлении пользователя</li>
+     *     <li>Выполнение PUT запроса для полного обновления ресурса</li>
+     *     <li>Использование параметра пути в URL для указания ID ресурса</li>
+     *     <li>Установку типа контента для запроса (application/json)</li>
+     *     <li>Валидацию входных данных</li>
+     *     <li>Обработку ошибок клиентской части (4xx)</li>
+     *     <li>Трассировку запросов через уникальный request-id</li>
      * </ul>
      *
+     * При PUT-запросе все поля ресурса полностью заменяются данными из запроса,
+     * поэтому предполагается, что updateRequest содержит все необходимые поля.
+     *
      * @param userId ID пользователя для обновления (должен существовать)
-     * @param updateRequest данные для обновления пользователя
+     * @param updateRequest объект с данными для полного обновления пользователя
      * @return обновленный объект пользователя
-     * @throws RestClientResponseException если произошла ошибка при обновлении пользователя
-     * @throws IllegalArgumentException если данные для обновления пользователя не предоставлены
+     * @throws IllegalArgumentException если данные для обновления не предоставлены (null)
+     * @throws RestClientResponseException если внешний API вернул ошибку (например, ресурс не найден)
      */
     public User updateUser(Long userId, UpdateUserRequest updateRequest) {
+        // ===Валидация входных данных===
         if (updateRequest == null) {
             throw new IllegalArgumentException("Данные для обновления пользователя не могут быть null");
         }
@@ -453,123 +460,187 @@ public class RestClientService {
         String requestId = generateRequestId();
 
         try {
+            // ===Выполнение PUT запроса к API===
             User updatedUser = jsonPlaceholderClient
+                // Указываем, что будет PUT запрос для полного обновления
                 .put()
+                // Указываем адрес (путь) с параметром ID пользователя
                 .uri(USERS_PATH + "/{id}", userId)
+                // Устанавливаем тип содержимого - JSON
                 .contentType(MediaType.APPLICATION_JSON)
+                // Добавляем идентификатор запроса для отслеживания
                 .header(REQUEST_ID_HEADER, requestId)
+                // Устанавливаем тело запроса - объект с данными пользователя
                 .body(updateRequest)
+                // Инициируем отправку запроса
                 .retrieve()
-                .onStatus(status -> status.is4xxClientError(), (request, responseData) -> {
-                    log.error("Ошибка валидации при обновлении пользователя: {} (RequestId: {})", 
-                        responseData.getStatusCode(), requestId);
-                    throw new RestClientResponseException(
-                        "Ошибка валидации при обновлении пользователя",
-                        responseData.getStatusCode(),
-                        responseData.getStatusText(),
-                        responseData.getHeaders(),
-                        null,
-                        null
-                    );
-                })
-                .body(User.class);
+            
+            // ===Обработка возможных ошибок===
+            // Настраиваем обработку клиентских ошибок (4xx)
+            .onStatus(status -> status.is4xxClientError(), (request, responseData) -> {
+                // Логируем ошибку валидации
+                log.error("Ошибка валидации при обновлении пользователя: {} (RequestId: {})", 
+                    responseData.getStatusCode(), requestId);
+                // Создаем и выбрасываем исключение с информацией об ошибке
+                throw new RestClientResponseException(
+                    "Ошибка валидации при обновлении пользователя",
+                    responseData.getStatusCode(),
+                    responseData.getStatusText(),
+                    responseData.getHeaders(),
+                    null,
+                    null
+                );
+            })
+            
+            // ===Получение тела ответа===
+            // Преобразуем тело ответа в объект пользователя
+            .body(User.class);
 
-            log.info("Пользователь с ID {} успешно обновлен (RequestId: {})", userId, requestId);
-            return updatedUser;
+        // Логируем успешное обновление
+        log.info("Пользователь с ID {} успешно обновлен (RequestId: {})", userId, requestId);
+        
+        // Возвращаем обновленного пользователя
+        return updatedUser;
 
-        } catch (Exception e) {
-            log.error("Ошибка при полном обновлении пользователя с ID {} (RequestId: {})", 
-                userId, requestId, e);
-            throw e;
-        }
+    } catch (Exception e) {
+        // ===Обработка непредвиденных ошибок===
+        // Логируем ошибку вместе с идентификатором запроса для отслеживания
+        log.error("Ошибка при полном обновлении пользователя с ID {} (RequestId: {})", 
+            userId, requestId, e);
+        // Пробрасываем исключение дальше для обработки на более высоком уровне
+        throw e;
     }
+}
 
     /**
-     * Частично обновляет пользователя (PATCH).
+     * Частично обновляет пользователя, отправляя PATCH запрос к внешнему API.
      *
      * Демонстрирует:
      * <ul>
-     *     <li>PATCH запрос для частичного обновления ресурса</li>
-     *     <li>Отправку Map с данными для обновления</li>
-     *     <li>Обработку ошибок при частичном обновлении пользователя</li>
+     *     <li>Выполнение PATCH запроса для частичного обновления ресурса</li>
+     *     <li>Использование Map для гибкой передачи только изменяемых полей</li>
+     *     <li>Работу с динамическими данными в формате ключ-значение</li>
+     *     <li>Валидацию входных данных</li>
+     *     <li>Обработку ошибок при отсутствии ресурса (404)</li>
+     *     <li>Использование уникального идентификатора для трассировки запросов</li>
      * </ul>
      *
+     * В отличие от PUT-запроса, PATCH изменяет только указанные поля,
+     * оставляя остальные без изменений, что делает его более эффективным
+     * для частичных обновлений.
+     *
      * @param userId ID пользователя для частичного обновления
-     * @param partialUpdate Map с данными для частичного обновления
+     * @param partialUpdate Map с полями для обновления в формате "имя_поля": значение
      * @return обновленный объект пользователя
-     * @throws RestClientResponseException если произошла ошибка при частичном обновлении пользователя
-     * @throws IllegalArgumentException если данные для частичного обновления пользователя не предоставлены
+     * @throws IllegalArgumentException если данные для обновления не предоставлены или пусты
+     * @throws RestClientResponseException если внешний API вернул ошибку
      */
     public User patchUser(Long userId, Map<String, Object> partialUpdate) {
+        // ===Валидация входных данных===
         if (partialUpdate == null || partialUpdate.isEmpty()) {
-            throw new IllegalArgumentException("Данные для частичного обновления пользователя не могут быть null или пустыми");
+            throw new IllegalArgumentException("Данные для частичного обновления не могут быть пустыми");
         }
         
-        log.info("Частичное обновление пользователя с ID: {}", userId);
+        log.info("Частичное обновление пользователя с ID: {}, поля: {}", userId, partialUpdate.keySet());
         String requestId = generateRequestId();
 
         try {
-            User patchedUser = jsonPlaceholderClient
+            // ===Выполнение PATCH запроса к API===
+            User updatedUser = jsonPlaceholderClient
+                // Указываем, что будет PATCH запрос для частичного обновления
                 .patch()
+                // Указываем адрес (путь) с параметром ID пользователя
                 .uri(USERS_PATH + "/{id}", userId)
+                // Устанавливаем тип содержимого - JSON
                 .contentType(MediaType.APPLICATION_JSON)
+                // Добавляем идентификатор запроса для отслеживания
                 .header(REQUEST_ID_HEADER, requestId)
+                // Устанавливаем тело запроса - Map с полями для обновления
                 .body(partialUpdate)
+                // Инициируем отправку запроса
                 .retrieve()
-                .onStatus(status -> status.is4xxClientError(), (request, responseData) -> {
-                    log.error("Ошибка валидации при частичном обновлении пользователя: {} (RequestId: {})", 
-                        responseData.getStatusCode(), requestId);
-                    throw new RestClientResponseException(
-                        "Ошибка валидации при частичном обновлении пользователя",
-                        responseData.getStatusCode(),
-                        responseData.getStatusText(),
-                        responseData.getHeaders(),
-                        null,
-                        null
-                    );
-                })
-                .body(User.class);
+            
+            // ===Обработка возможных ошибок===
+            // Настраиваем обработку ошибки "ресурс не найден" (404)
+            .onStatus(HttpStatus.NOT_FOUND::equals, (request, response) -> {
+                log.error("Пользователь с ID {} не найден (RequestId: {})", userId, requestId);
+                throw new RestClientResponseException(
+                    "Пользователь не найден",
+                    response.getStatusCode(),
+                    response.getStatusText(),
+                    response.getHeaders(),
+                    null,
+                    null
+                );
+            })
+            
+            // ===Получение тела ответа===
+            // Преобразуем тело ответа в объект пользователя
+            .body(User.class);
 
-            log.info("Пользователь с ID {} успешно частично обновлен (RequestId: {})", userId, requestId);
-            return patchedUser;
+        // Логируем успешное частичное обновление
+        log.info("Пользователь с ID {} частично обновлен, поля: {} (RequestId: {})", 
+            userId, partialUpdate.keySet(), requestId);
+        
+        // Возвращаем обновленного пользователя
+        return updatedUser;
 
-        } catch (Exception e) {
-            log.error("Ошибка при частичном обновлении пользователя с ID {} (RequestId: {})", 
-                userId, requestId, e);
-            throw e;
-        }
+    } catch (Exception e) {
+        // ===Обработка непредвиденных ошибок===
+        // Логируем ошибку вместе с идентификатором запроса для отслеживания
+        log.error("Ошибка при частичном обновлении пользователя с ID {} (RequestId: {})", 
+            userId, requestId, e);
+        // Пробрасываем исключение дальше для обработки на более высоком уровне
+        throw e;
     }
+}
 
     // =================================
     // DELETE Запросы
     // =================================
 
     /**
-     * Удаляет пользователя по ID.
+     * Удаляет пользователя, отправляя DELETE запрос к внешнему API.
      *
      * Демонстрирует:
      * <ul>
-     *     <li>DELETE запрос для удаления ресурса</li>
-     *     <li>Обработку ситуации, когда пользователь не найден (404)</li>
-     *     <li>Возврат логического значения, указывающего на успех операции</li>
+     *     <li>Выполнение DELETE запроса для удаления ресурса</li>
+     *     <li>Использование статус-кода ответа для определения результата операции</li>
+     *     <li>Обработку разных типов успешных ответов (204 No Content, 200 OK)</li>
+     *     <li>Интерпретацию ответа без тела</li>
+     *     <li>Работу с булевым результатом операции</li>
+     *     <li>Отслеживание запросов через уникальный идентификатор</li>
      * </ul>
      *
+     * DELETE запрос в REST API обычно возвращает статус 204 (No Content) при успехе,
+     * поэтому метод интерпретирует различные успешные статус-коды и возвращает
+     * булево значение, указывающее на результат операции.
+     *
      * @param userId ID пользователя для удаления
-     * @return true, если удаление прошло успешно, false - если пользователь не найден
-     * @throws RestClientResponseException если произошла ошибка при удалении пользователя (кроме 404)
+     * @return true если пользователь успешно удален, false если пользователь не найден
+     * @throws RestClientResponseException если произошла ошибка при удалении
      */
     public boolean deleteUser(Long userId) {
         log.info("Удаление пользователя с ID: {}", userId);
         String requestId = generateRequestId();
-
+        
         try {
+            // ===Выполнение DELETE запроса к API===
+            // Некоторые API возвращают статус 204 No Content, другие 200 OK с пустым телом,
+            // поэтому используем toBodilessEntity() для получения только статуса
             ResponseEntity<Void> response = jsonPlaceholderClient
+                // Указываем, что будет DELETE запрос
                 .delete()
+                // Указываем адрес (путь) с параметром ID пользователя
                 .uri(USERS_PATH + "/{id}", userId)
+                // Добавляем идентификатор запроса для отслеживания
                 .header(REQUEST_ID_HEADER, requestId)
+                // Инициируем отправку запроса
                 .retrieve()
+
+                // ===Обработка возможных ошибок===
                 .onStatus(status -> status.is4xxClientError(), (request, responseData) -> {
-                    log.error("Ошибка при удалении пользователя: {} (RequestId: {})", 
+                    log.error("Ошибка при удалении пользователя: {} (RequestId: {})",
                         responseData.getStatusCode(), requestId);
                     throw new RestClientResponseException(
                         "Ошибка при удалении пользователя",
@@ -582,19 +653,39 @@ public class RestClientService {
                 })
                 .toBodilessEntity();
 
-            boolean success = response.getStatusCode().is2xxSuccessful();
-            log.info("Пользователь с ID {} {}удален (RequestId: {})", userId, success ? "" : "НЕ ", requestId);
-            return success;
+        // Проверяем статус ответа
+        boolean isSuccess = response.getStatusCode().is2xxSuccessful();
 
-        } catch (RestClientResponseException e) {
-            if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
-                log.warn("Пользователь с ID {} не найден для удаления (RequestId: {})", userId, requestId);
-                return false;
-            }
-            log.error("Ошибка при удалении пользователя с ID {} (RequestId: {})", userId, requestId, e);
-            throw e;
+        // Логируем результат операции
+        if (isSuccess) {
+            log.info("Пользователь с ID {} успешно удален (RequestId: {})", userId, requestId);
+        } else {
+            log.warn("Неожиданный статус при удалении пользователя с ID {}: {} (RequestId: {})",
+                userId, response.getStatusCode(), requestId);
         }
+
+        // Возвращаем результат операции
+        return isSuccess;
+
+    } catch (RestClientResponseException e) {
+        // Если получили 404, значит пользователь не найден - возвращаем false
+        if (e.getStatusCode().equals(HttpStatus.NOT_FOUND)) {
+            log.info("Пользователь с ID {} не найден при удалении (RequestId: {})", userId, requestId);
+            return false;
+        }
+
+        // Для других ошибок логируем и пробрасываем исключение
+        log.error("Ошибка при удалении пользователя с ID {} (RequestId: {}): {} - {}",
+            userId, requestId, e.getStatusCode(), e.getMessage());
+        throw e;
+
+    } catch (Exception e) {
+        // ===Обработка непредвиденных ошибок===
+        log.error("Непредвиденная ошибка при удалении пользователя с ID {} (RequestId: {})",
+            userId, requestId, e);
+        throw e;
     }
+}
 
     // =================================
     // Асинхронные методы
