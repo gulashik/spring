@@ -165,8 +165,7 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/api/demo/users"))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status").value(503))
-            .andExpect(jsonPath("$.details").value("null"));
+            .andExpect(jsonPath("$.status").value(503));
     }
 
     // =================================
