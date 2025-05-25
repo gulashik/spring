@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -190,6 +191,30 @@ public class GlobalExceptionHandler {
         errorResponse.put("path", request.getDescription(false));
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    /**
+     * Обрабатывает ошибки чтения HTTP-сообщений, такие как некорректный JSON.
+     *
+     * @param ex исключение HttpMessageNotReadableException
+     * @param request информация о веб-запросе
+     * @return ответ с информацией об ошибке
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(
+        HttpMessageNotReadableException ex, WebRequest request) {
+
+        log.error("Ошибка чтения HTTP сообщения: {}", ex.getMessage());
+
+        Map<String, Object> errorDetails = Map.of(
+            "timestamp", LocalDateTime.now().toString(),
+            "status", HttpStatus.BAD_REQUEST.value(),
+            "error", "Некорректный формат запроса",
+            "message", "Невозможно прочитать JSON запрос: возможно, некорректный формат",
+            "path", request.getDescription(false).replace("uri=", "")
+        );
+
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
     /**
