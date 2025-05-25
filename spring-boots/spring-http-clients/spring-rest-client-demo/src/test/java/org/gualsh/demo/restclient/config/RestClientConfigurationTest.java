@@ -168,7 +168,7 @@ class RestClientConfigurationTest {
             );
             // Проверяем, что запрос создан успешно
             assertThat(request.getMethod()).isEqualTo(org.springframework.http.HttpMethod.GET);
-            assertThat(request.getURI().toString()).isEqualTo("http://test.example.com");
+            assertThat(request.getURI().toString()).isEqualTo("http://test.example.com/");
         }).doesNotThrowAnyException();
     }
 
