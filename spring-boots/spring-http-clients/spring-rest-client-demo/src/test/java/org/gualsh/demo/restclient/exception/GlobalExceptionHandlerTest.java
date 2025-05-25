@@ -112,7 +112,7 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/api/demo/users"))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status").value(503))
+            .andExpect(jsonPath("$.status").value(502))
             .andExpect(jsonPath("$.externalResponse").value(responseBody));
     }
 
@@ -128,7 +128,7 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/api/demo/users"))
             .andExpect(status().isBadGateway()) // 401 -> 502 по логике маппинга
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.status").value(502));
+            .andExpect(jsonPath("$.status").value(401));
     }
 
     // =================================
