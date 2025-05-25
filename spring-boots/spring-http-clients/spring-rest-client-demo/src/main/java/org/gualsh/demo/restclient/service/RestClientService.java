@@ -150,10 +150,14 @@ public class RestClientService {
         try {
             // Выполняем GET запрос к API
             List<User> users = jsonPlaceholderClient
-                .get()
+                // ===Указываем конфигурацию запроса===
+                .get() // Запрос будет GET
                 .uri(USERS_PATH) // Путь к эндпоинту users
                 .header(REQUEST_ID_HEADER, requestId) // Добавляем идентификатор запроса
-                .retrieve()
+                .retrieve() // Инициирует отправку HTTP-запроса, сконфигурированного предыдущими методами в цепочке
+
+                // ===Переходим к указанию того, как обработать ответ===
+                // onStatus(predicate, handler)` - настройка обработчиков для определенных HTTP-статусов
                 // Обработка клиентских ошибок (4xx)
                 .onStatus(status -> status.is4xxClientError(), (request, response) -> {
                     log.error("Клиентская ошибка при получении пользователей: {} (RequestId: {})",
@@ -180,6 +184,10 @@ public class RestClientService {
                         null
                     );
                 })
+                // === Получения тела ответа** различными способами ===
+                //  .body(Class<T>) - преобразование тела ответа в объект указанного класса
+                //  .body(ParameterizedTypeReference<T>) - преобразование тела ответа в generic-тип (например, `List<User>`)
+                //  .toEntity(Class<T>) - получение полного `ResponseEntity<T>` со статусом, заголовками и телом
                 // Преобразование тела ответа в List<User>
                 .body(new ParameterizedTypeReference<List<User>>() {
                 });
