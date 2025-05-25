@@ -68,8 +68,6 @@ class RestClientServiceUnitTest {
     // Тесты GET операций
     // =================================
 
-
-
     @Test
     @DisplayName("Должен правильно обработать пустой список пользователей")
     void shouldHandleEmptyUsersList() {
@@ -243,6 +241,7 @@ class RestClientServiceUnitTest {
         when(requestHeadersUriSpec.uri("/users/{id}", userId)).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.header(anyString(), anyString())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.toBodilessEntity()).thenReturn(successResponse);
 
         // Act
@@ -263,6 +262,7 @@ class RestClientServiceUnitTest {
         when(requestHeadersUriSpec.uri("/users/{id}", userId)).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.header(anyString(), anyString())).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.toBodilessEntity())
             .thenThrow(new RestClientResponseException("Not Found", HttpStatus.NOT_FOUND,
                 "Not Found", null, null, null));
