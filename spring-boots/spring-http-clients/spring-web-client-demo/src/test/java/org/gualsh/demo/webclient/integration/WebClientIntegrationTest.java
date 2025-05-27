@@ -195,8 +195,9 @@ class WebClientIntegrationTest {
                 assert posts != null;
                 assert !posts.isEmpty();
                 // Проверяем что все посты принадлежат указанному пользователю
-                posts.forEach(post ->
-                assert post.getUserId().equals(userId));
+                posts.forEach(post -> {
+                    assert post.getUserId().equals(userId);
+                });
             });
     }
 

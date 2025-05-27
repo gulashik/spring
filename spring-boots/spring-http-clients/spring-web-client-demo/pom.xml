@@ -108,6 +108,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Reactor Test - для тестирования reactive streams -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!-- WireMock для моков внешних сервисов в тестах -->
         <dependency>
             <groupId>org.wiremock</groupId>
