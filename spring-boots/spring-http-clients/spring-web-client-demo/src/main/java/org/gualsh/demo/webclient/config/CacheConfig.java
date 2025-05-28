@@ -43,6 +43,7 @@ public class CacheConfig {
      *   <li>Максимум 1000 записей</li>
      *   <li>Время жизни 5 минут</li>
      *   <li>Статистика включена для мониторинга</li>
+     *   <li>Асинхронный режим для reactive операций</li>
      * </ul>
      *
      * @return настроенный CacheManager
@@ -50,9 +51,13 @@ public class CacheConfig {
     @Bean
     @Primary
     public CacheManager cacheManager() {
-        log.info("Configuring Caffeine Cache Manager");
+        log.info("Configuring Caffeine Cache Manager with async support");
 
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+
+        // ВАЖНО: Включаем асинхронный режим для reactive операций
+        cacheManager.setAsyncCacheMode(true);
+
         cacheManager.setCaffeine(Caffeine.newBuilder()
             .maximumSize(1000)
             .expireAfterWrite(Duration.ofMinutes(5))
@@ -75,6 +80,7 @@ public class CacheConfig {
      *   <li>Максимум 500 пользователей</li>
      *   <li>Время жизни 30 минут</li>
      *   <li>Обновление при доступе</li>
+     *   <li>Асинхронный режим для reactive операций</li>
      * </ul>
      *
      * @return кэш менеджер для пользователей
@@ -82,9 +88,10 @@ public class CacheConfig {
     @Bean("usersCacheManager")
     @ConditionalOnProperty(name = "cache.users.enabled", havingValue = "true", matchIfMissing = false)
     public CacheManager usersCacheManager() {
-        log.info("Configuring specialized Users Cache Manager");
+        log.info("Configuring specialized Users Cache Manager with async support");
 
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("users");
+        cacheManager.setAsyncCacheMode(true); // Включаем асинхронный режим
         cacheManager.setCaffeine(Caffeine.newBuilder()
             .maximumSize(500)
             .expireAfterWrite(Duration.ofMinutes(30))
@@ -103,6 +110,7 @@ public class CacheConfig {
      *   <li>Максимум 100 городов</li>
      *   <li>Время жизни 2 минуты</li>
      *   <li>Быстрое освобождение памяти</li>
+     *   <li>Асинхронный режим для reactive операций</li>
      * </ul>
      *
      * @return кэш менеджер для погодных данных
@@ -110,9 +118,10 @@ public class CacheConfig {
     @Bean("weatherCacheManager")
     @ConditionalOnProperty(name = "cache.weather.enabled", havingValue = "true", matchIfMissing = false)
     public CacheManager weatherCacheManager() {
-        log.info("Configuring specialized Weather Cache Manager");
+        log.info("Configuring specialized Weather Cache Manager with async support");
 
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("weather");
+        cacheManager.setAsyncCacheMode(true); // Включаем асинхронный режим
         cacheManager.setCaffeine(Caffeine.newBuilder()
             .maximumSize(100)
             .expireAfterWrite(Duration.ofMinutes(2))
@@ -132,6 +141,7 @@ public class CacheConfig {
      *   <li>Большой размер (5000 записей)</li>
      *   <li>Короткое время жизни (1 минута)</li>
      *   <li>Агрессивное освобождение памяти</li>
+     *   <li>Асинхронный режим для reactive операций</li>
      * </ul>
      *
      * @return высокопроизводительный кэш менеджер
@@ -139,9 +149,10 @@ public class CacheConfig {
     @Bean("highPerformanceCacheManager")
     @ConditionalOnProperty(name = "cache.high-performance.enabled", havingValue = "true", matchIfMissing = false)
     public CacheManager highPerformanceCacheManager() {
-        log.info("Configuring High Performance Cache Manager");
+        log.info("Configuring High Performance Cache Manager with async support");
 
         CaffeineCacheManager cacheManager = new CaffeineCacheManager();
+        cacheManager.setAsyncCacheMode(true); // Включаем асинхронный режим
         cacheManager.setCaffeine(Caffeine.newBuilder()
             .maximumSize(5000)
             .expireAfterWrite(Duration.ofMinutes(1))
