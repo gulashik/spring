@@ -127,6 +127,13 @@ public class JsonPlaceholderService {
             .onStatus(HttpStatus.NOT_FOUND::equals,
                 response -> Mono.error(new RuntimeException("User not found with ID: " + userId)))
             .bodyToMono(UserDto.class)
+            .retryWhen(Retry.backoff(maxAttempts, Duration.ofMillis(delay))
+                .filter(throwable -> throwable instanceof WebClientResponseException &&
+                    ((WebClientResponseException) throwable).getStatusCode().is5xxServerError())
+                .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
+                    log.error("Retry exhausted for getUserById after {} attempts", retrySignal.totalRetries());
+                    return new RuntimeException("Failed to fetch user after " + retrySignal.totalRetries() + " attempts");
+                }))
             .doOnSuccess(user -> log.info("Successfully fetched user: {}", user.getUsername()))
             .doOnError(error -> log.error("Error fetching user {}: {}", userId, error.getMessage()));
     }
