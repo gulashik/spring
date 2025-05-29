@@ -36,15 +36,18 @@ spring:
       - posts
       - external-api-responses
 
-  # Actuator Configuration
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: health,info,metrics,caches,httptrace
-    endpoint:
-      health:
-        show-details: always
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,caches,httptrace
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    info:
+      enabled: true
 
 # Server Configuration
 server:

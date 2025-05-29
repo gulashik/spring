@@ -70,7 +70,7 @@ curl -s -X PUT http://localhost:8080/api/demo/users/1 \
 ```bash
 # Частичное обновление (PATCH)
 clear
-curl -X PATCH http://localhost:8080/api/demo/users/1 \
+curl -s -X PATCH http://localhost:8080/api/demo/users/1 \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Частично Обновленное Имя"
@@ -96,19 +96,17 @@ curl -s -X DELETE http://localhost:8080/api/demo/users/1 \
 #### Асинхронное получение пользователя
 ```bash
 clear
-curl -X GET http://localhost:8080/api/demo/users/1/async \
+curl -s -X GET http://localhost:8080/api/demo/users/1/async \
   -H "Accept: application/json" | jq
 ```
 
 #### Массовое асинхронное получение
 ```bash
 clear
-curl -X POST http://localhost:8080/api/demo/users/batch-async \
+curl -s -X POST http://localhost:8080/api/demo/users/batch-async \
   -H "Content-Type: application/json" \
   -d '[1, 2, 3, 4, 5]' | jq
 ```
-
-### Демонстрация заголовков и параметров
 
 #### Работа с заголовками
 **Что демонстрируется:**
@@ -117,7 +115,7 @@ curl -X POST http://localhost:8080/api/demo/users/batch-async \
 - Получение информации о заголовках от HTTPBin
 ```bash
 clear
-curl -X POST http://localhost:8080/api/demo/headers \
+curl -s -X POST http://localhost:8080/api/demo/headers \
   -H "Content-Type: application/json; charset=utf-8" \
   -d '{
     "X-Custom-Header": "My header",
@@ -132,11 +130,11 @@ curl -X POST http://localhost:8080/api/demo/headers \
 - Передача множественных параметров
 - Обработка query parameters
 ```bash
-curl -X GET "http://localhost:8080/api/demo/query-params?param1=value1&param2=value2&search=demo&limit=10" \
+clear
+curl -s -X GET "http://localhost:8080/api/demo/query-params?param1=value1&param2=value2&search=demo&limit=10" \
   -H "Accept: application/json" | jq
 ```
 
-### Обработка ошибок
 #### Демонстрация различных HTTP ошибок
 **Что демонстрируется:**
 - Обработка различных HTTP статусов
@@ -172,36 +170,38 @@ curl -X POST http://localhost:8080/api/demo/users \
   }' | jq
 ```
 
-
-
-### Мониторинг и метрики
-
 #### Проверка состояния приложения
 ```bash
 # Health check
-curl http://localhost:8080/actuator/health | jq
+clear
+curl -s http://localhost:8080/actuator/health | jq
 ```
 ```bash
 # Информация о приложении
-curl http://localhost:8080/actuator/info | jq
+clear
+curl -s http://localhost:8080/actuator/info | jq
 ```
 ```bash
 # Метрики
-curl http://localhost:8080/actuator/metrics | jq
+clear
+curl -s http://localhost:8080/actuator/metrics | jq
 ```
 ```bash
 # Конкретная метрика
+clear
 curl http://localhost:8080/actuator/metrics/http.server.requests | jq
 ```
 
 #### Состояние кешей
 ```bash
-curl http://localhost:8080/actuator/caches | jq
+cear
+curl -s http://localhost:8080/actuator/caches | jq
 ```
 
 #### Prometheus метрики
 ```bash
-curl http://localhost:8080/actuator/prometheus
+clear
+curl -s http://localhost:8080/actuator/prometheus | jq
 ```
 
 ### Тестирование кеширования
@@ -209,6 +209,7 @@ curl http://localhost:8080/actuator/prometheus
 #### Демонстрация работы кеша
 ```bash
 # Первый запрос (попадание в базу)
+clear
 time curl -X GET http://localhost:8080/api/demo/users/1
 
 # Второй запрос (из кеша, должен быть быстрее)
