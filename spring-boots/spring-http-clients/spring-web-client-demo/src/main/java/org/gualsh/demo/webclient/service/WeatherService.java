@@ -118,12 +118,6 @@ public class WeatherService {
             .onStatus(HttpStatus.INTERNAL_SERVER_ERROR::equals,
                 response -> Mono.error(new InternalServerErrorException("Weather service internal error")))
             .bodyToMono(WeatherDto.class)
-            .retryWhen(Retry.backoff(maxAttempts, Duration.ofMillis(delay))
-                .filter(throwable -> !(throwable instanceof WebClientResponseException.BadRequest))
-                .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                    log.error("Retry exhausted for weather request after {} attempts", retrySignal.totalRetries());
-                    return new RuntimeException("Failed to fetch weather after " + retrySignal.totalRetries() + " attempts");
-                }))
             .doOnSuccess(weather -> log.info("Successfully fetched weather for {}: {}°C",
                 cityName, weather.getMain() != null ? weather.getMain().getTemp() : "N/A"))
             .doOnError(error -> log.error("Error fetching weather for {}: {}", cityName, error.getMessage()));

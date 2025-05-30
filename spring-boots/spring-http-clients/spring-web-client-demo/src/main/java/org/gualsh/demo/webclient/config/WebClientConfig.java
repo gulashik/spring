@@ -89,10 +89,10 @@ public class WebClientConfig {
 
         // Настройка HTTP клиента с таймаутами
         HttpClient httpClient = HttpClient.create(connectionProvider)
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000) // Connection timeout
             .doOnConnected(conn ->
-                conn.addHandlerLast(new ReadTimeoutHandler(30, TimeUnit.SECONDS))
-                    .addHandlerLast(new WriteTimeoutHandler(30, TimeUnit.SECONDS)))
+                conn.addHandlerLast(new ReadTimeoutHandler(30, TimeUnit.SECONDS)) // Read timeout
+                    .addHandlerLast(new WriteTimeoutHandler(30, TimeUnit.SECONDS))) // Write timeout
             .compress(true);
 
         // Настройка стратегий обмена с увеличенным размером буфера
