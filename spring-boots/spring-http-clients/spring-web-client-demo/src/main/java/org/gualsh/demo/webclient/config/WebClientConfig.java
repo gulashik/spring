@@ -10,14 +10,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
-import org.springframework.web.reactive.function.client.ExchangeStrategies;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.reactive.function.client.*;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -37,8 +35,6 @@ import java.util.concurrent.TimeUnit;
  *   <li>Retry механизм на уровне WebClient</li>
  * </ul>
  *
- * @author Demo
- * @version 1.0
  * @see WebClient
  * @see ConnectionProvider
  * @see HttpClient
@@ -128,7 +124,8 @@ public class WebClientConfig {
 
         log.info("Creating JSONPlaceholder WebClient with base URL: {}", jsonPlaceholderBaseUrl);
 
-        return webClient.mutate()
+        return webClient
+            .mutate() // копируем и создаём новый
             .baseUrl(jsonPlaceholderBaseUrl)
             .build();
     }
@@ -148,7 +145,8 @@ public class WebClientConfig {
 
         log.info("Creating Weather WebClient with base URL: {}", weatherBaseUrl);
 
-        return webClient.mutate()
+        return webClient
+            .mutate() // копируем и создаём новый
             .baseUrl(weatherBaseUrl)
             .defaultHeader("X-API-Key", weatherApiKey)
             .filter(rateLimitingFilter())
@@ -215,9 +213,9 @@ public class WebClientConfig {
     /**
      * Обрабатывает клиентские ошибки (4xx).
      */
-    private Mono<org.springframework.web.reactive.function.client.ClientResponse> handleClientError(
-        org.springframework.web.reactive.function.client.ClientResponse clientResponse,
-        org.springframework.http.HttpStatusCode statusCode) {
+    private Mono<ClientResponse> handleClientError(
+        ClientResponse clientResponse,
+        HttpStatusCode statusCode) {
 
         log.warn("Client error: {} for request", statusCode);
 
@@ -247,9 +245,9 @@ public class WebClientConfig {
     /**
      * Обрабатывает серверные ошибки (5xx).
      */
-    private Mono<org.springframework.web.reactive.function.client.ClientResponse> handleServerError(
-        org.springframework.web.reactive.function.client.ClientResponse clientResponse,
-        org.springframework.http.HttpStatusCode statusCode) {
+    private Mono<ClientResponse> handleServerError(
+        ClientResponse clientResponse,
+        HttpStatusCode statusCode) {
 
         log.error("Server error: {} for request", statusCode);
 

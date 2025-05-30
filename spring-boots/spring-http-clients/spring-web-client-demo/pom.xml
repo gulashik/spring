@@ -31,13 +31,15 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Основная зависимость для WebClient -->
         <!-- Spring Boot WebFlux Starter
-             Содержит: WebClient, Reactive Streams, Netty, Project Reactor -->
+             Содержит: WebClient, Reactive Streams, Netty(HTTP-клиент по умолчанию), Project Reactor, Jackson для JSON-сериализации -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+        <!-- Для кэширования -->
         <!-- Spring Boot Cache Starter
              Содержит: Spring Cache Abstraction, Caffeine Cache -->
         <dependency>
@@ -51,6 +53,7 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!-- Для retry механизмов -->
         <!-- Spring Retry
              Содержит: @Retryable, @Recover, RetryTemplate -->
         <dependency>
@@ -73,6 +76,7 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Для валидации данных -->
         <!-- Validation Starter
              Содержит: Bean Validation, Hibernate Validator -->
         <dependency>
