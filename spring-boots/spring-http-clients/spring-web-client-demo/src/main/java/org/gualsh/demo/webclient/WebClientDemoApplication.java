@@ -20,10 +20,6 @@ import org.springframework.retry.annotation.EnableRetry;
  *   <li>Retry механизм для обработки временных сбоев</li>
  *   <li>Actuator endpoints для мониторинга</li>
  * </ul>
- *
- * @author Demo
- * @version 1.0
- * @since 2024
  */
 @SpringBootApplication
 @EnableRetry
