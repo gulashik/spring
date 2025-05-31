@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -69,6 +68,11 @@ public class WebClientConfig {
      *   <li>Фильтры для логирования и обработки ошибок</li>
      * </ul>
      *
+     * Почему эти настройки важны:
+     * 1. Connection pooling уменьшает латентность за счет переиспользования соединений
+     * 2. Таймауты предотвращают зависание приложения при проблемах с сетью
+     * 3. Фильтры обеспечивают сквозную функциональность (логирование, ошибки)
+     *
      * @return настроенный экземпляр WebClient
      */
     @Bean
@@ -76,6 +80,7 @@ public class WebClientConfig {
         log.info("Creating WebClient with connection pool max connections: {}", maxConnections);
 
         // Настройка connection pool
+        // Connection pooling - критически важно для производительности
         ConnectionProvider connectionProvider = ConnectionProvider.builder("custom")
             .maxConnections(maxConnections)
             .pendingAcquireTimeout(pendingAcquireTimeout)
@@ -104,15 +109,25 @@ public class WebClientConfig {
         return WebClient.builder()
             .clientConnector(new ReactorClientHttpConnector(httpClient))
             .exchangeStrategies(strategies)
+
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
             .defaultHeader(HttpHeaders.USER_AGENT, "WebClient-Demo/1.0")
-            .filter(loggingFilter())
-            .filter(errorHandlingFilter())
+
+            .filter(loggingFilter()) // регистрируем фильтр логирования
+            .filter(errorHandlingFilter()) // регистрируем фильтр обработчика ошибок
+
             .build();
     }
 
     /**
-     * Создает WebClient для JSONPlaceholder API.
+     * Создает WebClient для JSONPlaceholder API.<p>
+     * Для разных внешних API часто требуются разные настройки.
+     *
+     * Почему отдельный bean:
+     * - Разные base URL
+     * - Разные настройки таймаутов
+     * - Специфичные заголовки
+     * - Различные retry политики
      *
      * @param jsonPlaceholderBaseUrl базовый URL для JSONPlaceholder
      * @return WebClient с предустановленным base URL
@@ -120,7 +135,8 @@ public class WebClientConfig {
     @Bean
     public WebClient jsonPlaceholderWebClient(
         WebClient webClient,
-        @Value("${external-api.jsonplaceholder.base-url}") String jsonPlaceholderBaseUrl) {
+        @Value("${external-api.jsonplaceholder.base-url}") String jsonPlaceholderBaseUrl
+    ) {
 
         log.info("Creating JSONPlaceholder WebClient with base URL: {}", jsonPlaceholderBaseUrl);
 
@@ -131,17 +147,25 @@ public class WebClientConfig {
     }
 
     /**
-     * Создает WebClient для Weather API.
+     * Создает WebClient для Weather API.<p>
+     * Для разных внешних API часто требуются разные настройки.
+     *
+     * Почему отдельный bean:
+     * - Разные base URL
+     * - Разные настройки таймаутов
+     * - Специфичные заголовки
+     * - Различные retry политики
      *
      * @param weatherBaseUrl базовый URL для Weather API
-     * @param weatherApiKey API ключ для Weather сервиса
+     * @param weatherApiKey  API ключ для Weather сервиса
      * @return WebClient с предустановленными настройками для Weather API
      */
     @Bean
     public WebClient weatherWebClient(
         WebClient webClient,
         @Value("${external-api.weather.base-url}") String weatherBaseUrl,
-        @Value("${external-api.weather.api-key}") String weatherApiKey) {
+        @Value("${external-api.weather.api-key}") String weatherApiKey
+    ) {
 
         log.info("Creating Weather WebClient with base URL: {}", weatherBaseUrl);
 
@@ -154,7 +178,8 @@ public class WebClientConfig {
     }
 
     /**
-     * Фильтр для логирования запросов и ответов.
+     * Фильтр для логирования запросов и ответов.<p>
+     * Фильтры - это мощный механизм для добавления сквозной функциональности.
      *
      * <p>Логирует:</p>
      * <ul>
@@ -167,22 +192,50 @@ public class WebClientConfig {
      * @return фильтр для логирования
      */
     private ExchangeFilterFunction loggingFilter() {
-        return ExchangeFilterFunction.ofRequestProcessor(clientRequest -> {
-            log.debug("Request: {} {}", clientRequest.method(), clientRequest.url());
-            clientRequest.headers().forEach((name, values) -> {
-                if (!isSensitiveHeader(name)) {
-                    log.debug("Request Header: {}={}", name, values);
+
+        return ExchangeFilterFunction
+            .ofRequestProcessor( // Request Processors - обработчики запросов(используются для модификации исходящих запросов)
+                clientRequest -> {
+                    try { // Важно: исключения в фильтрах могут сломать всю цепочку обработки.
+                        log.debug("Request: {} {}", clientRequest.method(), clientRequest.url());
+                        clientRequest.headers().forEach(
+                            (name, values) -> {
+                                if (!isSensitiveHeader(name)) {
+                                    log.debug("Request Header [registred from WebClientConfig#loggingFilter()]: {}={}", name, values);
+                                }
+                            }
+                        );
+                        // ВАЖНО: всегда возвращаем запрос для продолжения цепочки
+                        return Mono.just(clientRequest);
+
+                    } catch (Exception e) {
+                        log.error("Critical error in logging filter: {}", e.getMessage());
+                        // ВАЖНО: всегда возвращаем запрос для продолжения цепочки
+                        return Mono.just(clientRequest);
+                    }
                 }
-            });
-            return Mono.just(clientRequest);
-        }).andThen(ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
-            log.debug("Response Status: {}", clientResponse.statusCode());
-            return Mono.just(clientResponse);
-        }));
+            ).andThen(
+                ExchangeFilterFunction
+                    .ofResponseProcessor( // Response Processors - обработчики ответов(используются для обработки полученных ответов)
+                        clientResponse -> {
+                            try { // Важно: исключения в фильтрах могут сломать всю цепочку обработки.
+                                log.debug("Response Status [registred from WebClientConfig#loggingFilter()]: {}", clientResponse.statusCode());
+
+                                // ВАЖНО: всегда возвращаем запрос для продолжения цепочки
+                                return Mono.just(clientResponse);
+                            } catch (Exception e) {
+                                log.error("Critical error in logging filter: {}", e.getMessage());
+                                // ВАЖНО: всегда возвращаем запрос для продолжения цепочки
+                                return Mono.just(clientResponse);
+                            }
+                        }
+                    )
+            );
     }
 
     /**
-     * Улучшенный фильтр для обработки ошибок с кастомными исключениями.
+     * Улучшенный фильтр для обработки ошибок с кастомными исключениями.<p>
+     * Фильтры - это мощный механизм для добавления сквозной функциональности.
      *
      * <p>Преобразует HTTP ошибки в понятные бизнес-исключения:</p>
      * <ul>
@@ -197,17 +250,26 @@ public class WebClientConfig {
      * @return фильтр для обработки ошибок
      */
     private ExchangeFilterFunction errorHandlingFilter() {
-        return ExchangeFilterFunction.ofResponseProcessor(clientResponse -> {
-            org.springframework.http.HttpStatusCode statusCode = clientResponse.statusCode();
+        return ExchangeFilterFunction.ofResponseProcessor( // Response Processors - обработчики ответов(используются для обработки полученных ответов)
+            clientResponse -> {
+                try { // Важно: исключения в фильтрах могут сломать всю цепочку обработки.
+                    HttpStatusCode statusCode = clientResponse.statusCode();
 
-            if (statusCode.is4xxClientError()) {
-                return handleClientError(clientResponse, statusCode);
-            } else if (statusCode.is5xxServerError()) {
-                return handleServerError(clientResponse, statusCode);
+                    if (statusCode.is4xxClientError()) {
+                        return handleClientError(clientResponse, statusCode);
+                    } else if (statusCode.is5xxServerError()) {
+                        return handleServerError(clientResponse, statusCode);
+                    }
+
+                    // ВАЖНО: всегда возвращаем запрос для продолжения цепочки
+                    return Mono.just(clientResponse);
+                } catch (Exception e) {
+                    log.error("Critical error in error handling filter: {}", e.getMessage());
+                    // ВАЖНО: всегда возвращаем запрос для продолжения цепочки
+                    return Mono.just(clientResponse);
+                }
             }
-
-            return Mono.just(clientResponse);
-        });
+        );
     }
 
     /**

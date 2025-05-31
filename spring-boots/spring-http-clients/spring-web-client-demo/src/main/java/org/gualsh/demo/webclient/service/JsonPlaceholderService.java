@@ -134,8 +134,10 @@ public class JsonPlaceholderService {
             .uri("/users/{id}", userId)
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
-            .onStatus(HttpStatus.NOT_FOUND::equals,
-                response -> Mono.error(new RuntimeException("User not found with ID: " + userId)))
+            .onStatus( // Можно кинуть Exception при не нужном статусе
+                HttpStatus.NOT_FOUND::equals,
+                response -> Mono.error(new RuntimeException("User not found with ID: " + userId))
+            )
             .bodyToMono(UserDto.class)
             // Повторение 
             .retryWhen(
