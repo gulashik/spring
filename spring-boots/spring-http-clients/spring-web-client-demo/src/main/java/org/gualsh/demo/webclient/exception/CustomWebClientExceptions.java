@@ -8,8 +8,6 @@ import org.springframework.http.HttpStatus;
  * <p>Используются вместо прямого создания WebClientResponseException,
  * конструкторы которых могут быть непубличными.</p>
  *
- * @author Demo
- * @version 1.0
  */
 public class CustomWebClientExceptions {
 
