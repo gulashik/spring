@@ -25,8 +25,6 @@ import java.time.Duration;
  * <p>Caffeine обеспечивает высокую производительность и эффективное
  * управление памятью с поддержкой различных политик выселения.</p>
  *
- * @author Demo
- * @version 1.0
  * @see Caffeine
  * @see CacheManager
  */
