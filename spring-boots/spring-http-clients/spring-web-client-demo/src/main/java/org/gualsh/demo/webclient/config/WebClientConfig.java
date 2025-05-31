@@ -294,6 +294,7 @@ public class WebClientConfig {
                 } else if (statusCode.value() == 403) {
                     return Mono.error(new AuthorizationException("Access forbidden: " + body));
                 } else if (statusCode.value() == 404) {
+                    log.info("Resource not found: {}", body);
                     return Mono.error(new ResourceNotFoundException("Resource not found: " + body));
                 } else if (statusCode.value() == 429) {
                     return Mono.error(new RateLimitExceededException("Rate limit exceeded: " + body));
