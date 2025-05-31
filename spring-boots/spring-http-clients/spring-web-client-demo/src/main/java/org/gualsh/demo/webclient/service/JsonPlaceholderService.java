@@ -8,9 +8,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -61,7 +59,8 @@ public class JsonPlaceholderService {
     public JsonPlaceholderService(
         @Qualifier("jsonPlaceholderWebClient") WebClient jsonPlaceholderWebClient,
         @Value("${external-api.jsonplaceholder.max-attempts:3}") int maxAttempts,
-        @Value("${external-api.jsonplaceholder.delay:1000}") long delay) {
+        @Value("${external-api.jsonplaceholder.delay:1000}") long delay
+    ) {
         this.jsonPlaceholderWebClient = jsonPlaceholderWebClient;
         this.maxAttempts = maxAttempts;
         this.delay = delay;
@@ -90,9 +89,9 @@ public class JsonPlaceholderService {
             .uri("/users")
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
-            .bodyToMono(new ParameterizedTypeReference<List<UserDto>>() {
-            })
-
+            .bodyToMono(
+                new ParameterizedTypeReference<List<UserDto>>() {}
+            )
             /*
              * Реализация механизма повторных попыток (retry) непосредственно в цепочке реактивных операций.
              *
@@ -134,12 +133,30 @@ public class JsonPlaceholderService {
             .uri("/users/{id}", userId)
             .accept(MediaType.APPLICATION_JSON)
             .retrieve()
-            .onStatus( // Можно кинуть Exception при не нужном статусе
+            /*
+             * Действия при статусе
+             * Можно кинуть RuntimeException при не нужном статусе.
+             * НО! У нас настроен ExchangeFilterFunction errorHandlingFilter()
+             * Важно понимать порядок выполнения:
+             * 1. **Первым** сработает обработчик в методе `getUserById`, который создаст `onStatus``RuntimeException`
+             * 2. Глобальный `errorHandlingFilter()` **не будет выполнен** для этого запроса, поскольку ошибка уже создана и цепочка обработки ответа прервана
+             */
+            .onStatus(
                 HttpStatus.NOT_FOUND::equals,
                 response -> Mono.error(new RuntimeException("User not found with ID: " + userId))
             )
             .bodyToMono(UserDto.class)
-            // Повторение 
+            /*
+             * Реализация механизма повторных попыток (retry) непосредственно в цепочке реактивных операций.
+             *
+             * Особенности:
+             * - Использует экспоненциальную задержку с увеличением времени между попытками
+             * - Повторяет запрос только при ошибках сервера (5xx)
+             * - Логирует исчерпание попыток с детальной информацией
+             * - В случае исчерпания всех попыток генерирует информативное исключение
+             *
+             * Альтернативой этому подходу является аннотация @Retryable, используемая в других методах.
+             */
             .retryWhen(
                 Retry.backoff(maxAttempts, Duration.ofMillis(delay))
                     .filter(throwable -> {
