@@ -33,8 +33,6 @@ import java.time.Duration;
  *   <li>Обработка rate limiting (HTTP 429)</li>
  * </ul>
  *
- * @author Demo
- * @version 1.0
  * @see WeatherDto
  */
 @Slf4j
