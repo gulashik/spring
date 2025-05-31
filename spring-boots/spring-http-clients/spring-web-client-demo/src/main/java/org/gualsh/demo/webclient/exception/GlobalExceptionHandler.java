@@ -35,8 +35,6 @@ import java.util.stream.Collectors;
  *
  * <p>Возвращает структурированные JSON ответы с детальной информацией об ошибках.</p>
  *
- * @author Demo
- * @version 1.0
  */
 @Slf4j
 @RestControllerAdvice
