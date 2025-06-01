@@ -2,8 +2,8 @@ package org.gualsh.demo.webclient.service;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import org.gualsh.demo.webclient.dto.UserDto;
-import org.gualsh.demo.webclient.dto.PostDto;
+import com.github.tomakehurst.wiremock.stubbing.Scenario;
+import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.webclient.dto.CreatePostDto;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,16 +11,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Duration;
-import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
@@ -35,27 +32,66 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
  *   <li>Проверка retry механизмов</li>
  * </ul>
  *
- * @author Demo
- * @version 1.0
+ * <p><strong>Образовательный момент:</strong></p>
+ * <p>WireMock предоставляет изолированную среду для тестирования HTTP-клиентов.
+ * Это позволяет имитировать различные сценарии, включая задержки, ошибки и
+ * разные форматы ответов, без реального обращения к внешним сервисам. Такой подход
+ * обеспечивает стабильность и предсказуемость тестов, поскольку внешние сервисы
+ * могут быть недоступны или иметь непредсказуемое поведение.</p>
+ * 
+ * <p>Для тестирования реактивных потоков используется StepVerifier, который
+ * позволяет контролировать и проверять асинхронное выполнение операций.</p>
+ *
+ * @see com.github.tomakehurst.wiremock.WireMockServer
+ * @see reactor.test.StepVerifier
  */
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 @DisplayName("JsonPlaceholderService Tests")
 class JsonPlaceholderServiceTest {
 
+    /**
+     * Сервер WireMock для имитации HTTP-сервиса.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>WireMockServer создает локальный HTTP-сервер, который может быть
+     * настроен для имитации любых HTTP-ответов. Запуск на случайном порту (0)
+     * предотвращает конфликты с другими сервисами.</p>
+     */
     private WireMockServer wireMockServer;
+    
+    /**
+     * Тестируемый сервис.
+     */
     private JsonPlaceholderService jsonPlaceholderService;
+    
+    /**
+     * WebClient для тестирования, настроенный на WireMock.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>Использование отдельного экземпляра WebClient для тестов позволяет
+     * изолировать тесты от реальных сервисов и гарантировать, что запросы
+     * идут только на локальный WireMockServer.</p>
+     */
     private WebClient testWebClient;
 
     /**
      * Настройка перед каждым тестом.
      *
      * <p>Инициализирует WireMock сервер и создает тестовый WebClient.</p>
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>Настройка перед каждым тестом обеспечивает изоляцию тестов друг от друга.
+     * Каждый тест получает "чистый" сервер без остаточных стабов от предыдущих тестов.</p>
      */
     @BeforeEach
     void setUp() {
         // Запускаем WireMock на случайном порту
         wireMockServer = new WireMockServer(0);
         wireMockServer.start();
+        
+        // Конфигурируем WireMock для текущего потока
+        WireMock.configureFor("localhost", wireMockServer.port());
 
         // Создаем WebClient для тестов, указывающий на WireMock
         testWebClient = WebClient.builder()
@@ -68,11 +104,34 @@ class JsonPlaceholderServiceTest {
 
     /**
      * Очистка после каждого теста.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>Важно останавливать WireMockServer после каждого теста, чтобы освободить 
+     * системные ресурсы и порт. Это предотвращает утечки ресурсов и конфликты 
+     * между последовательными запусками тестов.</p>
+     * <p>Использование try-catch внутри метода tearDown гарантирует, что даже 
+     * при возникновении ошибки во время остановки сервера, другие ресурсы будут 
+     * корректно освобождены, а тест получит информацию о проблеме.</p>
      */
     @AfterEach
     void tearDown() {
-        if (wireMockServer != null) {
-            wireMockServer.stop();
+        try {
+            if (wireMockServer != null) {
+                if (wireMockServer.isRunning()) {
+                    wireMockServer.stop();
+                }
+                wireMockServer.resetAll(); // Сбрасываем все стабы и сценарии
+            }
+        } catch (Exception e) {
+            // Логируем исключение, но не прерываем процесс очистки
+            System.err.println("Ошибка при остановке WireMockServer: " + e.getMessage());
+            e.printStackTrace();
+            
+            // В реальном приложении здесь лучше использовать Logger
+             log.error("Ошибка при остановке WireMockServer", e);
+        } finally {
+            // Дополнительная очистка ресурсов, если необходимо
+            wireMockServer = null; // Явно освобождаем ссылку
         }
     }
 
@@ -85,6 +144,11 @@ class JsonPlaceholderServiceTest {
      *   <li>Правильные HTTP заголовки</li>
      *   <li>Обработку ParameterizedTypeReference</li>
      * </ul>
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>Данный тест демонстрирует паттерн Given-When-Then, который делает тесты
+     * более читаемыми и понятными. В секции Given настраивается мок ответа,
+     * в When выполняется тестируемое действие, а Then проверяет результат.</p>
      */
     @Test
     @DisplayName("Should successfully fetch all users")
@@ -120,7 +184,7 @@ class JsonPlaceholderServiceTest {
 
         wireMockServer.stubFor(get(urlEqualTo("/users"))
             .willReturn(aResponse()
-                .withStatus(200)
+                .withStatus(HttpStatus.OK.value())
                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .withBody(usersJson)));
 
@@ -142,6 +206,11 @@ class JsonPlaceholderServiceTest {
 
     /**
      * Тест получения пользователя по ID.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>В этом тесте проверяется получение конкретного пользователя по ID.
+     * WireMock настраивается на возврат данных только для определенного URL,
+     * что позволяет проверить, что клиент правильно формирует URL с параметрами пути.</p>
      */
     @Test
     @DisplayName("Should successfully fetch user by ID")
@@ -159,7 +228,7 @@ class JsonPlaceholderServiceTest {
 
         wireMockServer.stubFor(get(urlEqualTo("/users/" + userId))
             .willReturn(aResponse()
-                .withStatus(200)
+                .withStatus(HttpStatus.OK.value())
                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .withBody(userJson)));
 
@@ -173,6 +242,11 @@ class JsonPlaceholderServiceTest {
 
     /**
      * Тест обработки 404 ошибки при поиске несуществующего пользователя.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>Важной частью тестирования HTTP-клиентов является проверка
+     * обработки ошибок. Этот тест проверяет, что сервис правильно обрабатывает
+     * ответ 404 (Not Found) и преобразует его в соответствующее исключение.</p>
      */
     @Test
     @DisplayName("Should handle user not found (404)")
@@ -182,7 +256,7 @@ class JsonPlaceholderServiceTest {
 
         wireMockServer.stubFor(get(urlEqualTo("/users/" + userId))
             .willReturn(aResponse()
-                .withStatus(404)));
+                .withStatus(HttpStatus.NOT_FOUND.value())));
 
         // When & Then
         StepVerifier.create(jsonPlaceholderService.getUserById(userId))
@@ -196,6 +270,13 @@ class JsonPlaceholderServiceTest {
      * Тест retry механизма при серверных ошибках.
      *
      * <p>Проверяет что сервис повторяет запросы при 5xx ошибках.</p>
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>WireMock позволяет моделировать сложные сценарии с изменением
+     * поведения между запросами. В этом тесте используется механизм сценариев
+     * WireMock для имитации ситуации, когда первые два запроса завершаются с
+     * ошибкой 500, а третий успешен. Это позволяет проверить логику повторных
+     * попыток (retry) в клиенте.</p>
      */
     @Test
     @DisplayName("Should retry on server errors")
@@ -212,21 +293,21 @@ class JsonPlaceholderServiceTest {
 
         wireMockServer.stubFor(get(urlEqualTo("/users/1"))
             .inScenario("Retry Scenario")
-            .whenScenarioStateIs("Started")
-            .willReturn(aResponse().withStatus(500))
+            .whenScenarioStateIs(Scenario.STARTED)
+            .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value()))
             .willSetStateTo("First Failure"));
 
         wireMockServer.stubFor(get(urlEqualTo("/users/1"))
             .inScenario("Retry Scenario")
             .whenScenarioStateIs("First Failure")
-            .willReturn(aResponse().withStatus(500))
+            .willReturn(aResponse().withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value()))
             .willSetStateTo("Second Failure"));
 
         wireMockServer.stubFor(get(urlEqualTo("/users/1"))
             .inScenario("Retry Scenario")
             .whenScenarioStateIs("Second Failure")
             .willReturn(aResponse()
-                .withStatus(200)
+                .withStatus(HttpStatus.OK.value())
                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .withBody(userJson)));
 
@@ -241,6 +322,11 @@ class JsonPlaceholderServiceTest {
 
     /**
      * Тест создания нового поста.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>Этот тест демонстрирует проверку POST-запросов с JSON-телом.
+     * WireMock позволяет проверить не только URL и заголовки, но и содержимое
+     * тела запроса с помощью различных матчеров, например, containing().</p>
      */
     @Test
     @DisplayName("Should successfully create post")
@@ -264,7 +350,7 @@ class JsonPlaceholderServiceTest {
         wireMockServer.stubFor(post(urlEqualTo("/posts"))
             .withRequestBody(containing("Test Post"))
             .willReturn(aResponse()
-                .withStatus(201)
+                .withStatus(HttpStatus.CREATED.value())
                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .withBody(responseJson)));
 
@@ -278,6 +364,12 @@ class JsonPlaceholderServiceTest {
 
     /**
      * Тест получения постов пользователя с query параметрами.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>В этом тесте демонстрируется работа с URL-параметрами запроса (query parameters).
+     * WireMock позволяет настроить стаб, который будет отвечать только на запросы
+     * с определенными параметрами, что позволяет проверить правильность их передачи
+     * клиентом.</p>
      */
     @Test
     @DisplayName("Should fetch posts by user ID with query parameters")
@@ -302,9 +394,9 @@ class JsonPlaceholderServiceTest {
             """;
 
         wireMockServer.stubFor(get(urlPathEqualTo("/posts"))
-            .withQueryParam("userId", equalTo("1"))
+            .withQueryParam("userId", equalTo(userId.toString()))
             .willReturn(aResponse()
-                .withStatus(200)
+                .withStatus(HttpStatus.OK.value())
                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .withBody(postsJson)));
 
@@ -315,11 +407,18 @@ class JsonPlaceholderServiceTest {
 
         // Проверяем что запрос содержал правильный query параметр
         wireMockServer.verify(getRequestedFor(urlPathEqualTo("/posts"))
-            .withQueryParam("userId", equalTo("1")));
+            .withQueryParam("userId", equalTo(userId.toString())));
     }
 
     /**
      * Тест таймаута запроса.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>WireMock позволяет имитировать задержки в ответах сервера с помощью
+     * метода withFixedDelay(). Это особенно полезно для тестирования обработки
+     * таймаутов и других временных аспектов HTTP-взаимодействия.</p>
+     * <p>StepVerifier.expectTimeout() позволяет проверить, что операция
+     * прерывается по таймауту в указанный интервал времени.</p>
      */
     @Test
     @DisplayName("Should handle request timeout")
@@ -327,7 +426,7 @@ class JsonPlaceholderServiceTest {
         // Given: медленный ответ (больше таймаута)
         wireMockServer.stubFor(get(urlEqualTo("/users/1"))
             .willReturn(aResponse()
-                .withStatus(200)
+                .withStatus(HttpStatus.OK.value())
                 .withFixedDelay(6000) // 6 секунд задержки
                 .withBody("{}")));
 
@@ -339,6 +438,12 @@ class JsonPlaceholderServiceTest {
 
     /**
      * Тест обработки невалидного JSON.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>Этот тест проверяет обработку некорректных ответов от сервера.
+     * Несмотря на успешный HTTP-статус (200), тело ответа содержит невалидный JSON,
+     * что должно привести к ошибке десериализации. Такие тесты важны для проверки
+     * устойчивости приложения к некорректным данным.</p>
      */
     @Test
     @DisplayName("Should handle invalid JSON response")
@@ -346,7 +451,7 @@ class JsonPlaceholderServiceTest {
         // Given
         wireMockServer.stubFor(get(urlEqualTo("/users"))
             .willReturn(aResponse()
-                .withStatus(200)
+                .withStatus(HttpStatus.OK.value())
                 .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .withBody("invalid json")));
 
@@ -358,6 +463,12 @@ class JsonPlaceholderServiceTest {
 
     /**
      * Тест удаления поста.
+     * 
+     * <p>Образовательный момент:</p>
+     * <p>Этот тест демонстрирует проверку DELETE-запросов. Особенность DELETE-запросов
+     * в том, что они часто возвращают пустое тело (или 204 No Content). Здесь
+     * проверяется, что запрос был сделан на правильный URL, а результирующий Mono
+     * успешно завершается.</p>
      */
     @Test
     @DisplayName("Should successfully delete post")
@@ -367,7 +478,7 @@ class JsonPlaceholderServiceTest {
 
         wireMockServer.stubFor(delete(urlEqualTo("/posts/" + postId))
             .willReturn(aResponse()
-                .withStatus(200)));
+                .withStatus(HttpStatus.OK.value())));
 
         // When & Then
         StepVerifier.create(jsonPlaceholderService.deletePost(postId))

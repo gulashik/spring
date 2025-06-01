@@ -1,4 +1,3 @@
-
 # application-test.yml - Конфигурация для тестов
 spring:
   application:
@@ -6,20 +5,22 @@ spring:
   
   cache:
     type: simple # Простой кэш для тестов
-  
+
   jackson:
     default-property-inclusion: non_null
 
 # Используем WireMock URLs для тестов
 external-api:
   jsonplaceholder:
-    base-url: http://localhost:${wiremock.server.port:8089}
+#    base-url: http://localhost:${wiremock.server.port:8089}
+    base-url: https://jsonplaceholder.typicode.com
     timeout: 2000
     max-attempts: 2
     delay: 500
   
   weather:
-    base-url: http://localhost:${wiremock.server.port:8089}/weather
+#    base-url: http://localhost:${wiremock.server.port:8089}/weather
+    base-url: https://api.openweathermap.org/data/2.5
     api-key: test-key
     timeout: 2000
     max-attempts: 1
@@ -36,50 +37,4 @@ webclient:
 logging:
   level:
     org.gualsh.demo.webclient: DEBUG
-    org.springframework.web.reactive.function.client: DEBUG
-    com.github.tomakehurst.wiremock: INFO
-
----
-# application-local.yml - Конфигурация для локальной разработки
-spring:
-  application:
-    name: webclient-demo-local
-  
-  cache:
-    type: caffeine
-    caffeine:
-      spec: maximumSize=100,expireAfterWrite=2m,recordStats
-
-# Настройки для локальной разработки
-external-api:
-  jsonplaceholder:
-    base-url: https://jsonplaceholder.typicode.com
-    timeout: 5000
-    max-attempts: 2
-    delay: 1000
-  
-  weather:
-    base-url: https://api.openweathermap.org/data/2.5
-    api-key: ${WEATHER_API_KEY:demo-key}
-    timeout: 8000
-    max-attempts: 2
-    delay: 2000
-
-webclient:
-  max-memory-size: 2MB
-  connection-pool:
-    max-connections: 50
-    pending-acquire-timeout: 30s
-    max-idle-time: 10s
-    max-life-time: 45s
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,caches
-
-logging:
-  level:
-    org.gualsh.demo.webclient: INFO
     org.springframework.web.reactive.function.client: DEBUG

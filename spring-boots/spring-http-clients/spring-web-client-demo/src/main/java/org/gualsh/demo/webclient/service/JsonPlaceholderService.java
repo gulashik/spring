@@ -36,8 +36,6 @@ import java.util.Map;
  *   <li>Reactive streams для асинхронной обработки</li>
  * </ul>
  *
- * @author Demo
- * @version 1.0
  * @see WebClient
  * @see ParameterizedTypeReference
  */
