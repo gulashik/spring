@@ -11,8 +11,9 @@ COPY src ./src
 # Сборка приложения (пропуск тестов для ускорения сборки)
 RUN mvn clean package -DskipTests
 
-# Production stage(чистая сборка без мусора)
-FROM arm64v8/eclipse-temurin:17-jre
+# Production stage(чистая сборка без мусора) - может не работать на x86_64
+# FROM arm64v8/eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre
 
 # Создание непривилегированного пользователя для безопасности
 RUN groupadd -g 1001 appgroup && \
