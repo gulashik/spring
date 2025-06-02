@@ -1,58 +1,59 @@
 version: '3.8'
 
+# Подробное описание сервисов и их конфигурации
 services:
-  # PostgreSQL Database
+  # PostgreSQL Database - сервис базы данных
   postgres:
-    image: postgres:15-alpine
-    container_name: postgres-db
-    restart: unless-stopped
+    image: postgres:15-alpine  # Легковесный образ PostgreSQL 15 на базе Alpine Linux
+    container_name: postgres-db  # Уникальное имя контейнера
+    restart: unless-stopped  # Автоматический перезапуск при сбоях, но не при ручной остановке
     environment:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: testdb  # Имя создаваемой базы данных
+      POSTGRES_USER: user  # Имя пользователя PostgreSQL
+      POSTGRES_PASSWORD: password  # Пароль пользователя (в продакшене использовать secrets)
+      PGDATA: /var/lib/postgresql/data  # Директория для хранения данных PostgreSQL
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Проброс порта PostgreSQL (хост:контейнер)
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-scripts:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data  # Постоянное хранилище данных
+      - ./init-scripts:/docker-entrypoint-initdb.d  # Скрипты инициализации БД
     networks:
-      - app-network
+      - app-network  # Сеть для взаимодействия сервисов
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d testdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      test: ["CMD-SHELL", "pg_isready -U user -d testdb"]  # Проверка готовности БД
+      interval: 10s  # Интервал между проверками
+      timeout: 5s  # Тайм-аут проверки
+      retries: 5  # Количество повторных попыток
+      start_period: 10s  # Начальный период до первой проверки
 
-  # Spring Boot Application
+  # Spring Boot Application - сервис Java-приложения
   app:
     build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: spring-postgres-app
-    restart: unless-stopped
+      context: .  # Текущая директория как контекст сборки
+      dockerfile: Dockerfile  # Файл с инструкциями для сборки образа
+    container_name: spring-postgres-app  # Уникальное имя контейнера
+    restart: unless-stopped  # Автоматический перезапуск при сбоях, но не при ручной остановке
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_healthy  # Запуск только после успешной проверки здоровья PostgreSQL
     environment:
-      # Database configuration
+      # Database configuration - настройки подключения к БД
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: testdb
       DB_USER: user
-      DB_PASSWORD: password
+      DB_PASSWORD: password  # В продакшене использовать secrets
 
-      # Server configuration
+      # Server configuration - настройки сервера
       SERVER_PORT: 8080
 
-      # Logging configuration
-      LOG_LEVEL: INFO
-      APP_LOG_LEVEL: INFO
-      SQL_LOG_LEVEL: WARN
-      SHOW_SQL: false
+      # Logging configuration - настройки логирования
+      LOG_LEVEL: INFO  # Общий уровень логирования
+      APP_LOG_LEVEL: INFO  # Уровень логирования приложения
+      SQL_LOG_LEVEL: WARN  # Уровень логирования SQL-запросов
+      SHOW_SQL: "false"  # Отображение SQL-запросов (строка для корректной обработки)
 
-      # JVM options for containerized environment
+      # JVM options for containerized environment - оптимизация JVM для контейнеров
       JAVA_OPTS: >-
         -XX:+UseContainerSupport
         -XX:MaxRAMPercentage=75.0
@@ -60,32 +61,32 @@ services:
         -XX:+UseStringDeduplication
         -Djava.security.egd=file:/dev/./urandom
     ports:
-      - "8080:8080"
+      - "8080:8080"  # Проброс порта приложения (хост:контейнер)
     networks:
-      - app-network
+      - app-network  # Сеть для взаимодействия сервисов
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    # Resource limits
+      interval: 30s  # Интервал между проверками
+      timeout: 10s  # Тайм-аут проверки
+      retries: 3  # Количество повторных попыток
+      start_period: 60s  # Начальный период до первой проверки (увеличен для Spring Boot)
+    # Resource limits - ограничение ресурсов
     deploy:
       resources:
         limits:
-          memory: 512M
-          cpus: '0.5'
+          memory: 512M  # Максимальный объем памяти
+          cpus: '0.5'  # Максимальное использование CPU
         reservations:
-          memory: 256M
-          cpus: '0.25'
+          memory: 256M  # Гарантированный объем памяти
+          cpus: '0.25'  # Гарантированное использование CPU
 
-# Networks
+# Networks - сети Docker для изоляции и взаимодействия сервисов
 networks:
   app-network:
-    driver: bridge
-    name: spring-postgres-network
+    driver: bridge  # Тип сети - мост между контейнерами
+    name: spring-postgres-network  # Уникальное имя сети
 
-# Volumes
+# Volumes - тома для постоянного хранения данных
 volumes:
   postgres_data:
-    driver: local
+    driver: local  # Локальный драйвер для хранения данных
