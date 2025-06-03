@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+target/
+!target/*.jar
+build/
+out/
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+.coverage
+coverage/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
