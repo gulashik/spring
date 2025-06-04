@@ -47,11 +47,11 @@ tasks.withType<Test> {
 jib {
     from {
         image = "eclipse-temurin:21-jre-alpine"
-        platforms {
-            platform {
+        platforms { // нужная платформа
+/*            platform {
                 architecture = "amd64"
                 os = "linux"
-            }
+            }*/
             platform {
                 architecture = "arm64"
                 os = "linux"
@@ -80,6 +80,11 @@ jib {
             "description" to "Spring Boot application built with Jib"
         )
         creationTime = "USE_CURRENT_TIMESTAMP"
+        user = "1000:1000"  // Для безопасности
+    }
+    // Настройка для Podman
+    dockerClient {
+        executable = "podman"
     }
     extraDirectories {
         paths {
