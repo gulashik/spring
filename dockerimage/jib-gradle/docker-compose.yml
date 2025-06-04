@@ -1,41 +1,81 @@
 version: '3.8'
 
 services:
+  # ========================================
+  # ОСНОВНОЕ ПРИЛОЖЕНИЕ (SPRING BOOT)
+  # ========================================
   app:
+    # ОБРАЗ: Использует локально собранный образ через Jib плагин
     image: jib-gradle-app:latest
+    
+    # СЕТЕВЫЕ НАСТРОЙКИ
     ports:
-      - "8080:8080"
+      - "8080:8080"  # Маппинг порта: host:8080 -> container:8080 (Spring Boot приложение)
+    
+    # ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ для конфигурации приложения
     environment:
+      # Активация Docker профиля Spring Boot (специальные настройки для контейнерного окружения)
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/jib_db
-      - SPRING_DATASOURCE_USERNAME=jib_user
-      - SPRING_DATASOURCE_PASSWORD=jib_password
+      
+      # НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/jib_db    # URL БД (использует имя сервиса 'postgres')
+      - SPRING_DATASOURCE_USERNAME=jib_user                             # Имя пользователя БД
+      - SPRING_DATASOURCE_PASSWORD=jib_password                         # Пароль для подключения к БД
+    
+    # ЗАВИСИМОСТИ МЕЖДУ СЕРВИСАМИ
     depends_on:
       postgres:
-        condition: service_healthy
-    restart: unless-stopped
+        condition: service_healthy  # Ожидание готовности PostgreSQL (health check пройден)
+    
+    # ПОЛИТИКА ПЕРЕЗАПУСКА
+    restart: unless-stopped  # Автоматический перезапуск при сбоях (кроме ручной остановки)
+    
+    # НАСТРОЙКИ БЕЗОПАСНОСТИ
     security_opt:
-      - no-new-privileges:true
-    user: "1000:1000"
+      - no-new-privileges:true  # Запрет на получение новых привилегий процессами в контейнере
+    
+    # ПОЛЬЗОВАТЕЛЬ ДЛЯ ЗАПУСКА ПРОЦЕССОВ
+    user: "1000:1000"  # UID:GID непривилегированного пользователя (повышает безопасность)
 
+  # ========================================
+  # БАЗА ДАННЫХ POSTGRESQL
+  # ========================================
   postgres:
+    # ОБРАЗ: PostgreSQL 15 на Alpine Linux (легковесная версия)
     image: postgres:15-alpine
+    
+    # ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ДЛЯ ИНИЦИАЛИЗАЦИИ БД
     environment:
-      POSTGRES_DB: jib_db
-      POSTGRES_USER: jib_user
-      POSTGRES_PASSWORD: jib_password
+      POSTGRES_DB: jib_db          # Название создаваемой базы данных
+      POSTGRES_USER: jib_user      # Имя пользователя БД (будет создан автоматически)
+      POSTGRES_PASSWORD: jib_password  # Пароль для пользователя БД
+    
+    # СЕТЕВЫЕ НАСТРОЙКИ
     ports:
-      - "5432:5432"
+      - "5432:5432"  # Маппинг порта для внешнего доступа к БД (для отладки/администрирования)
+    
+    # УПРАВЛЕНИЕ ДАННЫМИ
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data  # Персистентное хранение данных БД
+    
+    # HEALTH CHECK для проверки готовности БД
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jib_user -d jib_db"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      test: ["CMD-SHELL", "pg_isready -U jib_user -d jib_db"]  # Команда проверки доступности БД
+      interval: 10s   # Интервал между проверками
+      timeout: 5s     # Таймаут выполнения команды проверки
+      retries: 5      # Количество попыток перед признанием сервиса неработающим
+    
+    # ПОЛИТИКА ПЕРЕЗАПУСКА
+    restart: unless-stopped  # Автоматический перезапуск при сбоях
+    
+    # НАСТРОЙКИ БЕЗОПАСНОСТИ
     security_opt:
-      - no-new-privileges:true
+      - no-new-privileges:true  # Запрет на получение новых привилегий
 
+# ========================================
+# ТОМА ДЛЯ ПЕРСИСТЕНТНОГО ХРАНЕНИЯ ДАННЫХ
+# ========================================
 volumes:
+  # Именованный том для хранения данных PostgreSQL
+  # Обеспечивает сохранность данных при пересоздании контейнеров
   postgres_data:
