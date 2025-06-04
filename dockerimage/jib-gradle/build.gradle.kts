@@ -108,7 +108,7 @@ jib {
     
     // НАСТРОЙКА ДЛЯ PODMAN вместо Docker
     dockerClient {
-        executable = "podman"                                     // Использование Podman как альтернативы Docker
+        executable = "podman" // Использование Podman как альтернативы Docker. Для задач, которые выполняют `docker run`, `docker ps` и т.д.
     }
     
     // ДОПОЛНИТЕЛЬНЫЕ ДИРЕКТОРИИ для копирования в образ
