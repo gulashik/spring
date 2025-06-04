@@ -14,9 +14,9 @@ docker-compose up -d
 
 -----Podman-------------
 ```shell
-# Создание tar архива
+# Создание tar архива если
 clear
-./gradlew jibBuildTar
+./gradlew clean jibBuildTar
 ```
 
 ```shell
