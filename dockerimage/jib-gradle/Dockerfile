@@ -1,18 +1,18 @@
 # Multi-stage build для оптимизации размера образа
-FROM maven:3.9.4-eclipse-temurin-17 AS build
+FROM gradle:8.4-jdk21-alpine AS build
 
 # Установка рабочей директории
 WORKDIR /app
 
 # Копирование файлов для сборки
-COPY pom.xml .
+COPY build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY src ./src
 
 # Сборка приложения (пропуск тестов для ускорения сборки)
-RUN mvn clean package -DskipTests
+RUN gradle bootJar --no-daemon
 
 # Production stage(чистая сборка без мусора)
-FROM arm64v8/eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre-alpine
 
 # Создание непривилегированного пользователя для безопасности
 RUN groupadd -g 1001 appgroup && \
@@ -22,7 +22,7 @@ RUN groupadd -g 1001 appgroup && \
 WORKDIR /app
 
 # Копирование JAR файла из build stage
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/build/libs/*.jar app.jar
 
 # Изменение владельца файлов
 RUN chown -R appuser:appgroup /app

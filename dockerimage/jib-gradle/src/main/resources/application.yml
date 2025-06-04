@@ -1,6 +1,6 @@
 spring:
   application:
-    name: spring-postgres-app
+    name: spring-app
 
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:testdb}
