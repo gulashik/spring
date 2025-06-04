@@ -2,47 +2,62 @@ spring:
   application:
     name: spring-app
 
+  # ========================================
+  # НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ
+  # ========================================
   datasource:
-    url: null
-    username: null
-    password: null
+    url: null                                    # URL подключения к БД (переопределяется через переменные окружения)
+    username: null                               # Имя пользователя БД (переопределяется через переменные окружения)
+    password: null                               # Пароль БД (переопределяется через переменные окружения)
     driver-class-name: org.postgresql.Driver
 
+  # ========================================
+  # НАСТРОЙКИ JPA И HIBERNATE ORM
+  # ========================================
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: ${SHOW_SQL:false}
+    show-sql: ${SHOW_SQL:false}                  # Вывод SQL запросов в лог (по умолчанию отключено, управляется переменной окружения)
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     defer-datasource-initialization: true
 
+  # ========================================
+  # ИНИЦИАЛИЗАЦИЯ ДАННЫХ
+  # ========================================
   sql:
     init:
-      mode: always
+      mode: always                               # Всегда выполнять SQL скрипты инициализации (data.sql, schema.sql)
 
+# ========================================
+# НАСТРОЙКИ СЕРВЕРА
+# ========================================
 server:
-  port: ${SERVER_PORT:8080}
-  shutdown: graceful
+  port: ${SERVER_PORT:8080}                     # Порт сервера (по умолчанию 8080, управляется переменной окружения)
+  shutdown: graceful                            # Graceful shutdown - ожидание завершения активных запросов при остановке
 
+# ========================================
+# МОНИТОРИНГ И УПРАВЛЕНИЕ (SPRING ACTUATOR)
+# ========================================
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus  # Доступные HTTP endpoints для мониторинга
   endpoint:
     health:
-      show-details: always
+      show-details: always                       # Показывать детали health check'ов (включая статус БД)
   health:
     db:
-      enabled: true
+      enabled: true                              # Включение проверки здоровья базы данных
 
 logging:
   level:
-    org.springframework.web: ${LOG_LEVEL:INFO}
-    org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}
-    com.example: ${APP_LOG_LEVEL:INFO}
+    org.springframework.web: ${LOG_LEVEL:INFO}   # Уровень логирования Spring Web (управляется переменной окружения)
+    org.hibernate.SQL: ${SQL_LOG_LEVEL:WARN}     # Уровень логирования SQL запросов Hibernate
+    com.example: ${APP_LOG_LEVEL:INFO}           # Уровень логирования для пакетов приложения
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"  # Формат логов в консоли (упрощенный)
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"  # Формат логов в файле (детализированный)
