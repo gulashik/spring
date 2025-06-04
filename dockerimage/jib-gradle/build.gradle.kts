@@ -95,3 +95,21 @@ jib {
         }
     }
 }
+
+tasks.register("jibPodmanBuild") {
+    dependsOn("jibBuildTar")
+    doLast {
+        exec {
+            commandLine("podman", "load", "-i", "build/jib-image.tar")
+        }
+    }
+}
+
+tasks.register("podmanRun") {
+    dependsOn("jibPodmanBuild")
+    doLast {
+        exec {
+            commandLine("podman compose", "up", "-d")
+        }
+    }
+}

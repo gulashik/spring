@@ -1,10 +1,34 @@
 
 ```shell
-# Запускаем приложение
+# Останавливеам если запущено приложение
+clear
 podman compose down -v
+```
+
+-----Docker-------------
+Создание
+./gradlew jibDockerBuild
+Запуск
+docker-compose up -d
+-----------------------
+
+-----Podman-------------
+```shell
+# Создание tar архива
+clear
+./gradlew jibBuildTar
+```
+
+```shell
+# Загрузка образа в Podman
+clear
+podman load < build/jib-image.tar
+```
+
+```shell
+# Запуск docker-compose.yml через podman
 clear
 podman compose up -d
-podman compose ps
 ```
 
 ```shell
