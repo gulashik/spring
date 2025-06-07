@@ -115,7 +115,10 @@ public class Server {
      * @see DataOutputStream#writeUTF(String)
      */
     public static void main(String[] args) {
-        try (ServerSocket socket = new ServerSocket(SERVER_PORT)) {
+        try (
+            // Создаём ServerSocket
+            ServerSocket socket = new ServerSocket(SERVER_PORT)
+        ) {
             System.out.println("SERVER APPLICATION RUN!");
             System.out.println("Сервер запущен на порту " + SERVER_PORT);
             System.out.println("Ожидание подключений...");
