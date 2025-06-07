@@ -1,4 +1,4 @@
-package ru.otus.hw;
+package ru.gulash.multithreaded;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package ru.otus.hw;
+package ru.gulash.multithreaded;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,10 +9,6 @@ import java.net.UnknownHostException;
 
 /**
  * Клиент для подключения к серверу и обмена сообщениями.
- * 
- * <p>Этот класс реализует простого TCP-клиента, который может подключаться
- * к серверу, отправлять текстовые сообщения и получать ответы.
- * Клиент использует сокетное соединение для обмена данными.</p>
  * 
  * <p><strong>Образовательный момент:</strong><br>
  * Данный класс демонстрирует основы сетевого программирования в Java:
@@ -26,7 +22,7 @@ import java.net.UnknownHostException;
  * <p><strong>Пример использования:</strong></p>
  * <pre>{@code
  * EchoClient client = new EchoClient("localhost", 8080);
- * client.connect();
+ * client.connectAndInteractWithServerAndUser();
  * }</pre>
  *
  */
@@ -83,13 +79,6 @@ public class EchoClient {
     /**
      * Устанавливает соединение с сервером и запускает интерактивный обмен сообщениями.
      * 
-     * <p>Метод создает TCP-соединение с сервером, настраивает потоки ввода-вывода
-     * и входит в цикл чтения пользовательского ввода. Каждое введенное сообщение
-     * отправляется серверу, а полученный ответ выводится на консоль.</p>
-     * 
-     * <p>Соединение автоматически закрывается при завершении метода благодаря
-     * использованию try-with-resources конструкции.</p>
-     * 
      * <p><strong>Образовательный момент:</strong><br>
      * Этот метод демонстрирует несколько важных концепций:
      * <ul>
@@ -128,7 +117,9 @@ public class EchoClient {
             Socket socket = new Socket(hostname, port);
 
             // Создаем потоки для общения с сервером
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            PrintWriter out = new PrintWriter(
+                socket.getOutputStream(), true
+            );
             BufferedReader in = new BufferedReader(
                 new InputStreamReader(socket.getInputStream())
             );
