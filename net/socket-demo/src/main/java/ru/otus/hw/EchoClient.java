@@ -22,8 +22,6 @@ import java.net.UnknownHostException;
  *   <li>Паттерн try-with-resources для автоматического управления ресурсами</li>
  *   <li>Обработку сетевых исключений</li>
  * </ul>
- * TCP-протокол гарантирует надежную доставку данных в правильном порядке,
- * что делает его подходящим для большинства клиент-серверных приложений.</p>
  * 
  * <p><strong>Пример использования:</strong></p>
  * <pre>{@code
@@ -48,10 +46,11 @@ public class EchoClient {
      * Номер порта сервера для подключения.
      * 
      * <p><strong>Образовательный момент:</strong><br>
-     * Порт - это числовой идентификатор (1-65535), который позволяет
+     * Порт - это числовой идентификатор (1024-49151), который позволяет
      * различать разные сервисы на одном хосте. Порты 1-1023 зарезервированы
      * для системных служб, поэтому для пользовательских приложений
-     * рекомендуется использовать порты выше 1024.</p>
+     * используется диапазон 1024-49151, а порты 49152-65535 предназначены
+     * для динамического выделения операционной системой.</p>
      */
     private final int port;
 
@@ -64,7 +63,7 @@ public class EchoClient {
      * Такой подход дает больше гибкости в управлении жизненным циклом соединения.</p>
      * 
      * @param hostname адрес сервера (IP-адрес или доменное имя), не может быть {@code null}
-     * @param port     номер порта сервера (должен быть в диапазоне 1-65535)
+     * @param port     номер порта сервера (должен быть в диапазоне 1024-49151)
      * 
      * @throws IllegalArgumentException если hostname равен {@code null} или пустой строке,
      *                                  или если port находится вне допустимого диапазона
@@ -73,8 +72,8 @@ public class EchoClient {
         if (hostname == null || hostname.trim().isEmpty()) {
             throw new IllegalArgumentException("Hostname не может быть null или пустым");
         }
-        if (port < 1 || port > 65535) {
-            throw new IllegalArgumentException("Port должен быть в диапазоне 1-65535");
+        if (port < 1024 || port > 49151) {
+            throw new IllegalArgumentException("Port должен быть в диапазоне 1024-49151");
         }
         
         this.hostname = hostname;
@@ -123,19 +122,21 @@ public class EchoClient {
      * @see PrintWriter
      * @see BufferedReader
      */
-    public void connect() {
-        try (
+    public void connectAndInteractWithServerAndUser() {
+        try ( // try-with-resources
             // Создаем сокет и подключаемся к серверу
             Socket socket = new Socket(hostname, port);
 
             // Создаем потоки для общения с сервером
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(
-                new InputStreamReader(socket.getInputStream()));
+                new InputStreamReader(socket.getInputStream())
+            );
 
             // Для чтения ввода пользователя
             BufferedReader stdIn = new BufferedReader(
-                new InputStreamReader(System.in))
+                new InputStreamReader(System.in)
+            )
         ) {
 
             System.out.println("Подключен к серверу " + hostname + ":" + port);

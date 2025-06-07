@@ -67,7 +67,7 @@ public class SocketDemo {
 
         // В реальном приложении клиент бы запускался отдельно
         System.out.println("Для демонстрации введите несколько сообщений:");
-        client.connect();
+        client.connectAndInteractWithServerAndUser();
 
         // Останавливаем сервер
         server.stop();
