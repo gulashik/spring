@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+}
+jar {
+    manifest {
+        attributes 'Main-Class': 'org.gulash.Main'
+    }
+}
+group = 'org.gulash'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation('org.springframework:spring-context:6.1.14')
+    implementation('org.springframework:spring-web:6.1.13')
+    implementation('com.google.code.gson:gson:2.10.1')
+    implementation ('com.fasterxml.jackson.core:jackson-databind:2.15.2')
+    implementation ('com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2')
+    implementation ('org.slf4j:slf4j-api:2.0.9')
+
+
+    // Добавляем Lombok
+    compileOnly ('org.projectlombok:lombok:1.18.34')
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation ('org.junit.jupiter:junit-jupiter')
+    
+    // Lombok для тестов
+    testCompileOnly ('org.projectlombok:lombok:1.18.34')
+    testAnnotationProcessor ('org.projectlombok:lombok:1.18.34')
+}
+
+test {
+    useJUnitPlatform()
+}
