@@ -1,5 +1,7 @@
 package org.gulash;
 
+import lombok.Getter;
+
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -176,10 +178,8 @@ public class SimpleScheduledExecutorService {
      * @see ScheduledExecutorService
      */
     static class ManagedScheduler implements AutoCloseable {
-
-        /**
-         * Планировщик задач, управляемый данным экземпляром
-         */
+        
+        @Getter
         private final ScheduledExecutorService scheduler;
 
         /**
@@ -198,15 +198,6 @@ public class SimpleScheduledExecutorService {
         public ManagedScheduler(int poolSize, long timeoutSeconds) {
             this.scheduler = Executors.newScheduledThreadPool(poolSize);
             this.timeoutSeconds = timeoutSeconds;
-        }
-
-        /**
-         * Возвращает планировщик задач.
-         *
-         * @return экземпляр {@link ScheduledExecutorService}
-         */
-        public ScheduledExecutorService getScheduler() {
-            return scheduler;
         }
 
         /**
