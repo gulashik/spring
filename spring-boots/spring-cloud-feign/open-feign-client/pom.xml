@@ -15,6 +15,7 @@
     <groupId>org.gualsh.demo</groupId>
     <artifactId>spring-openfeign-demo</artifactId>
     <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>Spring OpenFeign Demo</name>
     <description>Образовательный проект для демонстрации возможностей Spring OpenFeign</description>
 
