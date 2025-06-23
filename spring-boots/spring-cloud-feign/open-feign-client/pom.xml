@@ -1,29 +1,164 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.3.4</version>
-        <relativePath/>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>org.gualsh.demo</groupId>
-    <artifactId>open-feign-client</artifactId>
-    <version>1.0.0</version>
+    <artifactId>spring-openfeign-demo</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>Spring OpenFeign Demo</name>
+    <description>Образовательный проект для демонстрации возможностей Spring OpenFeign</description>
 
     <properties>
+        <java.version>17</java.version>
+        <!-- Spring Cloud версия совместимая с Spring Boot 3.3.4 -->
+        <spring-cloud.version>2023.0.3</spring-cloud.version>
+        <!-- Lombok версия для совместимости с Java 17+ -->
+        <lombok.version>1.18.30</lombok.version>
+        <!-- Maven compiler plugin для обработки аннотаций -->
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     </properties>
 
-
     <dependencies>
+        <!-- Spring Boot Web Starter
+             Включает: Spring MVC, Tomcat, Jackson, Validation API
+             Назначение: Создание REST API и веб-приложений -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
 
+        <!-- Spring Cloud OpenFeign Starter
+             Включает: OpenFeign Core, Spring Cloud Commons, Load Balancer
+             Назначение: Декларативные HTTP клиенты -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Actuator
+             Включает: Health checks, Metrics, Info endpoints
+             Назначение: Мониторинг и управление приложением -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Validation
+             Включает: Hibernate Validator, Bean Validation API
+             Назначение: Валидация входящих данных -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Feign OkHttp Client
+             Включает: OkHttp HTTP client
+             Назначение: Более производительная замена стандартного HTTP клиента
+             Преимущества: Connection pooling, HTTP/2 support -->
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-okhttp</artifactId>
+        </dependency>
+
+        <!-- Feign Jackson Support
+             Включает: Jackson для сериализации/десериализации JSON
+             Назначение: Автоматическое преобразование объектов в JSON и обратно -->
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-jackson</artifactId>
+        </dependency>
+
+        <!-- Feign SLF4J Logging
+             Включает: SLF4J интеграция для Feign
+             Назначение: Подробное логирование HTTP запросов/ответов -->
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-slf4j</artifactId>
+        </dependency>
+
+        <!-- Lombok
+             Включает: Генерация boilerplate кода
+             Назначение: Сокращение объема кода через аннотации -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Spring Boot Configuration Processor
+             Включает: Генерация метаданных для IDE
+             Назначение: Автодополнение в application.yml -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
-    <build>
+    <!-- Spring Cloud BOM для управления версиями зависимостей -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
+    <build>
+        <plugins>
+            <!-- Spring Boot Maven Plugin
+                 Назначение: Создание executable JAR, запуск приложения -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Compiler Plugin
+                 Назначение: Компиляция Java кода с поддержкой annotation processing -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                            <version>${project.parent.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>

@@ -1,0 +1,87 @@
+# Spring OpenFeign Demo Application Configuration
+# Образовательный проект для демонстрации настроек Spring Cloud OpenFeign
+
+# ВАЖНО: В Spring Cloud OpenFeign конфигурация находится под spring.cloud.openfeign,
+# а не под feign. Это ключевое отличие от standalone Feign библиотеки.
+
+spring:
+  application:
+    name: spring-openfeign-demo
+
+  # Jackson настройки для JSON сериализации/десериализации
+  jackson:
+    # Не падать при неизвестных полях в JSON (важно для внешних API)
+    deserialization:
+      fail-on-unknown-properties: false
+    # Использовать snake_case для полей JSON
+    property-naming-strategy: SNAKE_CASE
+    # Форматирование дат в ISO 8601
+    serialization:
+      write-dates-as-timestamps: false
+  # Основная конфигурация Spring Cloud OpenFeign
+  cloud:
+    openfeign:
+      # Включение поддержки сжатия для улучшения производительности
+      compression:
+        request:
+          enabled: true
+          mime-types: application/json,application/xml,text/xml,text/plain
+          min-request-size: 2048
+        response:
+          enabled: true
+
+      # HTTP клиент - используем OkHttp для лучшей производительности
+      okhttp:
+        enabled: true
+
+      # Глобальные настройки для всех OpenFeign клиентов
+      client:
+        config:
+          # Конфигурация по умолчанию применяется ко всем клиентам
+          default:
+            # Таймауты в миллисекундах
+            connect-timeout: 5000    # 5 секунд на установку соединения
+            read-timeout: 10000      # 10 секунд на чтение ответа
+            # Уровень логирования: NONE, BASIC, HEADERS, FULL
+            logger-level: HEADERS
+            # Декодер ошибок для обработки HTTP ошибок
+            error-decoder: org.gualsh.demo.openfeign.exception.FeignErrorDecoder
+
+          # Специфическая конфигурация для JsonPlaceholder API
+          jsonplaceholder:
+            # URL базового адреса (можно переопределить через @FeignClient)
+            url: https://jsonplaceholder.typicode.com
+            connect-timeout: 3000
+            read-timeout: 8000
+            logger-level: FULL
+
+          # Конфигурация для HttpBin (для тестирования различных HTTP методов)
+          httpbin:
+            url: https://httpbin.org
+            connect-timeout: 2000
+            read-timeout: 5000
+            logger-level: BASIC
+
+# Actuator конфигурация для мониторинга
+management:
+  endpoints:
+    web:
+      exposure:
+        # Включаем эндпоинты для мониторинга OpenFeign клиентов
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+# Настройки логирования
+logging:
+  level:
+    # Логирование Feign клиентов на уровне DEBUG для детального анализа
+    org.gualsh.demo.openfeign.client: DEBUG
+    # Корневой логгер OpenFeign
+    feign: INFO
+    # OkHttp логирование для отладки HTTP запросов
+    okhttp3: INFO
+  pattern:
+    # Улучшенный формат логов с информацией о потоке
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

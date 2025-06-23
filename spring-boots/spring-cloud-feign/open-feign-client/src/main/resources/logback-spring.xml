@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+Конфигурация логирования для Spring OpenFeign Demo проекта.
+Ключевые аспекты:
+- Отдельные логгеры для разных компонентов
+- Контроль уровней логирования
+- Структурированный формат логов
+- Безопасность (не логируем чувствительные данные)
+-->
+<configuration>
+
+    <!-- Переменные для удобства настройки -->
+    <property name="LOG_LEVEL_ROOT" value="INFO"/>
+    <property name="LOG_LEVEL_FEIGN" value="DEBUG"/>
+    <property name="LOG_LEVEL_HTTP" value="INFO"/>
+
+    <!-- Консольный аппендер с цветным выводом -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- Файловый аппендер для всех логов -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/spring-openfeign-demo.log</file>
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/spring-openfeign-demo.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Отдельный аппендер для HTTP трафика -->
+    <appender name="HTTP_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/http-requests.log</file>
+        <encoder>
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n
+            </pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/http-requests.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- Логгер для Feign клиентов -->
+    <logger name="org.gualsh.demo.openfeign.client" level="${LOG_LEVEL_FEIGN}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="HTTP_FILE"/>
+    </logger>
+
+    <!-- Логгер для конфигурации Feign -->
+    <logger name="org.gualsh.demo.openfeign.config" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Логгер для обработки ошибок -->
+    <logger name="org.gualsh.demo.openfeign.exception" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Логгер для сервисов -->
+    <logger name="org.gualsh.demo.openfeign.service" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Логгер для контроллеров -->
+    <logger name="org.gualsh.demo.openfeign.controller" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Системные логгеры Feign -->
+    <logger name="feign" level="${LOG_LEVEL_FEIGN}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="HTTP_FILE"/>
+    </logger>
+
+    <!-- OkHttp логирование -->
+    <logger name="okhttp3" level="${LOG_LEVEL_HTTP}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="HTTP_FILE"/>
+    </logger>
+
+    <!-- Spring Cloud OpenFeign -->
+    <logger name="org.springframework.cloud.openfeign" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Spring Web (для отладки HTTP запросов в контроллерах) -->
+    <logger name="org.springframework.web" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Jackson для отладки сериализации/десериализации -->
+    <logger name="com.fasterxml.jackson" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Hibernate Validator для отладки валидации -->
+    <logger name="org.hibernate.validator" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Отключаем слишком подробное логирование Spring Boot -->
+    <logger name="org.springframework.boot.autoconfigure" level="WARN"/>
+    <logger name="org.springframework.boot.context" level="WARN"/>
+
+    <!-- Отключаем логирование Netty (если используется) -->
+    <logger name="io.netty" level="WARN"/>
+
+    <!-- Отключаем подробное логирование Apache HTTP Client -->
+    <logger name="org.apache.http" level="WARN"/>
+
+    <!-- Корневой логгер -->
+    <root level="${LOG_LEVEL_ROOT}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>
