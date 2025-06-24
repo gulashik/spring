@@ -3,7 +3,7 @@
 .gitignore
 
 # Documentation
-README.md
+ACTIONS_REWORK.md
 *.md
 
 # IDE

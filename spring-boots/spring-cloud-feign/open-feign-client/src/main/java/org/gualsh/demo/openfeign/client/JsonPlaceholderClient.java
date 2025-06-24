@@ -12,11 +12,8 @@ import java.util.List;
 /**
  * Feign клиент для работы с JSONPlaceholder API.
  *
- * <h2>Образовательный момент</h2>
  * <p>
- * Этот интерфейс демонстрирует основные принципы создания OpenFeign клиентов.
- * JSONPlaceholder (jsonplaceholder.typicode.com) - это бесплатный REST API
- * для тестирования и прототипирования.
+ * JSONPlaceholder (jsonplaceholder.typicode.com) - это бесплатный REST API для тестирования и прототипирования.
  * </p>
  *
  * <h3>Ключевые аннотации @FeignClient:</h3>
@@ -43,9 +40,6 @@ import java.util.List;
  *   <li>Возвращаемые типы должны быть сериализуемыми</li>
  * </ul>
  *
- * @author Generated for educational purposes
- * @version 1.0
- * @since 1.0
  */
 @FeignClient(
     name = "jsonplaceholder",
@@ -72,8 +66,7 @@ public interface JsonPlaceholderClient {
      *
      * <h3>Производительность:</h3>
      * <p>
-     * Этот endpoint возвращает 100 постов (~15KB JSON). В production
-     * рекомендуется использовать пагинацию для больших наборов данных.
+     * В production рекомендуется использовать пагинацию для больших наборов данных.
      * </p>
      *
      * @return список всех постов из JSONPlaceholder API
