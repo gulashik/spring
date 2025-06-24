@@ -14,14 +14,14 @@ import java.nio.charset.StandardCharsets;
 /**
  * Кастомный декодер ошибок для обработки HTTP ошибок от внешних API.
  *
- * <h2>Образовательный момент</h2>
+ * <h5>ErrorDecoder</h5>
  * <p>
  * ErrorDecoder - это ключевой компонент для обработки ошибок в OpenFeign.
  * Он позволяет преобразовывать HTTP ошибки в типизированные Java исключения,
  * что улучшает обработку ошибок в приложении.
  * </p>
  *
- * <h3>Зачем нужен кастомный ErrorDecoder:</h3>
+ * <h5>Зачем нужен кастомный ErrorDecoder:</h5>
  * <ul>
  *   <li>Преобразование HTTP кодов в специфичные исключения</li>
  *   <li>Извлечение дополнительной информации из тела ответа</li>
@@ -29,7 +29,7 @@ import java.nio.charset.StandardCharsets;
  *   <li>Интеграция с глобальной системой обработки ошибок</li>
  * </ul>
  *
- * <h3>Best Practices:</h3>
+ * <h5>Best Practices:</h5>
  * <ul>
  *   <li>Всегда логируйте детали ошибки для отладки</li>
  *   <li>Не выбрасывайте чувствительные данные в исключениях</li>
@@ -37,16 +37,12 @@ import java.nio.charset.StandardCharsets;
  *   <li>Обрабатывайте случаи, когда тело ответа пустое или некорректное</li>
  * </ul>
  *
- * <h3>Подводные камни:</h3>
+ * <h5>Подводные камни:</h5>
  * <ul>
  *   <li>Response.Body можно прочитать только один раз</li>
  *   <li>Необходимо корректно закрывать InputStream</li>
  *   <li>Обрабатывать случаи IOException при чтении тела ответа</li>
  * </ul>
- *
- * @author Generated for educational purposes
- * @version 1.0
- * @since 1.0
  */
 @Slf4j
 public class FeignErrorDecoder implements ErrorDecoder {
@@ -191,7 +187,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
     }
 
     /**
-     * Безопасно читает тело HTTP ответа.
+     * Безопасно читает тело HTTP ответа и пытается извлечь структурированную информацию об ошибке.
      *
      * <h2>Образовательный момент</h2>
      * <p>
@@ -202,6 +198,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
      *   <li>InputStream можно прочитать только один раз</li>
      *   <li>Необходимо корректно обрабатывать IOException</li>
      *   <li>Ресурсы должны быть закрыты</li>
+     *   <li>JSON может быть некорректным или отсутствовать</li>
      * </ul>
      *
      * @param response HTTP ответ
@@ -215,11 +212,72 @@ public class FeignErrorDecoder implements ErrorDecoder {
 
             try (InputStream inputStream = response.body().asInputStream()) {
                 byte[] bytes = inputStream.readAllBytes();
-                return new String(bytes, StandardCharsets.UTF_8);
+                String responseBody = new String(bytes, StandardCharsets.UTF_8);
+
+                // Пытаемся извлечь структурированную информацию об ошибке из JSON
+                try {
+                    // Попытка парсинга как JSON объект для извлечения деталей ошибки
+                    var jsonNode = objectMapper.readTree(responseBody);
+
+                    // Ищем стандартные поля ошибок в JSON ответе
+                    String errorMessage = extractErrorMessage(jsonNode);
+                    if (errorMessage != null) {
+                        return errorMessage;
+                    }
+
+                    // Если специфическое сообщение не найдено, возвращаем весь JSON
+                    return responseBody;
+
+                } catch (Exception jsonParseException) {
+                    // Если JSON парсинг не удался, возвращаем сырой текст
+                    log.debug("Failed to parse error response as JSON: {}", jsonParseException.getMessage());
+                    return responseBody;
+                }
             }
         } catch (IOException e) {
             log.warn("Failed to read response body", e);
             return "Failed to read response body: " + e.getMessage();
         }
+    }
+
+    /**
+     * Извлекает сообщение об ошибке из JSON структуры.
+     *
+     * <h2>Образовательный момент</h2>
+     * <p>
+     * Различные API используют разные форматы для ошибок:
+     * </p>
+     * <ul>
+     *   <li>Spring Boot: {"error": "Not Found", "message": "Details"}</li>
+     *   <li>RFC 7807: {"type": "...", "title": "...", "detail": "..."}</li>
+     *   <li>Custom API: {"errorMessage": "...", "code": "..."}</li>
+     * </ul>
+     *
+     * @param jsonNode корневой узел JSON ответа
+     * @return извлеченное сообщение об ошибке или null
+     */
+    private String extractErrorMessage(com.fasterxml.jackson.databind.JsonNode jsonNode) {
+        // Стандартные поля ошибок в порядке приоритета
+        String[] errorFields = {
+            "message",      // Spring Boot standard
+            "detail",       // RFC 7807 Problem Details
+            "error",        // Generic error field
+            "errorMessage", // Custom API format
+            "description",  // Alternative description field
+            "title"         // RFC 7807 title
+        };
+
+        for (String field : errorFields) {
+            var fieldNode = jsonNode.get(field);
+            if (fieldNode != null && !fieldNode.isNull() && fieldNode.isTextual()) {
+                String errorText = fieldNode.asText();
+                if (!errorText.trim().isEmpty()) {
+                    log.debug("Extracted error message from field '{}': {}", field, errorText);
+                    return errorText;
+                }
+            }
+        }
+
+        return null;
     }
 }

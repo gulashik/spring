@@ -49,7 +49,7 @@ curl -s http://localhost:8080/api/demo/httpbin/status/404 | jq
 ```
 ```bash
 # Тестирование таймаутов
-curl http://localhost:8080/api/demo/httpbin/delay/2
+curl -s http://localhost:8080/api/demo/httpbin/delay/2 | jq
 ```
 
 
