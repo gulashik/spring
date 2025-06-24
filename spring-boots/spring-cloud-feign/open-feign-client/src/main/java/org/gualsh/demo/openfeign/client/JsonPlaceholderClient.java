@@ -75,6 +75,39 @@ public interface JsonPlaceholderClient {
     List<Post> getAllPosts();
 
     /**
+     * Получает посты с пагинацией.
+     *
+     * <h2>Образовательный момент</h2>
+     * <p>
+     * Демонстрирует использование множественных @RequestParam для пагинации.
+     * Параметры _start и _limit поддерживаются JSONPlaceholder API.
+     * </p>
+     *
+     * <h3>Параметры пагинации JSONPlaceholder:</h3>
+     * <ul>
+     *   <li><strong>_start</strong> - смещение (offset), с какого элемента начинать</li>
+     *   <li><strong>_limit</strong> - количество элементов на странице</li>
+     * </ul>
+     *
+     * <h3>Пример использования:</h3>
+     * <pre>
+     * // Первая страница, 10 элементов
+     * getPostsWithPagination(0, 10);
+     *
+     * // Вторая страница, 10 элементов
+     * getPostsWithPagination(10, 10);
+     * </pre>
+     *
+     * @param start смещение (номер первого элемента)
+     * @param limit количество элементов на странице
+     * @return список постов для указанной страницы
+     */
+    @GetMapping(value = "/posts",params = { "_start", "_limit"})
+    List<Post> getPostsWithPagination(@RequestParam("_start") Integer start,
+                                      @RequestParam("_limit") Integer limit);
+
+
+    /**
      * Получает конкретный пост по ID.
      *
      * <h2>Образовательный момент</h2>

@@ -82,6 +82,55 @@ public class DemoController {
     }
 
     /**
+     * Получение постов с пагинацией.
+     *
+     * <h2>Образовательный момент</h2>
+     * <p>
+     * Этот endpoint демонстрирует работу с query parameters для пагинации.
+     * Пагинация - критически важный механизм для работы с большими наборами данных,
+     * позволяющий загружать данные порциями и улучшать производительность.
+     * </p>
+     *
+     * <h3>Особенности реализации:</h3>
+     * <ul>
+     *   <li><strong>Query Parameters</strong> - использование _start и _limit для совместимости с JSONPlaceholder API</li>
+     *   <li><strong>Валидация параметров</strong> - проверка корректности значений пагинации</li>
+     * </ul>
+     *
+     * <h3>Best Practices для пагинации:</h3>
+     * <ul>
+     *   <li>Устанавливайте разумные лимиты на размер страницы</li>
+     *   <li>Валидируйте параметры offset и limit</li>
+     *   <li>Предоставляйте метаданные о пагинации (total count, links)</li>
+     *   <li>Рассмотрите cursor-based пагинацию для больших datasets</li>
+     * </ul>
+     *
+     * @param start начальная позиция (offset) для загрузки данных
+     * @param limit максимальное количество записей для возврата
+     * @return ResponseEntity со списком постов для указанной страницы
+     */
+    @GetMapping(value = "/posts", params = {"_start", "_limit"})
+    public ResponseEntity<List<Post>> getPostsWithPagination(
+        @RequestParam("_start") @Min(0) Integer start,
+        @RequestParam("_limit") @Min(1) @Max(100) Integer limit) {
+
+        log.info("Запрос постов с пагинацией: start={}, limit={}", start, limit);
+        
+        try {
+            List<Post> posts = demoService.getPostsWithPagination(start, limit);
+            return ResponseEntity.ok(posts);
+        } catch (IllegalArgumentException e) {
+            log.warn("Некорректные параметры пагинации: start={}, limit={}, error={}", 
+                start, limit, e.getMessage());
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Ошибка при получении постов с пагинацией: start={}, limit={}", 
+                start, limit, e);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
+    }
+
+    /**
      * Получение поста по ID.
      *
      * <h2>Образовательный момент</h2>

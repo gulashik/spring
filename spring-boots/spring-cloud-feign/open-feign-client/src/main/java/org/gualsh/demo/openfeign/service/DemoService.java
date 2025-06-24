@@ -78,6 +78,24 @@ public class DemoService {
     }
 
     /**
+     * Получает посты с пагинацией для оптимальной работы с большими объемами данных.
+     *
+     * @param start начальная позиция для выборки (offset)
+     * @param limit максимальное количество записей для возврата
+     * @return список постов в заданном диапазоне
+     * @throws RuntimeException если произошла ошибка при получении данных
+     */
+    public List<Post> getPostsWithPagination(Integer start, Integer limit) {
+        try {
+            log.info("Получение постов с пагинацией: start={}, limit={}", start, limit);
+            return jsonPlaceholderClient.getPostsWithPagination(start, limit);
+        } catch (Exception e) {
+            log.error("Ошибка при получении постов с пагинацией: {}", e.getMessage());
+            throw new RuntimeException("Не удалось получить посты с пагинацией", e);
+        }
+    }
+
+    /**
      * Получает пост по ID с валидацией.
      *
      * <h2>Образовательный момент</h2>
