@@ -51,8 +51,6 @@ public class FeignErrorDecoder implements ErrorDecoder {
     private final ErrorDecoder defaultErrorDecoder = new Default();
 
     /**
-     * Конструктор с инжекцией ObjectMapper для парсинга JSON ошибок.
-     *
      * @param objectMapper Jackson ObjectMapper для десериализации JSON
      */
     public FeignErrorDecoder(ObjectMapper objectMapper) {
@@ -62,7 +60,6 @@ public class FeignErrorDecoder implements ErrorDecoder {
     /**
      * Декодирует HTTP ошибку в Java исключение.
      *
-     * <h2>Образовательный момент</h2>
      * <p>
      * Этот метод вызывается для каждого HTTP ответа с кодом не 2xx.
      * Здесь можно:
@@ -88,7 +85,8 @@ public class FeignErrorDecoder implements ErrorDecoder {
 
         // Логируем информацию об ошибке
         log.error("Feign client error - Method: {}, Status: {}, URL: {}, Body: {}",
-            methodKey, response.status(), requestUrl, responseBody);
+            methodKey, response.status(), requestUrl, responseBody
+        );
 
         // Обрабатываем различные типы HTTP ошибок
         return switch (httpStatus.series()) {
@@ -101,7 +99,6 @@ public class FeignErrorDecoder implements ErrorDecoder {
     /**
      * Обрабатывает клиентские ошибки (4xx).
      *
-     * <h2>Образовательный момент</h2>
      * <p>
      * Клиентские ошибки обычно указывают на проблемы с запросом:
      * неправильные параметры, отсутствие авторизации, несуществующий ресурс.
@@ -147,7 +144,6 @@ public class FeignErrorDecoder implements ErrorDecoder {
     /**
      * Обрабатывает серверные ошибки (5xx).
      *
-     * <h2>Образовательный момент</h2>
      * <p>
      * Серверные ошибки указывают на проблемы на стороне внешнего сервиса.
      * Для таких ошибок часто имеет смысл использовать retry механизм.
@@ -189,7 +185,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
     /**
      * Безопасно читает тело HTTP ответа и пытается извлечь структурированную информацию об ошибке.
      *
-     * <h2>Образовательный момент</h2>
+     * <h2>Важный момент</h2>
      * <p>
      * Чтение тела ответа в ErrorDecoder требует осторожности:
      * </p>
@@ -243,7 +239,6 @@ public class FeignErrorDecoder implements ErrorDecoder {
     /**
      * Извлекает сообщение об ошибке из JSON структуры.
      *
-     * <h2>Образовательный момент</h2>
      * <p>
      * Различные API используют разные форматы для ошибок:
      * </p>
