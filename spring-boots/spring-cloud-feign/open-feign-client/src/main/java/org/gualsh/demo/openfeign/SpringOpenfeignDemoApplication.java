@@ -27,10 +27,6 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  *   <li>Используйте basePackages для ограничения области сканирования</li>
  *   <li>Всегда настраивайте таймауты и retry политики</li>
  * </ul>
- *
- * @author Generated for educational purposes
- * @version 1.0
- * @since 1.0
  */
 @SpringBootApplication
 @EnableFeignClients( // включает поддержку OpenFeign в Spring

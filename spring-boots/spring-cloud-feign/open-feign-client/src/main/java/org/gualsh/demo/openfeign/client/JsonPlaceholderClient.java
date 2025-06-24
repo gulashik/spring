@@ -16,6 +16,12 @@ import java.util.List;
  * JSONPlaceholder (jsonplaceholder.typicode.com) - это бесплатный REST API для тестирования и прототипирования.
  * </p>
  *
+ * <h3>Возможные возвращаемые типы:</h3>
+ * <ul>
+ * <li>В интерфейсе @FeignClient как возвращаемые типы можно использовать почти ллюбые типы,
+ *  кроме Optional(дополнительная настройка), реактивные типы(Mono, Flux)</li>
+ * </ul>
+ *
  * <h3>Ключевые опции аннотации @FeignClient:</h3>
  * <ul>
  *   <li><strong>name</strong> - уникальное имя клиента в Spring контексте</li>
