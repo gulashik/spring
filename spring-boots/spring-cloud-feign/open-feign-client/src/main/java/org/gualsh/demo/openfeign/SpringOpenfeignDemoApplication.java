@@ -33,12 +33,28 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  * @since 1.0
  */
 @SpringBootApplication
-@EnableFeignClients(
+@EnableFeignClients( // включает поддержку OpenFeign в Spring
     // Указываем базовый пакет для поиска Feign интерфейсов
     // Это улучшает производительность старта приложения, так как сканируется
     // только указанный пакет, а не все classpath
     basePackages = "org.gualsh.demo.openfeign.client"
 )
+/*@EnableFeignClients(
+    // Указание пакетов для сканирования
+    basePackages = {"com.example.clients", "com.example.external"},
+
+    // Указание классов как базовых пакетов (type-safe альтернатива)
+    basePackageClasses = {ClientsMarker.class, ExternalClientsMarker.class},
+
+    // Явное указание конкретных клиентов
+    clients = {UserServiceClient.class, PaymentServiceClient.class},
+
+    // Значение по умолчанию (сокращение для basePackages)
+    value = {"com.example.clients"},
+
+    // Глобальная конфигурация по умолчанию для всех клиентов
+    defaultConfiguration = GlobalFeignConfiguration.class
+)*/
 public class SpringOpenfeignDemoApplication {
 
     /**
