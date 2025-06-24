@@ -1,4 +1,3 @@
-
 ### Требования
 - Интернет соединение (для доступа к внешним API)
 
@@ -25,6 +24,13 @@ curl -s http://localhost:8080/api/demo/health | jq
 # Получить все посты
 curl http://localhost:8080/api/demo/posts | jq
 ```
+
+# Получить посты через пагинацию
+```bash
+clear
+curl "http://localhost:8080/api/demo/posts?_start=1&_limit=10" | jq
+```
+
 ```bash
 # Получить пост по ID
 curl -s http://localhost:8080/api/demo/posts/1  | jq
@@ -57,4 +63,3 @@ curl -s http://localhost:8080/api/demo/httpbin/delay/2 | jq
 # удалить логи
 bash -c "rm -f ./logs/*"
 ```
-
