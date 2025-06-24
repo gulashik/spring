@@ -61,5 +61,6 @@ curl -s http://localhost:8080/api/demo/httpbin/delay/2 | jq
 
 ```bash
 # удалить логи
+clear
 bash -c "rm -f ./logs/*"
 ```

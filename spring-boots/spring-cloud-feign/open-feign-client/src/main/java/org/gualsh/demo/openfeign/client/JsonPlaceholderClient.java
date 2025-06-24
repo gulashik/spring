@@ -106,7 +106,6 @@ public interface JsonPlaceholderClient {
     List<Post> getPostsWithPagination(@RequestParam("_start") Integer start,
                                       @RequestParam("_limit") Integer limit);
 
-
     /**
      * Получает конкретный пост по ID.
      *
