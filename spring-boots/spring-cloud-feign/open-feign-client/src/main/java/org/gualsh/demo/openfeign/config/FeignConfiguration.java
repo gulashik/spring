@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * Конфигурация OpenFeign клиентов.
  *
- * <h2>Образовательный момент</h2>
  * <p>
  * Этот класс демонстрирует различные способы настройки OpenFeign клиентов.
  * Конфигурация может быть глобальной (применяется ко всем клиентам) или
@@ -37,10 +36,6 @@ import java.util.concurrent.TimeUnit;
  *   <li>application.yml настройки по умолчанию</li>
  *   <li>Глобальная @Configuration</li>
  * </ol>
- *
- * @author Generated for educational purposes
- * @version 1.0
- * @since 1.0
  */
 @Slf4j
 @Configuration
@@ -48,8 +43,6 @@ public class FeignConfiguration {
 
     /**
      * Настройка уровня логирования для Feign клиентов.
-     *
-     * <h2>Образовательный момент</h2>
      * <p>
      * Feign поддерживает четыре уровня логирования:
      * </p>

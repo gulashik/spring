@@ -1,6 +1,4 @@
 # Spring OpenFeign Demo Application Configuration
-# Образовательный проект для демонстрации настроек Spring Cloud OpenFeign
-
 # ВАЖНО: В Spring Cloud OpenFeign конфигурация находится под spring.cloud.openfeign,
 # а не под feign. Это ключевое отличие от standalone Feign библиотеки.
 
