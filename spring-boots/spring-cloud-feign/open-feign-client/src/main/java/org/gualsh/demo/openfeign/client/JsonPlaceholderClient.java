@@ -16,7 +16,7 @@ import java.util.List;
  * JSONPlaceholder (jsonplaceholder.typicode.com) - это бесплатный REST API для тестирования и прототипирования.
  * </p>
  *
- * <h3>Ключевые аннотации @FeignClient:</h3>
+ * <h3>Ключевые опции аннотации @FeignClient:</h3>
  * <ul>
  *   <li><strong>name</strong> - уникальное имя клиента в Spring контексте</li>
  *   <li><strong>url</strong> - базовый URL API (можно переопределить в конфигурации)</li>
@@ -60,6 +60,15 @@ import java.util.List;
     name = "jsonplaceholder",
     url = "${spring.cloud.openfeign.client.config.jsonplaceholder.url:https://jsonplaceholder.typicode.com}"
 )
+/*@FeignClient(
+    name = "unique-client-name",           // Уникальное имя клиента
+    url = "https://api.example.com",       // Базовый URL
+    path = "/api/v1",                      // Общий путь для всех методов
+    configuration = CustomConfig.class,    // Кастомная конфигурация
+    fallback = MyServiceFallback.class,    // Fallback класс для Circuit Breaker
+    fallbackFactory = MyFallbackFactory.class, // Factory для fallback
+    primary = false                        // Не делать primary бином
+)*/
 public interface JsonPlaceholderClient {
 
     /**

@@ -28,7 +28,7 @@ spring:
         response:
           enabled: true
 
-      # HTTP клиент - используем OkHttp для лучшей производительности
+      # HTTP клиент - используем OkHttp для лучшей производительности (рекомендуется)
       okhttp:
         enabled: true
 

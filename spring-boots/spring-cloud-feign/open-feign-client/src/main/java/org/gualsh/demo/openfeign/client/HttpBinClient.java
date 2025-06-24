@@ -25,6 +25,14 @@ import java.util.Map;
  *   <li>Тестирование обработки ошибок и таймаутов</li>
  * </ul>
  *
+ * <h3>Ключевые опции аннотации @FeignClient:</h3>
+ * <ul>
+ *   <li><strong>name</strong> - уникальное имя клиента в Spring контексте</li>
+ *   <li><strong>url</strong> - базовый URL API (можно переопределить в конфигурации)</li>
+ *   <li><strong>configuration</strong> - специфичная конфигурация для этого клиента</li>
+ *   <li><strong>fallback</strong> - класс для обработки ошибок (требует Spring Cloud Circuit Breaker)</li>
+ * </ul>
+ *
  * <h3>Образовательная ценность:</h3>
  * <ul>
  *   <li>Демонстрация продвинутых возможностей OpenFeign</li>
@@ -32,10 +40,6 @@ import java.util.Map;
  *   <li>Передача custom заголовков</li>
  *   <li>Обработка форм и multipart данных</li>
  * </ul>
- *
- * @author Generated for educational purposes
- * @version 1.0
- * @since 1.0
  */
 @FeignClient(
     name = "httpbin",
@@ -116,6 +120,11 @@ public interface HttpBinClient {
      *
      * <h2>Образовательный момент</h2>
      * <p>
+     *
+     * @param apiKey    пример API ключа
+     * @param requestId ID запроса для трейсинга
+     * @param data      тело запроса
+     * @return ответ с информацией о заголовках
      * @RequestHeader позволяет передавать пользовательские заголовки.
      * Это полезно для API ключей, трейсинга, версионирования API.
      * </p>
@@ -127,11 +136,6 @@ public interface HttpBinClient {
      *   <li>X-Client-Version для версионирования</li>
      *   <li>Accept-Language для локализации</li>
      * </ul>
-     *
-     * @param apiKey пример API ключа
-     * @param requestId ID запроса для трейсинга
-     * @param data тело запроса
-     * @return ответ с информацией о заголовках
      */
     @PutMapping("/put")
     HttpBinResponse testPutWithHeaders(@RequestHeader("X-API-Key") String apiKey,
