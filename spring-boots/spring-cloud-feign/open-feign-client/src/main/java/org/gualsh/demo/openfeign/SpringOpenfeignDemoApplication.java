@@ -71,6 +71,7 @@ public class SpringOpenfeignDemoApplication {
      * @param args аргументы командной строки
      */
     public static void main(String[] args) {
+        // todo запусккаем ACTIONS.md
         SpringApplication.run(SpringOpenfeignDemoApplication.class, args);
     }
 }
