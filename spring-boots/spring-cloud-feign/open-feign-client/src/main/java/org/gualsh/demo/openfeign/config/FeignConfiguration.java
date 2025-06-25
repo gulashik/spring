@@ -5,7 +5,11 @@ import feign.Logger;
 import feign.Request;
 import feign.RequestInterceptor;
 import feign.Retryer;
+import feign.codec.Decoder;
+import feign.codec.Encoder;
 import feign.codec.ErrorDecoder;
+import feign.jackson.JacksonDecoder;
+import feign.jackson.JacksonEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.openfeign.exception.FeignErrorDecoder;
 import org.springframework.context.annotation.Bean;
@@ -160,6 +164,97 @@ public class FeignConfiguration {
     public ErrorDecoder feignErrorDecoder(ObjectMapper objectMapper) {
         return new FeignErrorDecoder(objectMapper);
     }
+
+    // 1. JacksonEncoder (по умолчанию) - JSON
+    /**
+     * Настройка Jackson энкодера для сериализации объектов в JSON.
+     *
+     * <h2>Образовательный момент</h2>
+     * <p>
+     * Encoder отвечает за преобразование Java объектов в формат передачи данных.
+     * JacksonEncoder использует библиотеку Jackson для сериализации объектов в JSON,
+     * что является стандартным форматом для REST API.
+     * </p>
+     *
+     * <h3>Особенности JacksonEncoder:</h3>
+     * <ul>
+     *   <li>Автоматическая сериализация POJO в JSON</li>
+     *   <li>Поддержка Jackson аннотаций (@JsonProperty, @JsonIgnore и др.)</li>
+     *   <li>Гибкая настройка через ObjectMapper</li>
+     *   <li>Высокая производительность</li>
+     * </ul>
+     *
+     * <h3>Альтернативы:</h3>
+     * <ul>
+     *   <li><strong>GsonEncoder</strong> - использует Google Gson</li>
+     *   <li><strong>FormEncoder</strong> - для application/x-www-form-urlencoded</li>
+     *   <li><strong>JAXBEncoder</strong> - для XML</li>
+     * </ul>
+     *
+     * @return Jackson энкодер для JSON сериализации
+     */
+
+    @Bean
+    public Encoder jacksonEncoder() {
+        return new JacksonEncoder();
+    }
+
+    // 2. GsonEncoder - альтернатива Jackson
+/*    @Bean
+    public Encoder gsonEncoder() {
+        return new GsonEncoder();
+    }
+
+     3. FormEncoder - для form-data
+    @Bean
+    public Encoder formEncoder() {
+        return new FormEncoder();
+    }*/
+
+    // 1. JacksonDecoder (по умолчанию)
+    /**
+     * Настройка Jackson декодера для десериализации JSON в объекты.
+     *
+     * <h2>Образовательный момент</h2>
+     * <p>
+     * Decoder отвечает за преобразование данных ответа в Java объекты.
+     * JacksonDecoder использует библиотеку Jackson для десериализации JSON
+     * в типизированные объекты, что обеспечивает type-safety.
+     * </p>
+     *
+     * <h3>Особенности JacksonDecoder:</h3>
+     * <ul>
+     *   <li>Автоматическая десериализация JSON в POJO</li>
+     *   <li>Поддержка Generic типов и коллекций</li>
+     *   <li>Обработка Jackson аннотаций</li>
+     *   <li>Интеграция с Spring конфигурацией ObjectMapper</li>
+     * </ul>
+     *
+     * <h3>Best Practices:</h3>
+     * <ul>
+     *   <li>Используйте единый ObjectMapper для всего приложения</li>
+     *   <li>Настройте обработку неизвестных полей (FAIL_ON_UNKNOWN_PROPERTIES)</li>
+     *   <li>Учитывайте временные зоны при работе с датами</li>
+     * </ul>
+     *
+     * @return Jackson декодер для JSON десериализации
+     */
+    @Bean
+    public Decoder jacksonDecoder() {
+        return new JacksonDecoder();
+    }
+
+/*    // 2. GsonDecoder
+    @Bean
+    public Decoder gsonDecoder() {
+        return new GsonDecoder();
+    }
+
+    // 3. StringDecoder - для простых строк
+    @Bean
+    public Decoder stringDecoder() {
+        return new StringDecoder();
+    }*/
 
     /**
      * Interceptor для добавления общих заголовков ко всем запросам.

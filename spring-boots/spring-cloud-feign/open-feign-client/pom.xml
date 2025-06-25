@@ -79,6 +79,14 @@
             <artifactId>feign-jackson</artifactId>
         </dependency>
 
+        <!-- Feign Gson Support
+             Включает: Gson для сериализации/десериализации JSON
+             Назначение: Альтернативная библиотека для работы с JSON (альтернатива Jackson) -->
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-gson</artifactId>
+        </dependency>
+
         <!-- Feign SLF4J Logging
              Включает: SLF4J интеграция для Feign
              Назначение: Подробное логирование HTTP запросов/ответов -->
