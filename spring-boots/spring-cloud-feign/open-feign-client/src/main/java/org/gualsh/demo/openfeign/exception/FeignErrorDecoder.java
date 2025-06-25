@@ -48,7 +48,15 @@ import java.nio.charset.StandardCharsets;
 public class FeignErrorDecoder implements ErrorDecoder {
 
     private final ObjectMapper objectMapper;
-    private final ErrorDecoder defaultErrorDecoder = new Default();
+    /**
+     * {@link feign.codec.ErrorDecoder.Default#Default()} предоставляет стандартную логику преобразования HTTP ошибок
+     *      в соответствующие Java исключения согласно статус-кодам ответа.
+     *  <p>
+     *  ErrorDecoder.Default создает FeignException(наследник RuntimeException) для всех не-2xx ответов.
+     *  <p>
+     *  Стандартный декодер для случаев, когда требуется базовое поведение
+     * */
+    private final ErrorDecoder defaultErrorDecoder = new ErrorDecoder.Default();
 
     /**
      * @param objectMapper Jackson ObjectMapper для десериализации JSON
@@ -97,7 +105,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
     }
 
     /**
-     * Обрабатывает клиентские ошибки (4xx).
+     * Обрабатывает <b style="color: red";>клиентские ошибки (4xx)</b>.
      *
      * <p>
      * Клиентские ошибки обычно указывают на проблемы с запросом:
@@ -142,7 +150,7 @@ public class FeignErrorDecoder implements ErrorDecoder {
     }
 
     /**
-     * Обрабатывает серверные ошибки (5xx).
+     * Обрабатывает <b style="color: red";>серверные ошибки (5xx)</b>.
      *
      * <p>
      * Серверные ошибки указывают на проблемы на стороне внешнего сервиса.
