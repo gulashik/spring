@@ -1,6 +1,6 @@
 package org.gualsh.demo.httpe.client;
 
-import org.gualsh.demo.httpe.dto.DtoModels;
+import org.gualsh.demo.httpe.dto.*;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -76,7 +76,7 @@ public interface JsonPlaceholderClient {
      * @return поток пользователей
      */
     @GetExchange("/users")
-    Flux<DtoModels.User> getUsers();
+    Flux<User> getUsers();
 
     /**
      * Получает пользователя по ID.
@@ -103,7 +103,7 @@ public interface JsonPlaceholderClient {
      * @return пользователь или empty
      */
     @GetExchange("/users/{id}")
-    Mono<DtoModels.User> getUser(@PathVariable Long id);
+    Mono<User> getUser(@PathVariable Long id);
 
     /**
      * Получает список постов с опциональной фильтрацией.
@@ -126,7 +126,7 @@ public interface JsonPlaceholderClient {
      * @return поток постов
      */
     @GetExchange("/posts")
-    Flux<DtoModels.Post> getPosts(@RequestParam(required = false) Long userId);
+    Flux<Post> getPosts(@RequestParam(required = false) Long userId);
 
     /**
      * Получает пост по ID.
@@ -140,7 +140,7 @@ public interface JsonPlaceholderClient {
      * @return пост
      */
     @GetExchange("/posts/{id}")
-    Mono<DtoModels.Post> getPost(@PathVariable Long id);
+    Mono<Post> getPost(@PathVariable Long id);
 
     /**
      * Получает комментарии к посту.
@@ -163,7 +163,7 @@ public interface JsonPlaceholderClient {
      * @return поток комментариев
      */
     @GetExchange("/posts/{postId}/comments")
-    Flux<DtoModels.Comment> getPostComments(@PathVariable Long postId);
+    Flux<Comment> getPostComments(@PathVariable Long postId);
 
     /**
      * Создает новый пост.
@@ -188,7 +188,7 @@ public interface JsonPlaceholderClient {
      * @return созданный пост
      */
     @PostExchange("/posts")
-    Mono<DtoModels.Post> createPost(@RequestBody DtoModels.CreatePostRequest request);
+    Mono<Post> createPost(@RequestBody CreatePostRequest request);
 
     /**
      * Обновляет пост полностью.
@@ -214,7 +214,7 @@ public interface JsonPlaceholderClient {
      * @return обновленный пост
      */
     @PutExchange("/posts/{id}")
-    Mono<DtoModels.Post> updatePost(@PathVariable Long id, @RequestBody DtoModels.CreatePostRequest request);
+    Mono<Post> updatePost(@PathVariable Long id, @RequestBody CreatePostRequest request);
 
     /**
      * Частично обновляет пост.
@@ -238,7 +238,7 @@ public interface JsonPlaceholderClient {
      * @return обновленный пост
      */
     @PatchExchange("/posts/{id}")
-    Mono<DtoModels.Post> patchPost(@PathVariable Long id, @RequestBody DtoModels.UpdatePostRequest request);
+    Mono<Post> patchPost(@PathVariable Long id, @RequestBody UpdatePostRequest request);
 
     /**
      * Удаляет пост.

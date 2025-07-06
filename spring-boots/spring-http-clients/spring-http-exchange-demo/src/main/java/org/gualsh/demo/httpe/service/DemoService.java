@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.httpe.client.JsonPlaceholderClient;
 import org.gualsh.demo.httpe.client.ReqResClient;
-import org.gualsh.demo.httpe.dto.DtoModels.*;
+import org.gualsh.demo.httpe.dto.*;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

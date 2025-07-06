@@ -1,6 +1,6 @@
 package org.gualsh.demo.httpe.client;
 
-import org.gualsh.demo.httpe.dto.DtoModels;
+import org.gualsh.demo.httpe.dto.Post;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -10,8 +10,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * Расширенный клиент для демонстрации продвинутых возможностей.
- *
- * <h3>Образовательный момент</h3>
  * <p>
  * Показывает дополнительные возможности @HttpExchange:
  * </p>
@@ -45,7 +43,7 @@ public interface AdvancedHttpExchangeClient {
      * @return защищенный ресурс
      */
     @GetExchange("/posts/1")
-    Mono<DtoModels.Post> getPostWithHeaders();
+    Mono<Post> getPostWithHeaders();
 
     /**
      * Демонстрирует работу с формами.
@@ -90,7 +88,7 @@ public interface AdvancedHttpExchangeClient {
      * @return результаты поиска
      */
     @GetExchange("/posts")
-    Flux<DtoModels.Post> searchPosts(
+    Flux<Post> searchPosts(
         @RequestParam(required = false) String query,
         @RequestParam(required = false) String category,
         @RequestParam(required = false) Integer limit,

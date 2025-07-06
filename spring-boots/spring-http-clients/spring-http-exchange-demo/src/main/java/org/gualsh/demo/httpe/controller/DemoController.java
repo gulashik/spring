@@ -2,7 +2,7 @@ package org.gualsh.demo.httpe.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.gualsh.demo.httpe.dto.DtoModels.*;
+import org.gualsh.demo.httpe.dto.*;
 import org.gualsh.demo.httpe.service.DemoService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

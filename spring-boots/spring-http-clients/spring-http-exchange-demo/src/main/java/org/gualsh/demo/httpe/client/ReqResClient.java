@@ -1,6 +1,7 @@
 package org.gualsh.demo.httpe.client;
 
-import org.gualsh.demo.httpe.dto.DtoModels;
+import org.gualsh.demo.httpe.dto.ReqResListResponse;
+import org.gualsh.demo.httpe.dto.ReqResUser;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -63,7 +64,7 @@ public interface ReqResClient {
      * @return ответ с пагинацией
      */
     @GetExchange("/users")
-    Mono<DtoModels.ReqResListResponse<DtoModels.ReqResUser>> getUsers(
+    Mono<ReqResListResponse<ReqResUser>> getUsers(
         @RequestParam(required = false) Integer page,
         @RequestParam(name = "per_page", required = false) Integer perPage
     );
@@ -80,7 +81,7 @@ public interface ReqResClient {
      * @return пользователь в wrapper объекте
      */
     @GetExchange("/users/{id}")
-    Mono<DtoModels.ReqResListResponse<DtoModels.ReqResUser>> getUser(@PathVariable Long id);
+    Mono<ReqResListResponse<ReqResUser>> getUser(@PathVariable Long id);
 
     /**
      * Создает нового пользователя.
@@ -94,6 +95,6 @@ public interface ReqResClient {
      * @return созданный пользователь
      */
     @PostExchange("/users")
-    Mono<DtoModels.ReqResUser> createUser(@RequestBody DtoModels.ReqResUser user);
+    Mono<ReqResUser> createUser(@RequestBody ReqResUser user);
 }
 
