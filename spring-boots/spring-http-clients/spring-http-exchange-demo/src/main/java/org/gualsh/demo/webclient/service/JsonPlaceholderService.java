@@ -1,116 +1,103 @@
 package org.gualsh.demo.webclient.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.gualsh.demo.webclient.client.JsonPlaceholderClient;
 import org.gualsh.demo.webclient.dto.*;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Сервис для работы с JSONPlaceholder API.
+ * Обновленный сервис для работы с JSONPlaceholder API через @HttpExchange клиент.
  *
- * <p>Предоставляет методы для работы с пользователями, постами и комментариями.
- * Включает кэширование, retry механизм и reactive подход.</p>
- *
- * <p>Особенности реализации:</p>
+ * <p>Основные изменения по сравнению с версией на WebClient:</p>
  * <ul>
- *   <li>Использование {@link ParameterizedTypeReference} для generic типов</li>
- *   <li>Кэширование популярных запросов с помощью Spring Cache</li>
- *   <li>Retry механизм для обработки временных сбоев</li>
- *   <li>Reactive streams для асинхронной обработки</li>
+ *   <li>Использует декларативный JsonPlaceholderClient вместо прямых вызовов WebClient</li>
+ *   <li>Упрощенная логика - большая часть HTTP деталей скрыта в клиенте</li>
+ *   <li>Фокус на бизнес-логике вместо HTTP конфигурации</li>
+ *   <li>Сохранена вся функциональность: кэширование, retry, композиция запросов</li>
  * </ul>
  *
- * @see WebClient
- * @see ParameterizedTypeReference
+ * <p>Преимущества @HttpExchange подхода:</p>
+ * <ul>
+ *   <li>Декларативность - меньше boilerplate кода</li>
+ *   <li>Легкость тестирования - можно мокировать интерфейс клиента</li>
+ *   <li>Централизованная настройка HTTP в конфигурации</li>
+ *   <li>Автоматическая обработка сериализации/десериализации</li>
+ *   <li>Консистентная обработка ошибок</li>
+ * </ul>
+ *
+ * @author Demo
+ * @version 2.0
+ * @see JsonPlaceholderClient
  */
 @Slf4j
 @Service
 public class JsonPlaceholderService {
 
-    private final WebClient jsonPlaceholderWebClient;
+    private final JsonPlaceholderClient client;
     private final int maxAttempts;
     private final long delay;
 
     /**
-     * Конструктор сервиса с внедрением зависимостей.
+     * Конструктор с внедрением HttpExchange клиента.
      *
-     * @param jsonPlaceholderWebClient WebClient для JSONPlaceholder API
-     * @param maxAttempts              максимальное количество попыток retry
-     * @param delay                    задержка между попытками в миллисекундах
+     * <p>Обратите внимание на изменение в зависимостях:
+     * вместо WebClient теперь внедряется типизированный клиент.</p>
+     *
+     * @param client HttpExchange клиент для JSONPlaceholder API
+     * @param maxAttempts максимальное количество попыток retry
+     * @param delay задержка между попытками в миллисекундах
      */
     public JsonPlaceholderService(
-        @Qualifier("jsonPlaceholderWebClient") WebClient jsonPlaceholderWebClient,
+        JsonPlaceholderClient client,
         @Value("${external-api.jsonplaceholder.max-attempts:3}") int maxAttempts,
         @Value("${external-api.jsonplaceholder.delay:1000}") long delay
     ) {
-        this.jsonPlaceholderWebClient = jsonPlaceholderWebClient;
+        this.client = client;
         this.maxAttempts = maxAttempts;
         this.delay = delay;
-        log.info("JsonPlaceholderService initialized with maxAttempts: {}, delay: {}ms", maxAttempts, delay);
+        log.info("JsonPlaceholderService initialized with HttpExchange client, maxAttempts: {}, delay: {}ms",
+            maxAttempts, delay);
     }
 
     /**
      * Получает список всех пользователей с кэшированием.
      *
-     * <p>Демонстрирует использование:</p>
-     * <ul>
-     *   <li>{@link ParameterizedTypeReference} для List&lt;UserDto&gt;</li>
-     *   <li>Spring Cache для кэширования результата</li>
-     *   <li>Retry механизм на уровне WebClient</li>
-     * </ul>
+     * <p>Сравнение с WebClient версией:</p>
+     * <pre>{@code
+     * // Старая версия (WebClient):
+     * return webClient.get().uri("/users").retrieve()
+     *     .bodyToMono(new ParameterizedTypeReference<List<UserDto>>() {})
+     *     .retryWhen(...)
+     *     .doOnSuccess(...)
+     *
+     * // Новая версия (HttpExchange):
+     * return client.getAllUsers()
+     *     .doOnSuccess(...)
+     * }</pre>
      *
      * @return Mono со списком пользователей
      */
     @Cacheable(value = "users", key = "'all-users'")
+    @Retryable(
+        value = {RuntimeException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2.0)
+    )
     public Mono<List<UserDto>> getAllUsers() {
-        log.debug("Fetching all users from JSONPlaceholder API");
+        log.debug("Fetching all users from JSONPlaceholder API via HttpExchange");
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .get()
-            .uri("/users")
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToMono(
-                new ParameterizedTypeReference<List<UserDto>>() {}
-            )
-            /*
-             * Реализация механизма повторных попыток (retry) непосредственно в цепочке реактивных операций.
-             *
-             * Особенности:
-             * - Использует экспоненциальную задержку с увеличением времени между попытками
-             * - Повторяет запрос только при ошибках сервера (5xx)
-             * - Логирует исчерпание попыток с детальной информацией
-             * - В случае исчерпания всех попыток генерирует информативное исключение
-             *
-             * Альтернативой этому подходу является аннотация @Retryable, используемая в других методах.
-             */
-            .retryWhen(
-                Retry.backoff(maxAttempts, Duration.ofMillis(delay))
-                    .filter(throwable -> throwable instanceof WebClientResponseException &&
-                        ((WebClientResponseException) throwable).getStatusCode().is5xxServerError())
-                    .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            log.error("Retry exhausted for getAllUsers after {} attempts", retrySignal.totalRetries());
-                            return new RuntimeException("Failed to fetch users after " + retrySignal.totalRetries() + " attempts");
-                        }
-                    )
-            )
+        return client.getAllUsers()
             .doOnSuccess(users -> log.info("Successfully fetched {} users", users.size()))
             .doOnError(error -> log.error("Error fetching users: {}", error.getMessage()));
     }
@@ -118,81 +105,43 @@ public class JsonPlaceholderService {
     /**
      * Получает пользователя по ID с кэшированием и retry.
      *
+     * <p>HttpExchange автоматически обрабатывает подстановку пути и
+     * сериализацию ответа. Нет необходимости в explicit handling 404.</p>
+     *
      * @param userId идентификатор пользователя
-     * @return Mono с пользователем или ошибкой если не найден
+     * @return Mono с пользователем
      */
     @Cacheable(value = "users", key = "#userId")
+    @Retryable(
+        value = {RuntimeException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2.0)
+    )
     public Mono<UserDto> getUserById(Long userId) {
         log.debug("Fetching user by ID: {}", userId);
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .get()
-            .uri("/users/{id}", userId)
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            /*
-             * Действия при статусе
-             * Можно кинуть RuntimeException при не нужном статусе.
-             * НО! У нас настроен ExchangeFilterFunction errorHandlingFilter()
-             * Важно понимать порядок выполнения:
-             * 1. **Первым** сработает обработчик в методе `getUserById`, который создаст `onStatus``RuntimeException`
-             * 2. Глобальный `errorHandlingFilter()` **не будет выполнен** для этого запроса, поскольку ошибка уже создана и цепочка обработки ответа прервана
-             */
-            .onStatus(
-                HttpStatus.NOT_FOUND::equals,
-                response -> Mono.error(new RuntimeException("User not found with ID: " + userId))
-            )
-            .bodyToMono(UserDto.class)
-            /*
-             * Реализация механизма повторных попыток (retry) непосредственно в цепочке реактивных операций.
-             *
-             * Особенности:
-             * - Использует экспоненциальную задержку с увеличением времени между попытками
-             * - Повторяет запрос только при ошибках сервера (5xx)
-             * - Логирует исчерпание попыток с детальной информацией
-             * - В случае исчерпания всех попыток генерирует информативное исключение
-             *
-             * Альтернативой этому подходу является аннотация @Retryable, используемая в других методах.
-             */
-            .retryWhen(
-                Retry.backoff(maxAttempts, Duration.ofMillis(delay))
-                    .filter(throwable -> {
-                        if (throwable instanceof WebClientResponseException ex) {
-                            return ex.getStatusCode().is5xxServerError();
-                        }
-                        return false;
-                    })
-                    .onRetryExhaustedThrow((retryBackoffSpec, retrySignal) -> {
-                            log.error("Retry exhausted for getUserById after {} attempts", retrySignal.totalRetries());
-                            return new RuntimeException("Failed to fetch user after " + retrySignal.totalRetries() + " attempts");
-                        }
-                    )
-            )
+        return client.getUserById(userId)
             .doOnSuccess(user -> log.info("Successfully fetched user: {}", user.getUsername()))
             .doOnError(error -> log.error("Error fetching user {}: {}", userId, error.getMessage()));
     }
 
     /**
-     * Получает посты пользователя с использованием query параметров.
+     * Получает посты пользователя.
+     *
+     * <p>HttpExchange автоматически добавляет query параметры в URL.</p>
      *
      * @param userId идентификатор пользователя
      * @return Flux с постами пользователя
      */
+    @Retryable(
+        value = {RuntimeException.class},
+        maxAttempts = 2,
+        backoff = @Backoff(delay = 500)
+    )
     public Flux<PostDto> getPostsByUserId(Long userId) {
         log.debug("Fetching posts for user ID: {}", userId);
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .get()
-            .uri(uriBuilder -> uriBuilder
-                .path("/posts")
-                .queryParam("userId", userId)
-                .build())
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToFlux(PostDto.class)
-            .retryWhen(Retry.backoff(2, Duration.ofMillis(500)))
+        return client.getPostsByUserId(userId)
             .doOnComplete(() -> log.info("Successfully fetched posts for user {}", userId))
             .doOnError(error -> log.error("Error fetching posts for user {}: {}", userId, error.getMessage()));
     }
@@ -200,7 +149,8 @@ public class JsonPlaceholderService {
     /**
      * Получает все посты с пагинацией.
      *
-     * <p>Демонстрирует работу с query параметрами и pagination.</p>
+     * <p>Бизнес-логика пагинации остается в сервисе,
+     * а HTTP детали скрыты в клиенте.</p>
      *
      * @param page номер страницы (начиная с 0)
      * @param size размер страницы
@@ -211,23 +161,12 @@ public class JsonPlaceholderService {
 
         int start = page * size;
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .get()
-            .uri(uriBuilder -> uriBuilder
-                .path("/posts")
-                .queryParam("_start", start)
-                .queryParam("_limit", size)
-                .build())
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToMono(new ParameterizedTypeReference<List<PostDto>>() {
-            })
+        return client.getAllPostsPaginated(start, size)
             .map(posts -> PagedResponseDto.<PostDto>builder()
                 .data(posts)
                 .page(page)
                 .size(size)
-                .total((long) posts.size()) // В реальном API было бы из заголовков
+                .total((long) posts.size())
                 .totalPages((posts.size() + size - 1) / size)
                 .hasNext(posts.size() == size)
                 .hasPrevious(page > 0)
@@ -238,9 +177,10 @@ public class JsonPlaceholderService {
     }
 
     /**
-     * Создает новый пост с валидацией.
+     * Создает новый пост.
      *
-     * <p>Демонстрирует POST запрос с телом и обработку ответа.</p>
+     * <p>HttpExchange автоматически сериализует DTO в JSON
+     * и десериализует ответ.</p>
      *
      * @param createPostDto данные для создания поста
      * @return Mono с созданным постом
@@ -248,40 +188,25 @@ public class JsonPlaceholderService {
     public Mono<PostDto> createPost(CreatePostDto createPostDto) {
         log.debug("Creating new post for user: {}", createPostDto.getUserId());
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .post()
-            .uri("/posts")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(createPostDto))
-            .retrieve()
-            .bodyToMono(PostDto.class)
+        return client.createPost(createPostDto)
             .doOnSuccess(post -> log.info("Successfully created post with ID: {}", post.getId()))
             .doOnError(error -> log.error("Error creating post: {}", error.getMessage()));
     }
 
     /**
-     * Обновляет существующий пост.
+     * Обновляет существующий пост полностью.
      *
-     * <p>Демонстрирует PUT запрос для полного обновления ресурса.</p>
+     * <p>HttpExchange упрощает PUT запросы - не нужно явно указывать
+     * content type и body serialization.</p>
      *
-     * @param postId        идентификатор поста для обновления
+     * @param postId идентификатор поста для обновления
      * @param updatePostDto новые данные поста
      * @return Mono с обновленным постом
      */
     public Mono<PostDto> updatePost(Long postId, UpdatePostDto updatePostDto) {
         log.debug("Updating post with ID: {}", postId);
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .put()
-            .uri("/posts/{id}", postId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(updatePostDto))
-            .retrieve()
-            .onStatus(HttpStatus.NOT_FOUND::equals,
-                response -> Mono.error(new RuntimeException("Post not found with ID: " + postId)))
-            .bodyToMono(PostDto.class)
+        return client.updatePost(postId, updatePostDto)
             .doOnSuccess(post -> log.info("Successfully updated post: {}", post.getId()))
             .doOnError(error -> log.error("Error updating post {}: {}", postId, error.getMessage()));
     }
@@ -289,23 +214,16 @@ public class JsonPlaceholderService {
     /**
      * Частично обновляет пост.
      *
-     * <p>Демонстрирует PATCH запрос для частичного обновления.</p>
+     * <p>PATCH операции с Map параметрами работают без дополнительной настройки.</p>
      *
-     * @param postId  идентификатор поста
+     * @param postId идентификатор поста
      * @param updates Map с полями для обновления
      * @return Mono с обновленным постом
      */
     public Mono<PostDto> patchPost(Long postId, Map<String, Object> updates) {
         log.debug("Partially updating post with ID: {}", postId);
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .patch()
-            .uri("/posts/{id}", postId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body(BodyInserters.fromValue(updates))
-            .retrieve()
-            .bodyToMono(PostDto.class)
+        return client.patchPost(postId, updates)
             .doOnSuccess(post -> log.info("Successfully patched post: {}", post.getId()))
             .doOnError(error -> log.error("Error patching post {}: {}", postId, error.getMessage()));
     }
@@ -313,7 +231,7 @@ public class JsonPlaceholderService {
     /**
      * Удаляет пост по ID.
      *
-     * <p>Демонстрирует DELETE запрос и обработку пустого ответа.</p>
+     * <p>DELETE операции с Mono&lt;Void&gt; возвращаемым типом.</p>
      *
      * @param postId идентификатор поста для удаления
      * @return Mono<Void> подтверждающий удаление
@@ -321,14 +239,7 @@ public class JsonPlaceholderService {
     public Mono<Void> deletePost(Long postId) {
         log.debug("Deleting post with ID: {}", postId);
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .delete()
-            .uri("/posts/{id}", postId)
-            .retrieve()
-            .onStatus(HttpStatus.NOT_FOUND::equals,
-                response -> Mono.error(new RuntimeException("Post not found with ID: " + postId)))
-            .bodyToMono(Void.class)
+        return client.deletePost(postId)
             .doOnSuccess(unused -> log.info("Successfully deleted post: {}", postId))
             .doOnError(error -> log.error("Error deleting post {}: {}", postId, error.getMessage()));
     }
@@ -336,7 +247,7 @@ public class JsonPlaceholderService {
     /**
      * Получает комментарии к посту.
      *
-     * <p>Демонстрирует работу с вложенными ресурсами.</p>
+     * <p>Демонстрирует работу с вложенными URL путями.</p>
      *
      * @param postId идентификатор поста
      * @return Flux с комментариями
@@ -344,31 +255,40 @@ public class JsonPlaceholderService {
     public Flux<CommentDto> getCommentsByPostId(Long postId) {
         log.debug("Fetching comments for post ID: {}", postId);
 
-        // Можно подумать о .timeout(Duration.ofSeconds(10)); // Response timeout
-        return jsonPlaceholderWebClient
-            .get()
-            .uri("/posts/{postId}/comments", postId)
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToFlux(CommentDto.class)
+        return client.getCommentsByPostId(postId)
             .doOnComplete(() -> log.info("Successfully fetched comments for post {}", postId))
             .doOnError(error -> log.error("Error fetching comments for post {}: {}", postId, error.getMessage()));
     }
 
     /**
+     * Получает пост по ID.
+     *
+     * <p>Простая операция получения конкретного поста.</p>
+     *
+     * @param postId идентификатор поста
+     * @return Mono с постом
+     */
+    public Mono<PostDto> getPostById(Long postId) {
+        log.debug("Fetching post by ID: {}", postId);
+
+        return client.getPostById(postId)
+            .doOnSuccess(post -> log.info("Successfully fetched post: {}", post.getTitle()))
+            .doOnError(error -> log.error("Error fetching post {}: {}", postId, error.getMessage()));
+    }
+
+    /**
      * Метод восстановления для getUserById при исчерпании retry попыток.
      *
-     * <p>Демонстрирует использование @Recover для graceful degradation.</p>
+     * <p>@Recover работает одинаково с HttpExchange клиентами.</p>
      *
-     * @param ex     исключение, вызвавшее необходимость восстановления
+     * @param ex исключение, вызвавшее необходимость восстановления
      * @param userId идентификатор пользователя из оригинального вызова
-     * @return Mono с пользователем по умолчанию или ошибкой
+     * @return Mono с пользователем по умолчанию
      */
     @Recover
     public Mono<UserDto> recoverGetUserById(Exception ex, Long userId) {
         log.warn("Recovering from getUserById failure for user {}: {}", userId, ex.getMessage());
 
-        // Возвращаем пользователя по умолчанию или пробуем альтернативный источник
         return Mono.just(UserDto.builder()
             .id(userId)
             .username("unknown")
@@ -378,9 +298,10 @@ public class JsonPlaceholderService {
     }
 
     /**
-     * Выполняет множественные запросы параллельно.
+     * Композиция нескольких запросов для получения пользователя с постами.
      *
-     * <p>Демонстрирует композицию нескольких reactive операций.</p>
+     * <p>Бизнес-логика композиции остается неизменной,
+     * упрощаются только базовые HTTP операции.</p>
      *
      * @param userId идентификатор пользователя
      * @return Mono с объединенными данными пользователя и его постов
@@ -403,9 +324,9 @@ public class JsonPlaceholderService {
     }
 
     /**
-     * Выполняет batch операцию для получения нескольких пользователей.
+     * Batch операция для получения нескольких пользователей.
      *
-     * <p>Демонстрирует параллельную обработку множественных запросов.</p>
+     * <p>Параллельная обработка нескольких запросов остается такой же.</p>
      *
      * @param userIds список идентификаторов пользователей
      * @return Flux с пользователями
@@ -416,5 +337,38 @@ public class JsonPlaceholderService {
         return Flux.fromIterable(userIds)
             .flatMap(this::getUserById, 5) // Параллельность = 5
             .doOnComplete(() -> log.info("Completed batch fetch for {} users", userIds.size()));
+    }
+
+    /**
+     * Альтернативный способ получения комментариев через query параметр.
+     *
+     * <p>Демонстрирует гибкость HttpExchange в работе с различными
+     * способами запроса одних и тех же данных.</p>
+     *
+     * @param postId идентификатор поста
+     * @return Flux с комментариями
+     */
+    public Flux<CommentDto> getCommentsByPostIdAlternative(Long postId) {
+        log.debug("Fetching comments for post ID: {} (alternative method)", postId);
+
+        return client.getCommentsByPostIdQuery(postId)
+            .doOnComplete(() -> log.info("Successfully fetched comments for post {} (alternative)", postId))
+            .doOnError(error -> log.error("Error fetching comments for post {} (alternative): {}",
+                postId, error.getMessage()));
+    }
+
+    /**
+     * Получает все посты без фильтрации.
+     *
+     * <p>Базовая операция для получения всех постов.</p>
+     *
+     * @return Mono со списком всех постов
+     */
+    public Mono<List<PostDto>> getAllPosts() {
+        log.debug("Fetching all posts");
+
+        return client.getAllPosts()
+            .doOnSuccess(posts -> log.info("Successfully fetched {} posts", posts.size()))
+            .doOnError(error -> log.error("Error fetching all posts: {}", error.getMessage()));
     }
 }

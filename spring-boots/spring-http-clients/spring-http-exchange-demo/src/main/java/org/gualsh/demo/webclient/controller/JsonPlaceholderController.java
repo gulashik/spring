@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.webclient.dto.*;
 import org.gualsh.demo.webclient.service.JsonPlaceholderService;
+import org.gualsh.demo.webclient.service.WeatherService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,18 +20,22 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * REST контроллер для демонстрации возможностей WebClient с JSONPlaceholder API.
+ * REST контроллер для демонстрации возможностей @HttpExchange с JSONPlaceholder API.
  *
- * <p>Предоставляет endpoints для:</p>
+ * <p>Изменения в контроллере минимальны, поскольку HttpExchange изменения
+ * затрагивают в основном слой сервисов. Контроллер продолжает работать
+ * с теми же интерфейсами сервисов.</p>
+ *
+ * <p>Преимущества архитектуры с HttpExchange:</p>
  * <ul>
- *   <li>CRUD операции с пользователями и постами</li>
- *   <li>Демонстрации различных HTTP методов</li>
- *   <li>Работы с reactive типами (Mono, Flux)</li>
- *   <li>Обработки ошибок и валидации</li>
+ *   <li>Контроллеры остаются неизменными</li>
+ *   <li>Сервисы упрощаются и фокусируются на бизнес-логике</li>
+ *   <li>HTTP детали инкапсулированы в клиентских интерфейсах</li>
+ *   <li>Легче тестировать каждый слой отдельно</li>
  * </ul>
  *
  * @author Demo
- * @version 1.0
+ * @version 2.0
  * @see JsonPlaceholderService
  */
 @Slf4j
@@ -45,14 +50,8 @@ public class JsonPlaceholderController {
     /**
      * Получает список всех пользователей.
      *
-     * <p>Демонстрирует:</p>
-     * <ul>
-     *   <li>GET запрос с кэшированием</li>
-     *   <li>Возврат Mono&lt;List&gt;</li>
-     *   <li>Content negotiation</li>
-     * </ul>
-     *
-     * @return ResponseEntity с списком пользователей
+     * <p>Функциональность контроллера остается неизменной.
+     * Все улучшения скрыты в сервисном слое.</p>
      */
     @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<List<UserDto>>> getAllUsers() {
@@ -63,6 +62,7 @@ public class JsonPlaceholderController {
                 log.info("REST: Returning {} users", users.size());
                 return ResponseEntity.ok()
                     .header("X-Total-Count", String.valueOf(users.size()))
+                    .header("X-Client-Type", "HttpExchange")
                     .body(users);
             })
             .onErrorReturn(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build());
@@ -70,16 +70,6 @@ public class JsonPlaceholderController {
 
     /**
      * Получает пользователя по ID.
-     *
-     * <p>Демонстрирует:</p>
-     * <ul>
-     *   <li>Path variables</li>
-     *   <li>Валидацию параметров</li>
-     *   <li>Обработку 404 ошибок</li>
-     * </ul>
-     *
-     * @param userId идентификатор пользователя
-     * @return ResponseEntity с пользователем или 404
      */
     @GetMapping("/users/{userId}")
     public Mono<ResponseEntity<UserDto>> getUserById(
@@ -89,18 +79,15 @@ public class JsonPlaceholderController {
         return jsonPlaceholderService.getUserById(userId)
             .map(user -> {
                 log.info("REST: Found user: {}", user.getUsername());
-                return ResponseEntity.ok(user);
+                return ResponseEntity.ok()
+                    .header("X-Client-Type", "HttpExchange")
+                    .body(user);
             })
             .onErrorReturn(ResponseEntity.notFound().build());
     }
 
     /**
-     * Получает посты пользователя.
-     *
-     * <p>Демонстрирует работу с Flux и Server-Sent Events.</p>
-     *
-     * @param userId идентификатор пользователя
-     * @return Flux с постами в виде text/event-stream
+     * Получает посты пользователя как стрим.
      */
     @GetMapping(value = "/users/{userId}/posts", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<PostDto> getUserPosts(@PathVariable Long userId) {
@@ -112,17 +99,6 @@ public class JsonPlaceholderController {
 
     /**
      * Получает посты с пагинацией.
-     *
-     * <p>Демонстрирует:</p>
-     * <ul>
-     *   <li>Query parameters с значениями по умолчанию</li>
-     *   <li>Пагинированные ответы</li>
-     *   <li>Валидацию параметров</li>
-     * </ul>
-     *
-     * @param page номер страницы (по умолчанию 0)
-     * @param size размер страницы (по умолчанию 10)
-     * @return ResponseEntity с пагинированными постами
      */
     @GetMapping("/posts")
     public Mono<ResponseEntity<PagedResponseDto<PostDto>>> getPostsPaginated(
@@ -138,22 +114,13 @@ public class JsonPlaceholderController {
                     .header("X-Page", String.valueOf(page))
                     .header("X-Size", String.valueOf(size))
                     .header("X-Total", String.valueOf(pagedResponse.getTotal()))
+                    .header("X-Client-Type", "HttpExchange")
                     .body(pagedResponse);
             });
     }
 
     /**
      * Создает новый пост.
-     *
-     * <p>Демонстрирует:</p>
-     * <ul>
-     *   <li>POST запрос с валидацией тела</li>
-     *   <li>Возврат 201 Created</li>
-     *   <li>Location header</li>
-     * </ul>
-     *
-     * @param createPostDto данные для создания поста
-     * @return ResponseEntity с созданным постом
      */
     @PostMapping("/posts")
     public Mono<ResponseEntity<PostDto>> createPost(@Valid @RequestBody CreatePostDto createPostDto) {
@@ -164,6 +131,7 @@ public class JsonPlaceholderController {
                 log.info("REST: Created post with ID: {}", post.getId());
                 return ResponseEntity.status(HttpStatus.CREATED)
                     .header("Location", "/api/v1/jsonplaceholder/posts/" + post.getId())
+                    .header("X-Client-Type", "HttpExchange")
                     .body(post);
             })
             .onErrorReturn(ResponseEntity.badRequest().build());
@@ -171,12 +139,6 @@ public class JsonPlaceholderController {
 
     /**
      * Обновляет существующий пост полностью.
-     *
-     * <p>Демонстрирует PUT запрос для полного обновления.</p>
-     *
-     * @param postId идентификатор поста
-     * @param updatePostDto новые данные поста
-     * @return ResponseEntity с обновленным постом
      */
     @PutMapping("/posts/{postId}")
     public Mono<ResponseEntity<PostDto>> updatePost(
@@ -184,25 +146,20 @@ public class JsonPlaceholderController {
         @Valid @RequestBody UpdatePostDto updatePostDto) {
         log.info("REST: Updating post: {}", postId);
 
-        // Устанавливаем ID из path parameter
         updatePostDto.setId(postId);
 
         return jsonPlaceholderService.updatePost(postId, updatePostDto)
             .map(post -> {
                 log.info("REST: Updated post: {}", post.getId());
-                return ResponseEntity.ok(post);
+                return ResponseEntity.ok()
+                    .header("X-Client-Type", "HttpExchange")
+                    .body(post);
             })
             .onErrorReturn(ResponseEntity.notFound().build());
     }
 
     /**
      * Частично обновляет пост.
-     *
-     * <p>Демонстрирует PATCH запрос с Map параметрами.</p>
-     *
-     * @param postId идентификатор поста
-     * @param updates Map с полями для обновления
-     * @return ResponseEntity с обновленным постом
      */
     @PatchMapping("/posts/{postId}")
     public Mono<ResponseEntity<PostDto>> patchPost(
@@ -211,17 +168,14 @@ public class JsonPlaceholderController {
         log.info("REST: Patching post: {} with updates: {}", postId, updates.keySet());
 
         return jsonPlaceholderService.patchPost(postId, updates)
-            .map(ResponseEntity::ok)
+            .map(post -> ResponseEntity.ok()
+                .header("X-Client-Type", "HttpExchange")
+                .body(post))
             .onErrorReturn(ResponseEntity.notFound().build());
     }
 
     /**
      * Удаляет пост.
-     *
-     * <p>Демонстрирует DELETE запрос с возвратом 204 No Content.</p>
-     *
-     * @param postId идентификатор поста для удаления
-     * @return ResponseEntity без содержимого
      */
     @DeleteMapping("/posts/{postId}")
     public Mono<ResponseEntity<Void>> deletePost(@PathVariable Long postId) {
@@ -230,18 +184,15 @@ public class JsonPlaceholderController {
         return jsonPlaceholderService.deletePost(postId)
             .map(unused -> {
                 log.info("REST: Deleted post: {}", postId);
-                return ResponseEntity.noContent().<Void>build();
+                return ResponseEntity.noContent()
+                    .header("X-Client-Type", "HttpExchange")
+                    .<Void>build();
             })
             .onErrorReturn(ResponseEntity.notFound().build());
     }
 
     /**
      * Получает комментарии к посту.
-     *
-     * <p>Демонстрирует работу с вложенными ресурсами и Flux.</p>
-     *
-     * @param postId идентификатор поста
-     * @return Flux с комментариями
      */
     @GetMapping(value = "/posts/{postId}/comments", produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<CommentDto> getPostComments(@PathVariable Long postId) {
@@ -253,11 +204,6 @@ public class JsonPlaceholderController {
 
     /**
      * Получает пользователя с его постами.
-     *
-     * <p>Демонстрирует композицию нескольких запросов.</p>
-     *
-     * @param userId идентификатор пользователя
-     * @return ResponseEntity с объединенными данными
      */
     @GetMapping("/users/{userId}/profile")
     public Mono<ResponseEntity<Map<String, Object>>> getUserProfile(@PathVariable Long userId) {
@@ -266,18 +212,15 @@ public class JsonPlaceholderController {
         return jsonPlaceholderService.getUserWithPosts(userId)
             .map(profile -> {
                 log.info("REST: Returning profile for user: {}", userId);
-                return ResponseEntity.ok(profile);
+                return ResponseEntity.ok()
+                    .header("X-Client-Type", "HttpExchange")
+                    .body(profile);
             })
             .onErrorReturn(ResponseEntity.notFound().build());
     }
 
     /**
      * Получает множественных пользователей за один запрос.
-     *
-     * <p>Демонстрирует batch операции.</p>
-     *
-     * @param userIds список идентификаторов пользователей
-     * @return Flux с пользователями
      */
     @PostMapping(value = "/users/batch", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<UserDto> getUsersBatch(@RequestBody List<Long> userIds) {
@@ -286,13 +229,63 @@ public class JsonPlaceholderController {
         return jsonPlaceholderService.getUsersBatch(userIds)
             .doOnNext(user -> log.debug("REST: Streaming user: {}", user.getUsername()));
     }
+
+    /**
+     * Получает конкретный пост по ID.
+     *
+     * <p>Новый endpoint, демонстрирующий дополнительную функциональность.</p>
+     */
+    @GetMapping("/posts/{postId}")
+    public Mono<ResponseEntity<PostDto>> getPostById(@PathVariable Long postId) {
+        log.info("REST: Getting post by ID: {}", postId);
+
+        return jsonPlaceholderService.getPostById(postId)
+            .map(post -> {
+                log.info("REST: Found post: {}", post.getTitle());
+                return ResponseEntity.ok()
+                    .header("X-Client-Type", "HttpExchange")
+                    .body(post);
+            })
+            .onErrorReturn(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * Получает все посты без фильтрации.
+     *
+     * <p>Альтернативный endpoint для получения всех постов.</p>
+     */
+    @GetMapping("/posts/all")
+    public Mono<ResponseEntity<List<PostDto>>> getAllPosts() {
+        log.info("REST: Getting all posts");
+
+        return jsonPlaceholderService.getAllPosts()
+            .map(posts -> {
+                log.info("REST: Returning {} posts", posts.size());
+                return ResponseEntity.ok()
+                    .header("X-Total-Count", String.valueOf(posts.size()))
+                    .header("X-Client-Type", "HttpExchange")
+                    .body(posts);
+            })
+            .onErrorReturn(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build());
+    }
+
+    /**
+     * Альтернативный способ получения комментариев через query параметр.
+     */
+    @GetMapping(value = "/comments", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Flux<CommentDto> getCommentsByPostQuery(@RequestParam Long postId) {
+        log.info("REST: Getting comments for post via query: {}", postId);
+
+        return jsonPlaceholderService.getCommentsByPostIdAlternative(postId)
+            .doOnNext(comment -> log.debug("REST: Found comment via query from: {}", comment.getEmail()));
+    }
 }
 
 /**
- * REST контроллер для демонстрации Weather API.
+ * REST контроллер для демонстрации Weather API с HttpExchange.
  *
  * @author Demo
- * @version 1.0
+ * @version 2.0
  */
 @Slf4j
 @RestController
@@ -301,15 +294,10 @@ public class JsonPlaceholderController {
 @Validated
 class WeatherController {
 
-    private final org.gualsh.demo.webclient.service.WeatherService weatherService;
+    private final WeatherService weatherService;
 
     /**
      * Получает текущую погоду для города.
-     *
-     * <p>Демонстрирует работу с внешним API, требующим API ключи.</p>
-     *
-     * @param city название города
-     * @return ResponseEntity с данными о погоде
      */
     @GetMapping("/current")
     public Mono<ResponseEntity<WeatherDto>> getCurrentWeather(
@@ -319,9 +307,10 @@ class WeatherController {
         return weatherService.getCurrentWeather(city)
             .map(weather -> {
                 log.info("REST: Found weather for {}: {}°C",
-                    city, weather.getMain().getTemp());
+                    city, weather.getMain() != null ? weather.getMain().getTemp() : "N/A");
                 return ResponseEntity.ok()
                     .header("X-Cache-Key", city.toLowerCase())
+                    .header("X-Client-Type", "HttpExchange")
                     .body(weather);
             })
             .onErrorReturn(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build());
@@ -329,10 +318,6 @@ class WeatherController {
 
     /**
      * Получает погоду по координатам.
-     *
-     * @param lat широта
-     * @param lon долгота
-     * @return ResponseEntity с данными о погоде
      */
     @GetMapping("/coordinates")
     public Mono<ResponseEntity<WeatherDto>> getWeatherByCoordinates(
@@ -341,15 +326,14 @@ class WeatherController {
         log.info("REST: Getting weather by coordinates: lat={}, lon={}", lat, lon);
 
         return weatherService.getCurrentWeatherByCoordinates(lat, lon)
-            .map(ResponseEntity::ok)
+            .map(weather -> ResponseEntity.ok()
+                .header("X-Client-Type", "HttpExchange")
+                .body(weather))
             .onErrorReturn(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build());
     }
 
     /**
      * Получает детальную информацию о погоде.
-     *
-     * @param city название города
-     * @return ResponseEntity с детальными данными о погоде
      */
     @GetMapping("/detailed")
     public Mono<ResponseEntity<WeatherDto>> getDetailedWeather(
@@ -357,14 +341,14 @@ class WeatherController {
         log.info("REST: Getting detailed weather for city: {}", city);
 
         return weatherService.getDetailedWeather(city)
-            .map(ResponseEntity::ok)
+            .map(weather -> ResponseEntity.ok()
+                .header("X-Client-Type", "HttpExchange")
+                .body(weather))
             .onErrorReturn(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build());
     }
 
     /**
      * Проверяет доступность weather сервиса.
-     *
-     * @return ResponseEntity с статусом доступности
      */
     @GetMapping("/health")
     public Mono<ResponseEntity<Map<String, Object>>> checkWeatherServiceHealth() {
@@ -375,11 +359,46 @@ class WeatherController {
                 Map<String, Object> status = Map.of(
                     "service", "weather-api",
                     "available", available,
+                    "client-type", "HttpExchange",
                     "timestamp", System.currentTimeMillis()
                 );
 
                 HttpStatus httpStatus = available ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
                 return ResponseEntity.status(httpStatus).body(status);
             });
+    }
+
+    /**
+     * Получает погоду для нескольких городов.
+     *
+     * <p>Новый endpoint, демонстрирующий композицию запросов.</p>
+     */
+    @PostMapping(value = "/batch", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<WeatherDto> getWeatherForCities(@RequestBody List<String> cities) {
+        log.info("REST: Getting weather for {} cities", cities.size());
+
+        return weatherService.getWeatherForMultipleCities(cities)
+            .doOnNext(weather -> log.debug("REST: Streaming weather for: {}", weather.getName()));
+    }
+
+    /**
+     * Сравнивает погоду между двумя городами.
+     *
+     * <p>Демонстрирует бизнес-логику с использованием нескольких API вызовов.</p>
+     */
+    @GetMapping("/compare")
+    public Mono<ResponseEntity<Map<String, Object>>> compareWeather(
+        @RequestParam @NotNull String city1,
+        @RequestParam @NotNull String city2) {
+        log.info("REST: Comparing weather between {} and {}", city1, city2);
+
+        return weatherService.compareWeather(city1, city2)
+            .map(comparison -> {
+                log.info("REST: Weather comparison completed for {} vs {}", city1, city2);
+                return ResponseEntity.ok()
+                    .header("X-Client-Type", "HttpExchange")
+                    .body(comparison);
+            })
+            .onErrorReturn(ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build());
     }
 }

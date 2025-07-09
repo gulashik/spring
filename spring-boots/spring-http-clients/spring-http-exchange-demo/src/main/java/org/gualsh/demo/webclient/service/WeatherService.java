@@ -1,74 +1,95 @@
 package org.gualsh.demo.webclient.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.gualsh.demo.webclient.client.WeatherClient;
 import org.gualsh.demo.webclient.dto.WeatherDto;
 import org.gualsh.demo.webclient.exception.CustomWebClientExceptions.*;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
-import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Сервис для работы с OpenWeatherMap API.
+ * Обновленный сервис для работы с OpenWeatherMap API через @HttpExchange клиент.
  *
- * <p>Предоставляет методы для получения данных о текущей погоде с кэшированием
- * и обработкой ошибок. Демонстрирует работу с внешними API, требующими API ключи.</p>
- *
- * <p>Особенности:</p>
+ * <p>Основные изменения по сравнению с версией на WebClient:</p>
  * <ul>
- *   <li>Кэширование погодных данных на 5 минут</li>
- *   <li>Retry механизм для сетевых сбоев</li>
- *   <li>Graceful degradation при недоступности сервиса</li>
- *   <li>Обработка rate limiting (HTTP 429)</li>
+ *   <li>Использует декларативный WeatherClient вместо прямых вызовов WebClient</li>
+ *   <li>Упрощена передача параметров - автоматическая обработка query параметров</li>
+ *   <li>Сфокусирован на бизнес-логике и обработке погодных данных</li>
+ *   <li>Сохранена функциональность кэширования и retry</li>
  * </ul>
  *
- * @see WeatherDto
+ * <p>Преимущества HttpExchange для внешних API:</p>
+ * <ul>
+ *   <li>Автоматическая передача параметров запроса</li>
+ *   <li>Упрощенная обработка API ключей</li>
+ *   <li>Декларативная настройка различных endpoint'ов</li>
+ *   <li>Консистентная обработка ответов</li>
+ * </ul>
+ *
+ * @author Demo
+ * @version 2.0
+ * @see WeatherClient
  */
 @Slf4j
 @Service
 public class WeatherService {
 
-    private final WebClient weatherWebClient;
+    private final WeatherClient client;
     private final String apiKey;
     private final int maxAttempts;
     private final long delay;
 
     /**
-     * Конструктор с внедрением зависимостей.
+     * Конструктор с внедрением HttpExchange клиента.
      *
-     * @param weatherWebClient WebClient для Weather API
+     * @param client HttpExchange клиент для Weather API
      * @param apiKey API ключ для OpenWeatherMap
      * @param maxAttempts максимальное количество попыток
      * @param delay задержка между попытками
      */
     public WeatherService(
-        @Qualifier("weatherWebClient") WebClient weatherWebClient,
+        WeatherClient client,
         @Value("${external-api.weather.api-key}") String apiKey,
         @Value("${external-api.weather.max-attempts:2}") int maxAttempts,
         @Value("${external-api.weather.delay:2000}") long delay) {
-        this.weatherWebClient = weatherWebClient;
+        this.client = client;
         this.apiKey = apiKey;
         this.maxAttempts = maxAttempts;
         this.delay = delay;
-        log.info("WeatherService initialized with maxAttempts: {}, delay: {}ms", maxAttempts, delay);
+        log.info("WeatherService initialized with HttpExchange client, maxAttempts: {}, delay: {}ms",
+            maxAttempts, delay);
     }
 
     /**
      * Получает текущую погоду для города с кэшированием.
      *
-     * <p>Кэширует результат на 5 минут для снижения нагрузки на API
-     * и экономии лимитов запросов.</p>
+     * <p>Сравнение с WebClient версией:</p>
+     * <pre>{@code
+     * // Старая версия (WebClient):
+     * return webClient.get()
+     *     .uri(uriBuilder -> uriBuilder
+     *         .path("/weather")
+     *         .queryParam("q", cityName)
+     *         .queryParam("appid", apiKey)
+     *         .queryParam("units", "metric")
+     *         .build())
+     *     .retrieve()
+     *     .bodyToMono(WeatherDto.class)
+     *
+     * // Новая версия (HttpExchange):
+     * return client.getCurrentWeather(cityName, apiKey, "metric")
+     * }</pre>
      *
      * @param cityName название города
      * @return Mono с данными о погоде
@@ -84,38 +105,8 @@ public class WeatherService {
     public Mono<WeatherDto> getCurrentWeather(String cityName) {
         log.debug("Fetching current weather for city: {}", cityName);
 
-        return weatherWebClient
-            .get()
-            .uri(uriBuilder -> uriBuilder
-                .path("/weather")
-                .queryParam("q", cityName)
-                .queryParam("appid", apiKey)
-                .queryParam("units", "metric") // Цельсий
-                .build())
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .onStatus(HttpStatus.NOT_FOUND::equals,
-                response -> {
-                    log.warn("City not found: {}", cityName);
-                    return Mono.error(new ResourceNotFoundException("City not found: " + cityName, cityName));
-                })
-            .onStatus(HttpStatus.UNAUTHORIZED::equals,
-                response -> {
-                    log.error("Invalid API key for weather service");
-                    return Mono.error(new AuthenticationException("Invalid API key"));
-                })
-            .onStatus(status -> status.value() == 429,
-                response -> {
-                    log.warn("Rate limit exceeded for weather API");
-                    return Mono.error(new RateLimitExceededException("Rate limit exceeded"));
-                })
-            .onStatus(HttpStatus.SERVICE_UNAVAILABLE::equals,
-                response -> Mono.error(new ServiceUnavailableException("Weather service unavailable")))
-            .onStatus(HttpStatus.GATEWAY_TIMEOUT::equals,
-                response -> Mono.error(new GatewayTimeoutException("Weather service timeout")))
-            .onStatus(HttpStatus.INTERNAL_SERVER_ERROR::equals,
-                response -> Mono.error(new InternalServerErrorException("Weather service internal error")))
-            .bodyToMono(WeatherDto.class)
+        return client.getCurrentWeather(cityName, apiKey, "metric")
+            .map(this::enrichWeatherData)
             .doOnSuccess(weather -> log.info("Successfully fetched weather for {}: {}°C",
                 cityName, weather.getMain() != null ? weather.getMain().getTemp() : "N/A"))
             .doOnError(error -> log.error("Error fetching weather for {}: {}", cityName, error.getMessage()));
@@ -124,38 +115,32 @@ public class WeatherService {
     /**
      * Получает погоду по географическим координатам.
      *
-     * <p>Полезно для мобильных приложений с геолокацией.</p>
+     * <p>HttpExchange автоматически обрабатывает множественные query параметры.</p>
      *
      * @param lat широта
      * @param lon долгота
      * @return Mono с данными о погоде
      */
     @Cacheable(value = "weather", key = "'coords_' + #lat + '_' + #lon")
+    @Retryable(
+        value = {RuntimeException.class},
+        maxAttempts = 2,
+        backoff = @Backoff(delay = 2000)
+    )
     public Mono<WeatherDto> getCurrentWeatherByCoordinates(double lat, double lon) {
         log.debug("Fetching weather by coordinates: lat={}, lon={}", lat, lon);
 
-        return weatherWebClient
-            .get()
-            .uri(uriBuilder -> uriBuilder
-                .path("/weather")
-                .queryParam("lat", lat)
-                .queryParam("lon", lon)
-                .queryParam("appid", apiKey)
-                .queryParam("units", "metric")
-                .build())
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToMono(WeatherDto.class)
-            .retryWhen(Retry.backoff(maxAttempts, Duration.ofMillis(delay)))
+        return client.getCurrentWeatherByCoordinates(lat, lon, apiKey, "metric")
+            .map(this::enrichWeatherData)
             .doOnSuccess(weather -> log.info("Successfully fetched weather by coordinates: {}°C",
-                kelvinToCelsius(weather.getMain().getTemp())))
+                weather.getMain() != null ? weather.getMain().getTemp() : "N/A"))
             .doOnError(error -> log.error("Error fetching weather by coordinates: {}", error.getMessage()));
     }
 
     /**
      * Получает расширенную информацию о погоде с прогнозом.
      *
-     * <p>Демонстрирует работу с более сложными API endpoints.</p>
+     * <p>Демонстрирует передачу дополнительных параметров через HttpExchange.</p>
      *
      * @param cityName название города
      * @return Mono с расширенными данными о погоде
@@ -163,27 +148,30 @@ public class WeatherService {
     public Mono<WeatherDto> getDetailedWeather(String cityName) {
         log.debug("Fetching detailed weather for city: {}", cityName);
 
-        return weatherWebClient
-            .get()
-            .uri(uriBuilder -> uriBuilder
-                .path("/weather")
-                .queryParam("q", cityName)
-                .queryParam("appid", apiKey)
-                .queryParam("units", "metric")
-                .queryParam("mode", "json")
-                .build())
-            .accept(MediaType.APPLICATION_JSON)
-            .retrieve()
-            .bodyToMono(WeatherDto.class)
+        return client.getDetailedWeather(cityName, apiKey, "metric", "json")
             .map(this::enrichWeatherData)
             .doOnSuccess(weather -> log.info("Successfully fetched detailed weather for {}", cityName))
             .doOnError(error -> log.error("Error fetching detailed weather for {}: {}", cityName, error.getMessage()));
     }
 
     /**
+     * Проверяет доступность weather API.
+     *
+     * <p>Использует фиксированный тестовый город для проверки.</p>
+     *
+     * @return Mono<Boolean> с результатом проверки
+     */
+    public Mono<Boolean> isWeatherServiceAvailable() {
+        return client.checkApiAvailability("London", apiKey)
+            .map(response -> true)
+            .onErrorReturn(false)
+            .doOnNext(available -> log.debug("Weather service availability: {}", available));
+    }
+
+    /**
      * Метод восстановления при недоступности weather API.
      *
-     * <p>Возвращает базовые погодные данные или данные из кэша.</p>
+     * <p>Возвращает базовые погодные данные при сбоях.</p>
      *
      * @param ex исключение
      * @param cityName название города
@@ -193,7 +181,6 @@ public class WeatherService {
     public Mono<WeatherDto> recoverCurrentWeather(Exception ex, String cityName) {
         log.warn("Recovering from weather API failure for city {}: {}", cityName, ex.getMessage());
 
-        // Возвращаем данные по умолчанию
         WeatherDto defaultWeather = WeatherDto.builder()
             .name(cityName)
             .main(WeatherDto.MainWeatherDto.builder()
@@ -207,6 +194,61 @@ public class WeatherService {
     }
 
     /**
+     * Получает погоду для множественных городов.
+     *
+     * <p>Демонстрирует композицию нескольких запросов через HttpExchange клиент.</p>
+     *
+     * @param cities список названий городов
+     * @return Flux с данными о погоде для каждого города
+     */
+    public Flux<WeatherDto> getWeatherForMultipleCities(List<String> cities) {
+        log.debug("Fetching weather for {} cities", cities.size());
+
+        return Flux.fromIterable(cities)
+            .flatMap(city -> getCurrentWeather(city)
+                .onErrorReturn(createDefaultWeather(city)), 3) // Параллельность = 3
+            .doOnComplete(() -> log.info("Completed weather fetch for {} cities", cities.size()));
+    }
+
+    /**
+     * Сравнивает погоду между двумя городами.
+     *
+     * <p>Пример бизнес-логики, использующей несколько запросов к API.</p>
+     *
+     * @param city1 первый город
+     * @param city2 второй город
+     * @return Mono с результатом сравнения
+     */
+    public Mono<Map<String, Object>> compareWeather(String city1, String city2) {
+        log.debug("Comparing weather between {} and {}", city1, city2);
+
+        Mono<WeatherDto> weather1 = getCurrentWeather(city1);
+        Mono<WeatherDto> weather2 = getCurrentWeather(city2);
+
+        return Mono.zip(weather1, weather2)
+            .map(tuple -> {
+                WeatherDto w1 = tuple.getT1();
+                WeatherDto w2 = tuple.getT2();
+
+                double temp1 = w1.getMain() != null ? w1.getMain().getTemp() : 0.0;
+                double temp2 = w2.getMain() != null ? w2.getMain().getTemp() : 0.0;
+
+                // Используем HashMap для избежания проблем с типизацией Map.of()
+                Map<String, Object> result = new HashMap<>();
+                result.put("city1", city1);
+                result.put("city2", city2);
+                result.put("temperature1", temp1);
+                result.put("temperature2", temp2);
+                result.put("temperatureDifference", Math.abs(temp1 - temp2));
+                result.put("warmerCity", temp1 > temp2 ? city1 : city2);
+                result.put("timestamp", LocalDateTime.now());
+
+                return result;
+            })
+            .doOnSuccess(result -> log.info("Successfully compared weather between {} and {}", city1, city2));
+    }
+
+    /**
      * Обогащает данные о погоде дополнительными вычислениями.
      *
      * @param weather исходные данные о погоде
@@ -214,7 +256,6 @@ public class WeatherService {
      */
     private WeatherDto enrichWeatherData(WeatherDto weather) {
         if (weather.getMain() != null) {
-            // Конвертируем температуру из Кельвинов в Цельсий если нужно
             Double temp = weather.getMain().getTemp();
             if (temp != null && temp > 100) { // Скорее всего Кельвины
                 weather.getMain().setTemp(kelvinToCelsius(temp));
@@ -234,22 +275,19 @@ public class WeatherService {
     }
 
     /**
-     * Проверяет доступность weather API.
+     * Создает погодные данные по умолчанию для города.
      *
-     * @return Mono<Boolean> с результатом проверки
+     * @param cityName название города
+     * @return WeatherDto с данными по умолчанию
      */
-    public Mono<Boolean> isWeatherServiceAvailable() {
-        return weatherWebClient
-            .get()
-            .uri(uriBuilder -> uriBuilder
-                .path("/weather")
-                .queryParam("q", "London")
-                .queryParam("appid", apiKey)
+    private WeatherDto createDefaultWeather(String cityName) {
+        return WeatherDto.builder()
+            .name(cityName)
+            .main(WeatherDto.MainWeatherDto.builder()
+                .temp(20.0)
+                .humidity(50)
+                .pressure(1013)
                 .build())
-            .retrieve()
-            .bodyToMono(String.class)
-            .map(response -> true)
-            .onErrorReturn(false)
-            .doOnNext(available -> log.debug("Weather service availability: {}", available));
+            .build();
     }
 }

@@ -8,37 +8,44 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
+        <!-- Обновлена версия для поддержки @HttpExchange -->
         <version>3.3.4</version>
         <relativePath/>
     </parent>
 
     <groupId>org.gualsh.demo</groupId>
     <artifactId>http-exchange-demo</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <name>HttpExchange Demo</name>
+    <description>Демонстрация Spring @HttpExchange для декларативных HTTP клиентов</description>
 
     <properties>
+        <!-- Java 17+ требуется для Spring 6.x и @HttpExchange -->
         <java.version>17</java.version>
         <spring-retry.version>2.0.4</spring-retry.version>
+
+        <!-- Версии для документации -->
+<!--        <spring-boot.version>3.3.4</spring-boot.version>-->
+<!--        <spring-framework.version>6.0.0</spring-framework.version>-->
     </properties>
 
     <dependencies>
         <!-- Spring Boot Web Starter
-             Содержит: Spring WebFlux, Spring WebMVC, Jackson, Validation -->
+             Содержит: Spring WebFlux, Spring WebMVC, Jackson, Validation
+             Обновлена до версии с поддержкой @HttpExchange -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Основная зависимость для WebClient -->
         <!-- Spring Boot WebFlux Starter
-             Содержит: WebClient, Reactive Streams, Netty(HTTP-клиент по умолчанию), Project Reactor, Jackson для JSON-сериализации -->
+             КРИТИЧЕСКИ ВАЖНО: Содержит поддержку @HttpExchange
+             Включает: WebClient, HttpServiceProxyFactory, WebClientAdapter -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
-        <!-- Для кэширования -->
         <!-- Spring Boot Cache Starter
              Содержит: Spring Cache Abstraction, Caffeine Cache -->
         <dependency>
@@ -52,9 +59,9 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
-        <!-- Для retry механизмов -->
         <!-- Spring Retry
-             Содержит: @Retryable, @Recover, RetryTemplate -->
+             Содержит: @Retryable, @Recover, RetryTemplate
+             Работает с @HttpExchange клиентами -->
         <dependency>
             <groupId>org.springframework.retry</groupId>
             <artifactId>spring-retry</artifactId>
@@ -75,9 +82,9 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Для валидации данных -->
         <!-- Validation Starter
-             Содержит: Bean Validation, Hibernate Validator -->
+             Содержит: Bean Validation, Hibernate Validator
+             Поддерживает валидацию в @HttpExchange методах -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
@@ -92,7 +99,7 @@
         </dependency>
 
         <!-- Jackson для работы с JSON
-             Включен в web starter, добавлен явно для наглядности -->
+             Автоматически используется в @HttpExchange клиентах -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
@@ -111,41 +118,34 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Reactor Test - для тестирования reactive streams -->
+        <!-- Reactor Test - для тестирования reactive streams
+             Включает StepVerifier для тестирования @HttpExchange клиентов -->
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
 
-        <!--
-            WireMock для моков внешних сервисов в тестах
-            Wiremock-standalone
-                Полноценная самостоятельная версия WireMock.
-                Включает все зависимости в одном JAR-файле
-        -->
+        <!-- WireMock для интеграционных тестов HTTP клиентов
+             Остается полезным для тестирования реальных HTTP взаимодействий -->
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
             <version>3.3.1</version>
             <scope>test</scope>
         </dependency>
-        <!--
-        Wiremock-jre8
-            Основная библиотека для Java 8+
-            Требует отдельной установки некоторых зависимостей
-        <dependency>
-            <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-jre8</artifactId>
-            <version>2.35.0</version>
-            <scope>test</scope>
-        </dependency>
-        -->
 
         <!-- TestContainers для интеграционных тестов -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito для мокирования @HttpExchange интерфейсов -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -182,6 +182,138 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
+            <!-- Surefire Plugin для запуска тестов -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*Test.java</include>
+                        <include>**/*Tests.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+
+            <!-- Failsafe Plugin для интеграционных тестов -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <includes>
+                        <include>**/*IT.java</include>
+                        <include>**/*IntegrationTest.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <!-- Профили для различных сред и типов тестирования -->
+    <profiles>
+        <!-- Профиль для разработки с @HttpExchange -->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <spring.profiles.active>dev</spring.profiles.active>
+            </properties>
+        </profile>
+
+        <!-- Профиль для тестирования -->
+        <profile>
+            <id>test</id>
+            <properties>
+                <spring.profiles.active>test</spring.profiles.active>
+            </properties>
+        </profile>
+
+        <!-- Профиль для продакшна -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <spring.profiles.active>prod</spring.profiles.active>
+            </properties>
+        </profile>
+
+        <!-- Профиль для запуска только unit тестов -->
+        <profile>
+            <id>unit-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                            </includes>
+                            <excludes>
+                                <include>**/*IntegrationTest.java</include>
+                                <include>**/*IT.java</include>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Профиль для запуска только интеграционных тестов -->
+        <profile>
+            <id>integration-tests</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/*IntegrationTest.java</include>
+                                <include>**/*IT.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <!-- Информация о проекте -->
+    <organization>
+        <name>Demo Organization</name>
+        <url>https://example.com</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <id>demo</id>
+            <name>Demo Developer</name>
+            <email>demo@example.com</email>
+            <roles>
+                <role>Developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <!-- Требования к Spring Boot версии для @HttpExchange -->
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
