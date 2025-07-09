@@ -1,0 +1,40 @@
+# application-test.yml - Конфигурация для тестов
+spring:
+  application:
+    name: webclient-demo-test
+  
+  cache:
+    type: simple # Простой кэш для тестов
+
+  jackson:
+    default-property-inclusion: non_null
+
+# Используем WireMock URLs для тестов
+external-api:
+  jsonplaceholder:
+#    base-url: http://localhost:${wiremock.server.port:8089}
+    base-url: https://jsonplaceholder.typicode.com
+    timeout: 2000
+    max-attempts: 2
+    delay: 500
+  
+  weather:
+#    base-url: http://localhost:${wiremock.server.port:8089}/weather
+    base-url: https://api.openweathermap.org/data/2.5
+    api-key: test-key
+    timeout: 2000
+    max-attempts: 1
+    delay: 500
+
+webclient:
+  max-memory-size: 1MB
+  connection-pool:
+    max-connections: 10
+    pending-acquire-timeout: 10s
+    max-idle-time: 5s
+    max-life-time: 30s
+
+logging:
+  level:
+    org.gualsh.demo.webclient: DEBUG
+    org.springframework.web.reactive.function.client: DEBUG

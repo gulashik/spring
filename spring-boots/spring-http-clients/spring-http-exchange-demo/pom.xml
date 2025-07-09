@@ -13,87 +13,141 @@
     </parent>
 
     <groupId>org.gualsh.demo</groupId>
-    <artifactId>httpe</artifactId>
+    <artifactId>http-exchange-demo</artifactId>
     <version>1.0.0</version>
+    <name>HttpExchange Demo</name>
 
     <properties>
         <java.version>17</java.version>
-        <lombok.version>1.18.30</lombok.version>
-        <jackson.version>2.15.3</jackson.version>
+        <spring-retry.version>2.0.4</spring-retry.version>
     </properties>
 
     <dependencies>
-        <!-- Spring Boot Starter Web - базовая веб-поддержка -->
+        <!-- Spring Boot Web Starter
+             Содержит: Spring WebFlux, Spring WebMVC, Jackson, Validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <!-- Исключаем Tomcat для использования Netty -->
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
-        <!-- Spring Boot Starter WebFlux - реактивная веб-поддержка -->
-        <!-- Включает WebClient, необходимый для @HttpExchange -->
+        <!-- Основная зависимость для WebClient -->
+        <!-- Spring Boot WebFlux Starter
+             Содержит: WebClient, Reactive Streams, Netty(HTTP-клиент по умолчанию), Project Reactor, Jackson для JSON-сериализации -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
-        <!-- Spring Boot Starter Validation - валидация данных -->
+        <!-- Для кэширования -->
+        <!-- Spring Boot Cache Starter
+             Содержит: Spring Cache Abstraction, Caffeine Cache -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-validation</artifactId>
+            <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
 
-        <!-- Spring Boot Starter Actuator - мониторинг приложения -->
+        <!-- Caffeine Cache Implementation -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
+        <!-- Для retry механизмов -->
+        <!-- Spring Retry
+             Содержит: @Retryable, @Recover, RetryTemplate -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+            <version>${spring-retry.version}</version>
+        </dependency>
+
+        <!-- Spring AOP - необходим для работы @Retryable
+             Содержит: AspectJ, Proxy механизмы -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Actuator - для мониторинга
+             Содержит: Health checks, Metrics, Endpoints -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Spring Boot Configuration Processor - метаданные конфигурации -->
+        <!-- Для валидации данных -->
+        <!-- Validation Starter
+             Содержит: Bean Validation, Hibernate Validator -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Jackson для работы с JSON -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <!-- Jackson для работы с Java 8 Time API -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>${jackson.version}</version>
-        </dependency>
-
-        <!-- Lombok для уменьшения boilerplate кода -->
+        <!-- Lombok - для уменьшения boilerplate кода
+             Содержит: @Data, @Builder, @Slf4j и др. -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
-            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
 
-        <!-- Netty DNS resolver (опционально, для оптимизации DNS resolution) -->
-        <!-- Раскомментируйте если нужна оптимизация DNS на конкретной платформе -->
-        <!--
+        <!-- Jackson для работы с JSON
+             Включен в web starter, добавлен явно для наглядности -->
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-resolver-dns-native-macos</artifactId>
-            <classifier>osx-aarch_64</classifier>
-            <scope>runtime</scope>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- Jackson поддержка Java 8 Time API -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Reactor Test - для тестирования reactive streams -->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!--
+            WireMock для моков внешних сервисов в тестах
+            Wiremock-standalone
+                Полноценная самостоятельная версия WireMock.
+                Включает все зависимости в одном JAR-файле
+        -->
+        <dependency>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>3.3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <!--
+        Wiremock-jre8
+            Основная библиотека для Java 8+
+            Требует отдельной установки некоторых зависимостей
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-jre8</artifactId>
+            <version>2.35.0</version>
+            <scope>test</scope>
         </dependency>
         -->
+
+        <!-- TestContainers для интеграционных тестов -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -111,23 +165,19 @@
                 </configuration>
             </plugin>
 
+            <!-- Maven Compiler Plugin с настройкой для Lombok -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <source>17</source>
+                    <target>17</target>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                             <version>${lombok.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-configuration-processor</artifactId>
-                            <version>3.3.4</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

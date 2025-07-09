@@ -1,12 +1,31 @@
-# Конфигурация Spring Boot приложения для демонстрации @HttpExchange
+# Spring WebClient Demo Application Configuration
 server:
   port: 8080
 
 spring:
   application:
-    name: httpe-demo
+    name: webclient-demo
 
-  # Конфигурация Jackson для JSON сериализации
+  # Cache конфигурация
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=5m,recordStats
+    cache-names:
+      - users
+      - posts
+      - weather
+
+# Кастомные настройки кэша
+cache:
+  users:
+    enabled: false  # Использовать специализированный кэш для пользователей
+  weather:
+    enabled: false  # Использовать специализированный кэш для погоды
+  high-performance:
+    enabled: false  # Использовать высокопроизводительный кэш
+
+  # Jackson конфигурация для JSON
   jackson:
     default-property-inclusion: non_null
     serialization:
@@ -15,46 +34,61 @@ spring:
     deserialization:
       fail-on-unknown-properties: false
 
-  # Конфигурация WebFlux
-  webflux:
-    base-path: /api
-
-# Настройки для внешних API
-external-apis:
-  # JSONPlaceholder - бесплатный API для тестирования
-  jsonplaceholder:
-    base-url: https://jsonplaceholder.typicode.com
-    timeout: 30s
-    max-in-memory-size: 1MB
-
-  # ReqRes - еще один тестовый API
-  reqres:
-    base-url: https://reqres.in
-    timeout: 20s
-    max-in-memory-size: 512KB
-
-  # HTTP клиент общие настройки
-  http-client:
-    connect-timeout: 5s
-    read-timeout: 30s
-    write-timeout: 30s
-    pool-size: 100
-
-# Логирование
-logging:
-  level:
-    org.gualsh.demo.httpe: DEBUG
-    reactor.netty.http.client: DEBUG
-    org.springframework.web.reactive.function.client: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-
-# Actuator endpoints
+# Actuator endpoints для мониторинга
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,env
+        include: health,info,metrics,httptrace,caches
   endpoint:
     health:
       show-details: always
+
+# Настройки для внешних API
+external-api:
+  jsonplaceholder:
+    base-url: https://jsonplaceholder.typicode.com
+    timeout: 5000
+    max-attempts: 3
+    delay: 1000
+
+  weather:
+    base-url: https://api.openweathermap.org/data/2.5
+    api-key: ${WEATHER_API_KEY:demo-key}
+    timeout: 10000
+    max-attempts: 2
+    delay: 2000
+
+# WebClient конфигурация
+webclient:
+  # Размер buffer для чтения данных
+  max-memory-size: 2MB
+
+  # Настройки connection pool
+  connection-pool:
+    max-connections: 100
+    pending-acquire-timeout: 45s
+    max-idle-time: 20s
+    max-life-time: 60s
+
+  # Настройки SSL (если нужно)
+  ssl:
+    trust-all: false
+    verify-hostname: true
+
+# Retry конфигурация
+retry:
+  max-attempts: 3
+  delay: 1000
+  multiplier: 2.0
+  max-delay: 10000
+
+# Logging конфигурация
+logging:
+  level:
+    org.gualsh.demo.webclient: DEBUG
+    org.springframework.web.reactive.function.client: DEBUG
+    org.springframework.retry: DEBUG
+    org.springframework.cache: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
