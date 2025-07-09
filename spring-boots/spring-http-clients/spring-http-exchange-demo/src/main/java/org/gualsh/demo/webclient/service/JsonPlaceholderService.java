@@ -3,6 +3,7 @@ package org.gualsh.demo.webclient.service;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.webclient.client.JsonPlaceholderClient;
 import org.gualsh.demo.webclient.dto.*;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.retry.annotation.Recover;
@@ -59,7 +60,7 @@ public class JsonPlaceholderService {
      * @param delay задержка между попытками в миллисекундах
      */
     public JsonPlaceholderService(
-        JsonPlaceholderClient client,
+        @Qualifier("jsonPlaceholderClient") JsonPlaceholderClient client,
         @Value("${external-api.jsonplaceholder.max-attempts:3}") int maxAttempts,
         @Value("${external-api.jsonplaceholder.delay:1000}") long delay
     ) {
