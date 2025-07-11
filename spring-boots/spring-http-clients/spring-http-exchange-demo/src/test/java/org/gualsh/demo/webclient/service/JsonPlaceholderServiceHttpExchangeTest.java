@@ -37,9 +37,6 @@ import static org.mockito.Mockito.when;
  * <p>Интеграционные тесты с реальными HTTP вызовами остаются важными
  * и должны быть реализованы отдельно для проверки корректности
  * работы HttpExchange клиентов с реальными API.</p>
- *
- * @author Demo
- * @version 2.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("JsonPlaceholderService HttpExchange Tests")
