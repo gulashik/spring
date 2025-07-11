@@ -19,7 +19,7 @@ curl -s -X GET "http://localhost:8080/api/v1/jsonplaceholder/users" \
 ```
 ```bash
 clear
-curl "http://localhost:8080/api/v1/jsonplaceholder/users/9999" | jq
+curl -s "http://localhost:8080/api/v1/jsonplaceholder/users/9999" | jq
 ```
 
 **Создание поста:**

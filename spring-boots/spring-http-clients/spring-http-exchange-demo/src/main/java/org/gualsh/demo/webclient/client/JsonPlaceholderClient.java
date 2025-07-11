@@ -25,15 +25,6 @@ import java.util.Map;
  * в декларативном стиле, похожем на Spring Cloud OpenFeign, но с поддержкой
  * реактивных типов и встроенной интеграцией с WebClient.</p>
  *
- * <p>Преимущества @HttpExchange перед прямым использованием WebClient:</p>
- * <ul>
- *   <li>Декларативный стиль - меньше boilerplate кода</li>
- *   <li>Автоматическая сериализация/десериализация</li>
- *   <li>Встроенная поддержка валидации</li>
- *   <li>Легкое тестирование через мокирование интерфейса</li>
- *   <li>Консистентная обработка ошибок</li>
- * </ul>
- *
  * <p>Поддерживаемые аннотации:</p>
  * <ul>
  *   <li>@GetExchange - GET запросы</li>
@@ -43,8 +34,6 @@ import java.util.Map;
  *   <li>@DeleteExchange - DELETE запросы</li>
  * </ul>
  *
- * @author Demo
- * @version 1.0
  * @see org.springframework.web.service.annotation.HttpExchange
  * @since Spring 6.0
  */
@@ -64,7 +53,7 @@ public interface JsonPlaceholderClient {
      *
      * @return Mono со списком всех пользователей
      */
-    @GetExchange("/users")
+    @GetExchange("users")
     Mono<List<UserDto>> getAllUsers();
 
     /**
@@ -75,7 +64,7 @@ public interface JsonPlaceholderClient {
      * @param userId идентификатор пользователя
      * @return Mono с пользователем
      */
-    @GetExchange("/users/{id}")
+    @GetExchange("users/{id}")
     Mono<UserDto> getUserById(@PathVariable("id") Long userId);
 
     /**
@@ -87,7 +76,7 @@ public interface JsonPlaceholderClient {
      * @param userId идентификатор пользователя
      * @return Flux с постами пользователя
      */
-    @GetExchange("/posts")
+    @GetExchange("posts")
     Flux<PostDto> getPostsByUserId(@RequestParam("userId") Long userId);
 
     /**
@@ -99,7 +88,7 @@ public interface JsonPlaceholderClient {
      * @param limit максимальное количество элементов
      * @return Mono со списком постов
      */
-    @GetExchange("/posts")
+    @GetExchange("posts")
     Mono<List<PostDto>> getAllPostsPaginated(
         @RequestParam("_start") int start,
         @RequestParam("_limit") int limit
@@ -114,7 +103,7 @@ public interface JsonPlaceholderClient {
      * @param createPostDto данные для создания поста
      * @return Mono с созданным постом
      */
-    @PostExchange("/posts")
+    @PostExchange("posts")
     Mono<PostDto> createPost(@Valid @RequestBody CreatePostDto createPostDto);
 
     /**
@@ -126,7 +115,7 @@ public interface JsonPlaceholderClient {
      * @param updatePostDto новые данные поста
      * @return Mono с обновленным постом
      */
-    @PutExchange("/posts/{id}")
+    @PutExchange("posts/{id}")
     Mono<PostDto> updatePost(
         @PathVariable("id") Long postId,
         @Valid @RequestBody UpdatePostDto updatePostDto
@@ -141,7 +130,7 @@ public interface JsonPlaceholderClient {
      * @param updates Map с полями для обновления
      * @return Mono с обновленным постом
      */
-    @PatchExchange("/posts/{id}")
+    @PatchExchange("posts/{id}")
     Mono<PostDto> patchPost(
         @PathVariable("id") Long postId,
         @RequestBody Map<String, Object> updates
@@ -155,7 +144,7 @@ public interface JsonPlaceholderClient {
      * @param postId идентификатор поста для удаления
      * @return Mono<Void> подтверждающий удаление
      */
-    @DeleteExchange("/posts/{id}")
+    @DeleteExchange("posts/{id}")
     Mono<Void> deletePost(@PathVariable("id") Long postId);
 
     /**
@@ -166,7 +155,7 @@ public interface JsonPlaceholderClient {
      * @param postId идентификатор поста
      * @return Flux с комментариями
      */
-    @GetExchange("/posts/{postId}/comments")
+    @GetExchange("posts/{postId}/comments")
     Flux<CommentDto> getCommentsByPostId(@PathVariable Long postId);
 
     /**
@@ -177,7 +166,7 @@ public interface JsonPlaceholderClient {
      * @param postId идентификатор поста
      * @return Flux с комментариями
      */
-    @GetExchange("/comments")
+    @GetExchange("comments")
     Flux<CommentDto> getCommentsByPostIdQuery(@RequestParam("postId") Long postId);
 
     /**
@@ -188,7 +177,7 @@ public interface JsonPlaceholderClient {
      * @param postId идентификатор поста
      * @return Mono с постом
      */
-    @GetExchange("/posts/{id}")
+    @GetExchange("posts/{id}")
     Mono<PostDto> getPostById(@PathVariable("id") Long postId);
 
     /**
@@ -198,6 +187,6 @@ public interface JsonPlaceholderClient {
      *
      * @return Mono со списком всех постов
      */
-    @GetExchange("/posts")
+    @GetExchange("posts")
     Mono<List<PostDto>> getAllPosts();
 }

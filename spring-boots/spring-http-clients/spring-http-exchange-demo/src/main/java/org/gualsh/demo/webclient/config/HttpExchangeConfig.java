@@ -33,8 +33,6 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
  *   <li>Централизованная конфигурация HTTP клиентов</li>
  * </ul>
  *
- * @author Demo
- * @version 1.0
  * @see HttpServiceProxyFactory
  * @see WebClientAdapter
  * @since Spring 6.0
@@ -55,7 +53,8 @@ public class HttpExchangeConfig {
      */
     @Bean
     public HttpServiceProxyFactory jsonPlaceholderHttpServiceProxyFactory(
-        @Qualifier("jsonPlaceholderWebClient") WebClient jsonPlaceholderWebClient) {
+        @Qualifier("jsonPlaceholderWebClient") WebClient jsonPlaceholderWebClient
+    ) {
 
         log.info("Creating HttpServiceProxyFactory for JSONPlaceholder API");
 
@@ -75,7 +74,8 @@ public class HttpExchangeConfig {
      */
     @Bean
     public HttpServiceProxyFactory weatherHttpServiceProxyFactory(
-        @Qualifier("weatherWebClient") WebClient weatherWebClient) {
+        @Qualifier("weatherWebClient") WebClient weatherWebClient
+    ) {
 
         log.info("Creating HttpServiceProxyFactory for Weather API");
 
@@ -96,7 +96,8 @@ public class HttpExchangeConfig {
      */
     @Bean
     public JsonPlaceholderClient jsonPlaceholderClient(
-        @Qualifier("jsonPlaceholderHttpServiceProxyFactory") HttpServiceProxyFactory factory) {
+        @Qualifier("jsonPlaceholderHttpServiceProxyFactory") HttpServiceProxyFactory factory
+    ) {
 
         log.info("Creating JsonPlaceholderClient proxy");
 

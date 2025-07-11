@@ -12,17 +12,6 @@ import reactor.core.publisher.Mono;
  *
  * <p>Демонстрирует использование @HttpExchange для работы с внешними API,
  * требующими API ключи и специфичные параметры запроса.</p>
- *
- * <p>Особенности работы с Weather API:</p>
- * <ul>
- *   <li>Обязательный API ключ для аутентификации</li>
- *   <li>Различные единицы измерения (metric, imperial)</li>
- *   <li>Поддержка запросов по названию города и координатам</li>
- *   <li>Rate limiting (ограничение количества запросов)</li>
- * </ul>
- *
- * @author Demo
- * @version 1.0
  */
 @HttpExchange(url = "/", accept = "application/json")
 public interface WeatherClient {
@@ -39,7 +28,7 @@ public interface WeatherClient {
      * @param units единицы измерения (metric, imperial, kelvin)
      * @return Mono с данными о погоде
      */
-    @GetExchange("/weather")
+    @GetExchange("weather")
     Mono<WeatherDto> getCurrentWeather(
         @RequestParam("q") String cityName,
         @RequestParam("appid") String apiKey,
@@ -57,7 +46,7 @@ public interface WeatherClient {
      * @param units единицы измерения
      * @return Mono с данными о погоде
      */
-    @GetExchange("/weather")
+    @GetExchange("weather")
     Mono<WeatherDto> getCurrentWeatherByCoordinates(
         @RequestParam("lat") double lat,
         @RequestParam("lon") double lon,
@@ -77,7 +66,7 @@ public interface WeatherClient {
      * @param mode формат ответа (json, xml, html)
      * @return Mono с расширенными данными о погоде
      */
-    @GetExchange("/weather")
+    @GetExchange("weather")
     Mono<WeatherDto> getDetailedWeather(
         @RequestParam("q") String cityName,
         @RequestParam("appid") String apiKey,
@@ -93,7 +82,7 @@ public interface WeatherClient {
      * @param apiKey API ключ
      * @return Mono с любыми данными о погоде (для проверки доступности)
      */
-    @GetExchange("/weather")
+    @GetExchange("weather")
     Mono<WeatherDto> checkApiAvailability(
         @RequestParam("q") String testCity,
         @RequestParam("appid") String apiKey
