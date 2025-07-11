@@ -23,10 +23,6 @@
         <!-- Java 17+ требуется для Spring 6.x и @HttpExchange -->
         <java.version>17</java.version>
         <spring-retry.version>2.0.4</spring-retry.version>
-
-        <!-- Версии для документации -->
-<!--        <spring-boot.version>3.3.4</spring-boot.version>-->
-<!--        <spring-framework.version>6.0.0</spring-framework.version>-->
     </properties>
 
     <dependencies>
@@ -216,94 +212,6 @@
             </plugin>
         </plugins>
     </build>
-
-    <!-- Профили для различных сред и типов тестирования -->
-    <profiles>
-        <!-- Профиль для разработки с @HttpExchange -->
-        <profile>
-            <id>dev</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <spring.profiles.active>dev</spring.profiles.active>
-            </properties>
-        </profile>
-
-        <!-- Профиль для тестирования -->
-        <profile>
-            <id>test</id>
-            <properties>
-                <spring.profiles.active>test</spring.profiles.active>
-            </properties>
-        </profile>
-
-        <!-- Профиль для продакшна -->
-        <profile>
-            <id>prod</id>
-            <properties>
-                <spring.profiles.active>prod</spring.profiles.active>
-            </properties>
-        </profile>
-
-        <!-- Профиль для запуска только unit тестов -->
-        <profile>
-            <id>unit-tests</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <include>**/*Test.java</include>
-                            </includes>
-                            <excludes>
-                                <include>**/*IntegrationTest.java</include>
-                                <include>**/*IT.java</include>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <!-- Профиль для запуска только интеграционных тестов -->
-        <profile>
-            <id>integration-tests</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <configuration>
-                            <includes>
-                                <include>**/*IntegrationTest.java</include>
-                                <include>**/*IT.java</include>
-                            </includes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
-    <!-- Информация о проекте -->
-    <organization>
-        <name>Demo Organization</name>
-        <url>https://example.com</url>
-    </organization>
-
-    <developers>
-        <developer>
-            <id>demo</id>
-            <name>Demo Developer</name>
-            <email>demo@example.com</email>
-            <roles>
-                <role>Developer</role>
-            </roles>
-        </developer>
-    </developers>
 
     <!-- Требования к Spring Boot версии для @HttpExchange -->
     <repositories>
