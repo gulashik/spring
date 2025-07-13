@@ -12,8 +12,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * DTO для пользователя из JSONPlaceholder API.
@@ -28,9 +26,6 @@ import java.util.List;
  *   <li>{@link Builder} - генерирует builder pattern</li>
  *   <li>{@link NoArgsConstructor}, {@link AllArgsConstructor} - конструкторы</li>
  * </ul>
- *
- * @author Demo
- * @version 1.0
  */
 @Data
 @Builder

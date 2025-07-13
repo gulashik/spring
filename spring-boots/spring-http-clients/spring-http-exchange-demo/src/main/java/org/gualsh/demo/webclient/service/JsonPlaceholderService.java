@@ -37,8 +37,6 @@ import java.util.Map;
  *   <li>Консистентная обработка ошибок</li>
  * </ul>
  *
- * @author Demo
- * @version 2.0
  * @see JsonPlaceholderClient
  */
 @Slf4j

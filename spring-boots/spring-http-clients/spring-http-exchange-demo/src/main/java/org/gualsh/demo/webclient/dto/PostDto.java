@@ -16,9 +16,6 @@ import java.io.Serializable;
  * DTO для поста из JSONPlaceholder API.
  *
  * <p>Представляет структуру блогового поста с заголовком и содержимым.</p>
- *
- * @author Demo
- * @version 1.0
  */
 @Data
 @Builder

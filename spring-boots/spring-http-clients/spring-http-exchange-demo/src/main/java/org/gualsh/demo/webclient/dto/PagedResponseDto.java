@@ -13,8 +13,6 @@ import java.util.List;
  * DTO для ответа API с пагинацией.
  *
  * @param <T> тип данных в списке
- * @author Demo
- * @version 1.0
  */
 @Data
 @Builder

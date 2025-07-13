@@ -12,9 +12,6 @@ import java.util.List;
 
 /**
  * DTO для данных о погоде из OpenWeatherMap API.
- *
- * @author Demo
- * @version 1.0
  */
 @Data
 @Builder

@@ -9,9 +9,6 @@ import org.springframework.http.HttpStatusCode;
  *
  * <p>Обеспечивает совместимость между Spring Boot 2.x и 3.x, где
  * HttpStatusCode и HttpStatus имеют разные API.</p>
- *
- * @author Demo
- * @version 1.0
  */
 @Slf4j
 public final class HttpStatusUtils {

@@ -32,9 +32,6 @@ import java.util.Map;
  *   <li>HTTP детали инкапсулированы в клиентских интерфейсах</li>
  *   <li>Легче тестировать каждый слой отдельно</li>
  * </ul>
- *
- * @author Demo
- * @version 2.0
  * @see JsonPlaceholderService
  */
 @Slf4j

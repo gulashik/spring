@@ -1,4 +1,4 @@
-# Spring WebClient Demo
+# Spring @HttpExchange Demo
 
 ### Примеры запросов
 

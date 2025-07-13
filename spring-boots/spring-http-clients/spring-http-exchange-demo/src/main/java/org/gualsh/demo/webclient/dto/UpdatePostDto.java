@@ -12,9 +12,6 @@ import java.io.Serializable;
 
 /**
  * DTO для обновления поста.
- *
- * @author Demo
- * @version 1.0
  */
 @Data
 @Builder

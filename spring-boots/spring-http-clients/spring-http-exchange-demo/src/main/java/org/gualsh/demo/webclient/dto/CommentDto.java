@@ -15,9 +15,6 @@ import java.io.Serializable;
 
 /**
  * DTO для комментария из JSONPlaceholder API.
- *
- * @author Demo
- * @version 1.0
  */
 @Data
 @Builder
