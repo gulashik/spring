@@ -69,18 +69,20 @@ public class GatewayConfig {
                 requestId = java.util.UUID.randomUUID().toString();
             }
 
-            String method = exchange.getRequest().getMethod().name();
-            String path = exchange.getRequest().getPath().value();
-            String remoteAddress = exchange.getRequest().getRemoteAddress() != null ?
+            // Создаем final переменные для использования в lambda
+            final String finalRequestId = requestId;
+            final String method = exchange.getRequest().getMethod().name();
+            final String path = exchange.getRequest().getPath().value();
+            final String remoteAddress = exchange.getRequest().getRemoteAddress() != null ?
                 exchange.getRequest().getRemoteAddress().getAddress().getHostAddress() : "unknown";
 
             log.info("Request started: {} {} from {} with ID: {}",
-                method, path, remoteAddress, requestId);
+                method, path, remoteAddress, finalRequestId);
 
             // Добавляем request ID в заголовки для трассировки
             ServerWebExchange modifiedExchange = exchange.mutate()
                 .request(exchange.getRequest().mutate()
-                    .header("X-Request-ID", requestId)
+                    .header("X-Request-ID", finalRequestId)
                     .header("X-Gateway-Timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                     .build())
                 .build();
@@ -90,14 +92,15 @@ public class GatewayConfig {
             return chain.filter(modifiedExchange)
                 .doOnSuccess(aVoid -> {
                     long duration = System.currentTimeMillis() - startTime;
-                    int statusCode = modifiedExchange.getResponse().getStatusCode().value();
+                    int statusCode = modifiedExchange.getResponse().getStatusCode() != null ?
+                        modifiedExchange.getResponse().getStatusCode().value() : 200;
                     log.info("Request completed: {} {} -> {} in {}ms with ID: {}",
-                        method, path, statusCode, duration, requestId);
+                        method, path, statusCode, duration, finalRequestId);
                 })
                 .doOnError(error -> {
                     long duration = System.currentTimeMillis() - startTime;
                     log.error("Request failed: {} {} in {}ms with ID: {} - Error: {}",
-                        method, path, duration, requestId, error.getMessage());
+                        method, path, duration, finalRequestId, error.getMessage());
                 });
         };
     }
