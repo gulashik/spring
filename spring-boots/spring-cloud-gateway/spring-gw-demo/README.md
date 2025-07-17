@@ -1,5 +1,19 @@
 # Spring Cloud Gateway Demo
 
+```bash
+# Запуск Redis контейнера
+podman run -d \
+  --name redis-gateway-demo \
+  -p 6379:6379 \
+  redis:7-alpine \
+  redis-server --appendonly yes
+```
+
+```bash
+# Проверка работы
+docker logs redis-gateway-demo
+```
+
 Образовательный проект для демонстрации всех актуальных возможностей Spring Cloud Gateway в Spring Boot экосистеме.
 
 ## 🎯 Цель проекта
