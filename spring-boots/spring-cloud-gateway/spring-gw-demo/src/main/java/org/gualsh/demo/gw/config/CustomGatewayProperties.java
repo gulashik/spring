@@ -49,7 +49,7 @@ import java.util.Map;
 @Component
 @ConfigurationProperties(prefix = "gateway.demo")
 @Validated
-public class GatewayProperties {
+public class CustomGatewayProperties {
 
     /**
      * Включение/отключение demo функций.
