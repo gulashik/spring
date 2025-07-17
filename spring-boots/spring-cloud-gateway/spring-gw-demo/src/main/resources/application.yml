@@ -97,18 +97,18 @@ spring:
             - StripPrefix=1
             - AddRequestHeader=X-Query-Matched, true
 
-        # Маршрут с Rate Limiting (отключен по умолчанию, требует Redis)
-        # - id: rate-limited-service
-        #   uri: https://httpbin.org
-        #   predicates:
-        #     - Path=/rate-limited/**
-        #   filters:
-        #     - name: RequestRateLimiter
-        #       args:
-        #         redis-rate-limiter.replenishRate: 10
-        #         redis-rate-limiter.burstCapacity: 20
-        #         redis-rate-limiter.requestedTokens: 1
-        #     - StripPrefix=1
+        # Маршрут с Rate Limiting (отключен по умолчанию, требует Redis) см. README.md
+        - id: rate-limited-service
+          uri: https://httpbin.org
+          predicates:
+           - Path=/rate-limited/**
+          filters:
+           - name: RequestRateLimiter
+             args:
+               redis-rate-limiter.replenishRate: 10
+               redis-rate-limiter.burstCapacity: 20
+               redis-rate-limiter.requestedTokens: 1
+           - StripPrefix=1
 
         # Маршрут с Circuit Breaker
         - id: circuit-breaker-service
@@ -149,36 +149,18 @@ spring:
             - RewritePath=/api/v1/(?<path>.*), /${path}
             - AddRequestHeader=X-Original-Path, /api/v1
 
-        # Маршрут с модификацией тела запроса (ИСПРАВЛЕНО)
-        # Убираем проблемную конфигурацию - используется программная настройка
-        # - id: request-body-modify-service
-        #   uri: https://httpbin.org
-        #   predicates:
-        #     - Path=/modify-request/**
-        #   filters:
-        #     - StripPrefix=1
-
-        # Маршрут с модификацией тела ответа (ИСПРАВЛЕНО)
-        # Убираем проблемную конфигурацию - используется программная настройка
-        # - id: response-body-modify-service
-        #   uri: https://httpbin.org
-        #   predicates:
-        #     - Path=/modify-response/**
-        #   filters:
-        #     - StripPrefix=1
-
-  # Настройки Redis для Rate Limiting (отключены по умолчанию)
-  # data:
-  #   redis:
-  #     host: localhost
-  #     port: 6379
-  #     database: 0
-  #     timeout: 2000ms
-  #     lettuce:
-  #       pool:
-  #         max-active: 8
-  #         max-idle: 8
-  #         min-idle: 0
+  # Настройки Redis для Rate Limiting (отключен по умолчанию, требует Redis) см. README.md
+  data:
+     redis:
+       host: localhost
+       port: 6379
+       database: 0
+       timeout: 2000ms
+       lettuce:
+         pool:
+           max-active: 8
+           max-idle: 8
+           min-idle: 0
 
 # Настройки для Circuit Breaker
 resilience4j:
