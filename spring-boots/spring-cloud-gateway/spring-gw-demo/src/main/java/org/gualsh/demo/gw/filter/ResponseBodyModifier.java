@@ -1,7 +1,6 @@
 package org.gualsh.demo.gw.filter;
 
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -20,7 +19,6 @@ import java.time.format.DateTimeFormatter;
  * <li>Преобразования форматов</li>
  * </ul>
  */
-@Component
 public class ResponseBodyModifier implements RewriteFunction<String, String> {
 
     /**

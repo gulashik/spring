@@ -252,7 +252,7 @@ public class GatewayConfig {
      */
     private static class RequestTransformer implements RewriteFunction<String, String> {
         @Override
-        public reactor.core.publisher.Publisher<String> apply(ServerWebExchange exchange, String body) {
+        public org.reactivestreams.Publisher<String> apply(ServerWebExchange exchange, String body) {
             if (body == null || body.isEmpty()) {
                 return Mono.just("");
             }
@@ -278,7 +278,7 @@ public class GatewayConfig {
      */
     private static class ResponseTransformer implements RewriteFunction<String, String> {
         @Override
-        public reactor.core.publisher.Publisher<String> apply(ServerWebExchange exchange, String body) {
+        public org.reactivestreams.Publisher<String> apply(ServerWebExchange exchange, String body) {
             if (body == null || body.isEmpty()) {
                 return Mono.just("");
             }
