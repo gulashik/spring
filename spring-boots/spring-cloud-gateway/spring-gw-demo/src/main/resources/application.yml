@@ -1,0 +1,248 @@
+# Spring Cloud Gateway Demo Configuration
+# Образовательный проект для демонстрации возможностей Spring Cloud Gateway
+
+server:
+  port: 8080
+  # Настройка Netty для оптимальной производительности
+  netty:
+    connection-timeout: 2s
+    h2c-max-content-length: 0B
+    initial-buffer-size: 128
+    max-chunk-size: 8192
+    max-initial-line-length: 4096
+    validate-headers: true
+
+spring:
+  application:
+    name: spring-cloud-gateway-demo
+
+  # Конфигурация Spring Cloud Gateway
+  cloud:
+    gateway:
+      # Глобальные настройки Gateway
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: false
+
+      # Настройки по умолчанию для всех маршрутов
+      default-filters:
+        - AddResponseHeader=X-Gateway-Demo, Spring-Cloud-Gateway
+        - DedupeResponseHeader=Access-Control-Allow-Origin
+        - DedupeResponseHeader=Access-Control-Allow-Credentials
+
+      # Определение маршрутов
+      routes:
+        # Маршрут для демонстрации основных возможностей
+        - id: demo-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/demo/**
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Request-Demo, Gateway-Demo
+            - AddResponseHeader=X-Response-Demo, Processed-By-Gateway
+
+        # Маршрут с весовым балансировщиком
+        - id: weighted-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/weighted/**
+            - Weight=group1, 8
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Weight-Group, group1
+
+        # Альтернативный маршрут для демонстрации весового балансировщика
+        - id: weighted-service-alt
+          uri: https://postman-echo.com
+          predicates:
+            - Path=/weighted/**
+            - Weight=group1, 2
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Weight-Group, group1-alt
+
+        # Маршрут с условием по времени
+        - id: time-based-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/time/**
+            - After=2024-01-01T00:00:00+00:00[UTC]
+            - Before=2026-12-31T23:59:59+00:00[UTC]
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Time-Based, active
+
+        # Маршрут с условием по заголовкам
+        - id: header-based-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/headers/**
+            - Header=X-Request-Type, demo
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Header-Matched, true
+
+        # Маршрут с условием по параметрам запроса
+        - id: query-based-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/query/**
+            - Query=type, demo
+          filters:
+            - StripPrefix=1
+            - AddRequestHeader=X-Query-Matched, true
+
+        # Маршрут с Rate Limiting
+        - id: rate-limited-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/rate-limited/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+            - StripPrefix=1
+
+        # Маршрут с Circuit Breaker
+        - id: circuit-breaker-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/circuit-breaker/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: demo-circuit-breaker
+                fallbackUri: forward:/fallback
+            - StripPrefix=1
+
+        # Маршрут с Retry
+        - id: retry-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/retry/**
+          filters:
+            - name: Retry
+              args:
+                retries: 3
+                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT
+                methods: GET,POST
+                backoff:
+                  firstBackoff: 10ms
+                  maxBackoff: 50ms
+                  factor: 2
+                  basedOnPreviousValue: false
+            - StripPrefix=1
+
+        # Маршрут с модификацией пути
+        - id: path-rewrite-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/api/v1/**
+          filters:
+            - RewritePath=/api/v1/(?<path>.*), /${path}
+            - AddRequestHeader=X-Original-Path, /api/v1
+
+        # Маршрут с модификацией тела запроса
+        - id: request-body-modify-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/modify-request/**
+          filters:
+            - StripPrefix=1
+            - name: ModifyRequestBody
+              args:
+                inClass: java.lang.String
+                outClass: java.lang.String
+                rewriteFunction: "#{@requestBodyModifier}"
+
+        # Маршрут с модификацией тела ответа
+        - id: response-body-modify-service
+          uri: https://httpbin.org
+          predicates:
+            - Path=/modify-response/**
+          filters:
+            - StripPrefix=1
+            - name: ModifyResponseBody
+              args:
+                inClass: java.lang.String
+                outClass: java.lang.String
+                rewriteFunction: "#{@responseBodyModifier}"
+
+  # Настройки Redis для Rate Limiting
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# Настройки для Circuit Breaker
+resilience4j:
+  circuitbreaker:
+    instances:
+      demo-circuit-breaker:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+
+  timelimiter:
+    instances:
+      demo-circuit-breaker:
+        timeout-duration: 3s
+
+# Настройки Actuator для мониторинга
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+# Настройки логирования
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.gualsh.demo.gw: DEBUG
+    reactor.netty: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Информация о приложении
+info:
+  app:
+    name: ${spring.application.name}
+    description: Spring Cloud Gateway Educational Demo
+    version: 1.0.0
+    java:
+      version: ${java.version}
+    spring:
+      boot:
+        version: ${spring-boot.version}
+      cloud:
+        version: ${spring-cloud.version}
