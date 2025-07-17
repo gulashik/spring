@@ -8,7 +8,6 @@ server:
     connection-timeout: 2s
     h2c-max-content-length: 0B
     initial-buffer-size: 128
-    max-chunk-size: 8192
     max-initial-line-length: 4096
     validate-headers: true
 
@@ -190,13 +189,13 @@ management:
       show-details: always
     gateway:
       enabled: true
-  metrics:
-    export:
-      prometheus:
-        enabled: true
   info:
     env:
       enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
 
 # Настройки логирования
 logging:
