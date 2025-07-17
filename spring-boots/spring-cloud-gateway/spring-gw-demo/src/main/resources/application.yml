@@ -97,18 +97,18 @@ spring:
             - StripPrefix=1
             - AddRequestHeader=X-Query-Matched, true
 
-        # Маршрут с Rate Limiting
-        - id: rate-limited-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/rate-limited/**
-          filters:
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
-                redis-rate-limiter.requestedTokens: 1
-            - StripPrefix=1
+        # Маршрут с Rate Limiting (отключен по умолчанию, требует Redis)
+        # - id: rate-limited-service
+        #   uri: https://httpbin.org
+        #   predicates:
+        #     - Path=/rate-limited/**
+        #   filters:
+        #     - name: RequestRateLimiter
+        #       args:
+        #         redis-rate-limiter.replenishRate: 10
+        #         redis-rate-limiter.burstCapacity: 20
+        #         redis-rate-limiter.requestedTokens: 1
+        #     - StripPrefix=1
 
         # Маршрут с Circuit Breaker
         - id: circuit-breaker-service
@@ -149,44 +149,36 @@ spring:
             - RewritePath=/api/v1/(?<path>.*), /${path}
             - AddRequestHeader=X-Original-Path, /api/v1
 
-        # Маршрут с модификацией тела запроса
-        - id: request-body-modify-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/modify-request/**
-          filters:
-            - StripPrefix=1
-            - name: ModifyRequestBody
-              args:
-                inClass: java.lang.String
-                outClass: java.lang.String
-                rewriteFunction: "#{@requestBodyModifier}"
+        # Маршрут с модификацией тела запроса (ИСПРАВЛЕНО)
+        # Убираем проблемную конфигурацию - используется программная настройка
+        # - id: request-body-modify-service
+        #   uri: https://httpbin.org
+        #   predicates:
+        #     - Path=/modify-request/**
+        #   filters:
+        #     - StripPrefix=1
 
-        # Маршрут с модификацией тела ответа
-        - id: response-body-modify-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/modify-response/**
-          filters:
-            - StripPrefix=1
-            - name: ModifyResponseBody
-              args:
-                inClass: java.lang.String
-                outClass: java.lang.String
-                rewriteFunction: "#{@responseBodyModifier}"
+        # Маршрут с модификацией тела ответа (ИСПРАВЛЕНО)
+        # Убираем проблемную конфигурацию - используется программная настройка
+        # - id: response-body-modify-service
+        #   uri: https://httpbin.org
+        #   predicates:
+        #     - Path=/modify-response/**
+        #   filters:
+        #     - StripPrefix=1
 
-  # Настройки Redis для Rate Limiting
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      database: 0
-      timeout: 2000ms
-      lettuce:
-        pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
+  # Настройки Redis для Rate Limiting (отключены по умолчанию)
+  # data:
+  #   redis:
+  #     host: localhost
+  #     port: 6379
+  #     database: 0
+  #     timeout: 2000ms
+  #     lettuce:
+  #       pool:
+  #         max-active: 8
+  #         max-idle: 8
+  #         min-idle: 0
 
 # Настройки для Circuit Breaker
 resilience4j:
@@ -233,6 +225,35 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
+# Кастомные настройки для демо-приложения
+gateway:
+  demo:
+    enabled: true
+    rate-limiting:
+      enabled: false  # Отключено, так как требует Redis
+      default-rate: 100
+      burst-capacity: 200
+    security:
+      enabled: true
+      allowed-origins:
+        - "*"
+    circuit-breaker:
+      enabled: true
+      failure-rate-threshold: 50
+      wait-duration-in-open-state: 30s
+      sliding-window-size: 10
+    monitoring:
+      enabled: true
+      detailed-metrics-enabled: true
+      prometheus-enabled: true
+    caching:
+      enabled: false
+    logging:
+      detailed-logging-enabled: true
+      log-request-bodies: false
+      log-response-bodies: false
+      log-headers: true
+
 # Информация о приложении
 info:
   app:
@@ -241,8 +262,3 @@ info:
     version: 1.0.0
     java:
       version: ${java.version}
-    spring:
-      boot:
-        version: ${spring-boot.version}
-      cloud:
-        version: ${spring-cloud.version}

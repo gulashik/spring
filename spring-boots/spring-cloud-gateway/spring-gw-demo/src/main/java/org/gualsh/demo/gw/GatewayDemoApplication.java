@@ -20,60 +20,17 @@ import reactor.core.publisher.Mono;
  * <li>Интеграция с Spring Cloud Gateway</li>
  * <li>Создание fallback endpoints</li>
  * </ul>
- *
- * <p><strong>Пример использования:</strong>
- * <pre>{@code
- * // Запуск приложения
- * java -jar target/spring-cloud-gateway-demo-1.0.0.jar
- *
- * // Тестирование маршрутов
- * curl -X GET http://localhost:8080/demo/get
- * curl -X GET http://localhost:8080/programmatic/get
- * curl -X GET http://localhost:8080/fallback
- * }</pre>
- *
- * @author Spring Cloud Gateway Demo
- * @since 1.0.0
  */
 @SpringBootApplication
 @RestController
 public class GatewayDemoApplication {
 
-    /**
-     * Точка входа в приложение.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * Spring Boot автоматически настраивает Spring Cloud Gateway
-     * благодаря наличию spring-cloud-starter-gateway в classpath.
-     *
-     * @param args аргументы командной строки
-     */
     public static void main(String[] args) {
         SpringApplication.run(GatewayDemoApplication.class, args);
     }
 
     /**
      * Программное создание маршрутов через RouteLocator.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * Программное создание маршрутов предпочтительнее конфигурационного
-     * в следующих случаях:
-     * <ul>
-     * <li>Сложная логика предикатов</li>
-     * <li>Динамическое создание маршрутов</li>
-     * <li>Интеграция с внешними системами</li>
-     * <li>Кастомная логика фильтров</li>
-     * </ul>
-     *
-     * <p><strong>Пример использования:</strong>
-     * <pre>{@code
-     * curl -X GET http://localhost:8080/programmatic/get
-     * curl -X POST http://localhost:8080/programmatic/post -d '{"key":"value"}'
-     * curl -X GET "http://localhost:8080/conditional/get?env=dev"
-     * }</pre>
-     *
-     * @param builder конструктор маршрутов
-     * @return настроенный RouteLocator
      */
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -98,54 +55,53 @@ public class GatewayDemoApplication {
                 .filters(f -> f
                     .stripPrefix(1)
                     .addRequestHeader("X-Environment", "development")
+                )
+                .uri("https://httpbin.org")
+            )
+
+            // Маршрут с модификацией тела запроса (ПРОГРАММНАЯ НАСТРОЙКА)
+            .route("modify-request-route", r -> r
+                .path("/modify-request/**")
+                .filters(f -> f
+                    .stripPrefix(1)
                     .modifyRequestBody(String.class, String.class,
                         (exchange, body) -> {
-                            // Добавляем metadata для dev окружения
-                            return Mono.just(body != null ?
-                                body + "\n// Added by Gateway for dev environment" :
-                                "// Added by Gateway for dev environment");
-                        }
-                    )
+                            if (body == null || body.trim().isEmpty()) {
+                                body = "{}";
+                            }
+                            String modifiedBody = "{\n" +
+                                "  \"originalRequest\": " + body + ",\n" +
+                                "  \"metadata\": {\n" +
+                                "    \"modifiedBy\": \"Gateway\",\n" +
+                                "    \"timestamp\": \"" + java.time.LocalDateTime.now() + "\"\n" +
+                                "  }\n" +
+                                "}";
+                            return Mono.just(modifiedBody);
+                        })
                 )
                 .uri("https://httpbin.org")
             )
 
-            // Маршрут с кастомными предикатами
-            .route("custom-predicate-route", r -> r
-                .path("/custom/**")
-                .and()
-                .header("X-Custom-Header")
-                .and()
-                .method("GET", "POST")
+            // Маршрут с модификацией тела ответа (ПРОГРАММНАЯ НАСТРОЙКА)
+            .route("modify-response-route", r -> r
+                .path("/modify-response/**")
                 .filters(f -> f
                     .stripPrefix(1)
-                    .addRequestHeader("X-Custom-Predicate", "matched")
-                    .requestRateLimiter(config -> config
-                        .setRateLimiter(redisRateLimiter())
-                        .setKeyResolver(exchange ->
-                            Mono.just(exchange.getRequest()
-                                .getHeaders()
-                                .getFirst("X-Custom-Header")
-                            )
-                        )
-                    )
-                )
-                .uri("https://httpbin.org")
-            )
-
-            // Маршрут с обработкой ошибок
-            .route("error-handling-route", r -> r
-                .path("/error-test/**")
-                .filters(f -> f
-                    .stripPrefix(1)
-                    .circuitBreaker(config -> config
-                        .setName("error-test-cb")
-                        .setFallbackUri("forward:/fallback")
-                    )
-                    .retry(config -> config
-                        .setRetries(2)
-                        .setStatuses(org.springframework.http.HttpStatus.BAD_GATEWAY)
-                    )
+                    .modifyResponseBody(String.class, String.class,
+                        (exchange, body) -> {
+                            if (body == null || body.trim().isEmpty()) {
+                                body = "{}";
+                            }
+                            String modifiedBody = "{\n" +
+                                "  \"success\": true,\n" +
+                                "  \"data\": " + body + ",\n" +
+                                "  \"metadata\": {\n" +
+                                "    \"processedBy\": \"Gateway\",\n" +
+                                "    \"timestamp\": \"" + java.time.LocalDateTime.now() + "\"\n" +
+                                "  }\n" +
+                                "}";
+                            return Mono.just(modifiedBody);
+                        })
                 )
                 .uri("https://httpbin.org")
             )
@@ -154,44 +110,7 @@ public class GatewayDemoApplication {
     }
 
     /**
-     * Создание Redis Rate Limiter для демонстрации.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * Redis Rate Limiter использует токен bucket алгоритм
-     * для ограничения количества запросов. Важные параметры:
-     * <ul>
-     * <li>replenishRate - скорость пополнения токенов</li>
-     * <li>burstCapacity - максимальное количество токенов</li>
-     * <li>requestedTokens - количество токенов на запрос</li>
-     * </ul>
-     *
-     * @return настроенный RedisRateLimiter
-     */
-    @Bean
-    public org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter redisRateLimiter() {
-        return new org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter(
-            5,  // replenishRate: 5 запросов в секунду
-            10  // burstCapacity: максимум 10 запросов в burst
-        );
-    }
-
-    /**
      * Fallback endpoint для Circuit Breaker.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * Fallback endpoints должны быть быстрыми и надежными.
-     * Избегайте сложной логики и внешних вызовов в fallback.
-     *
-     * <p><strong>Пример использования:</strong>
-     * <pre>{@code
-     * // Прямой вызов fallback
-     * curl -X GET http://localhost:8080/fallback
-     *
-     * // Автоматический fallback при ошибке в circuit breaker
-     * curl -X GET http://localhost:8080/circuit-breaker/status/500
-     * }</pre>
-     *
-     * @return сообщение о недоступности сервиса
      */
     @GetMapping("/fallback")
     public Mono<String> fallback() {
@@ -200,12 +119,6 @@ public class GatewayDemoApplication {
 
     /**
      * Health check endpoint для мониторинга.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * Кастомные health endpoints дополняют Spring Boot Actuator
-     * и позволяют проверить специфичную логику Gateway.
-     *
-     * @return статус здоровья Gateway
      */
     @GetMapping("/health")
     public Mono<String> health() {
@@ -214,12 +127,6 @@ public class GatewayDemoApplication {
 
     /**
      * Информационный endpoint для отладки.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * Информационные endpoints помогают в отладке и мониторинге.
-     * Включайте полезную информацию о конфигурации и состоянии.
-     *
-     * @return информация о Gateway
      */
     @GetMapping("/info")
     public Mono<String> info() {
@@ -228,8 +135,10 @@ public class GatewayDemoApplication {
             "- /demo/** -> httpbin.org\n" +
             "- /programmatic/** -> httpbin.org (programmatic)\n" +
             "- /conditional/** -> httpbin.org (with conditions)\n" +
-            "- /custom/** -> httpbin.org (custom predicates)\n" +
-            "- /error-test/** -> httpbin.org (with circuit breaker)\n" +
+            "- /modify-request/** -> httpbin.org (request body modification)\n" +
+            "- /modify-response/** -> httpbin.org (response body modification)\n" +
+            "- /circuit-breaker/** -> httpbin.org (with circuit breaker)\n" +
+            "- /retry/** -> httpbin.org (with retry)\n" +
             "- /fallback -> fallback endpoint\n" +
             "- /health -> health check\n" +
             "- /info -> this information");
