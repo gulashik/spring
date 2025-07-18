@@ -51,16 +51,24 @@ curl -s http://localhost:8080/actuator/health | jq
 ```bash
 # Базовый маршрут
 curl -X GET http://localhost:8080/demo/get
+```
 
+```bash
 # Программный маршрут
 curl -X GET http://localhost:8080/programmatic/get
+```
 
+```bash
 # Маршрут с условиями
 curl -X GET "http://localhost:8080/conditional/get?env=dev"
+```
 
+```bash
 # Rate limiting
 curl -X GET http://localhost:8080/rate-limited/get
+```
 
+```bash
 # Circuit breaker
 curl -X GET http://localhost:8080/circuit-breaker/get
 ```
