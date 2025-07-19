@@ -37,10 +37,11 @@ spring:
       routes:
         # Маршрут для демонстрации основных возможностей
         - id: demo-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/demo/**
+          uri: https://httpbin.org # uri - указывает, куда будут перенаправляться запросы
+          predicates: # условия срабатывания
+            - Path=/demo/** # учитывается path
           filters:
+            # удаляет первый сегмент пути /demo/get → /get остаток добавиться к uri → https://httpbin.org/get
             - StripPrefix=1
             - AddRequestHeader=X-Request-Demo, Gateway-Demo
             - AddResponseHeader=X-Response-Demo, Processed-By-Gateway
