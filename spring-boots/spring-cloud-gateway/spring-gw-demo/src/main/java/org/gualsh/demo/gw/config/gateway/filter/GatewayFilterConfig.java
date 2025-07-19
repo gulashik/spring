@@ -33,7 +33,7 @@ public class GatewayFilterConfig {
      * @return глобальный фильтр для логирования
      */
     @Bean
-    @Order(-1)
+    @Order(-1) // гарантирует выполнение до других фильтров
     public GlobalFilter loggingGlobalFilter() {
         return (exchange, chain) -> {
             String requestId = exchange.getRequest().getHeaders().getFirst("X-Request-ID");
