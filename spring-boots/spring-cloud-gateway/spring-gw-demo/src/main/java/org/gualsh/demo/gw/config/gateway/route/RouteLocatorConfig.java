@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
  */
 @Slf4j
 @Configuration
-public class GetewayRouteLocatorConfig {
+public class RouteLocatorConfig {
 
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -93,22 +93,6 @@ public class GetewayRouteLocatorConfig {
                 .uri("https://httpbin.org")
             )
 
-            .build();
-    }
-
-    /**
-     * Дополнительные программные маршруты для демонстрации расширенных возможностей.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * Программные маршруты позволяют создавать сложную логику маршрутизации,
-     * которая невозможна в конфигурационном файле.
-     *
-     * @param builder конструктор маршрутов
-     * @return настроенный RouteLocator
-     */
-    @Bean
-    public RouteLocator advancedRouteLocator(RouteLocatorBuilder builder) {
-        return builder.routes()
             // Маршрут с кастомной логикой балансировки
             .route("load-balanced-route", r -> r
                 .path("/balanced/**")

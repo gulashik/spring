@@ -73,6 +73,11 @@ curl -X GET http://localhost:8080/rate-limited/get
 curl -X GET http://localhost:8080/circuit-breaker/get
 ```
 
+```bash
+# Cached пока не понял зачем
+curl -X GET http://localhost:8080/cached/get
+```
+
 ## ⚙️ Конфигурация
 
 ### Конфигурационные свойства (GatewayProperties)
