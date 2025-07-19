@@ -1,4 +1,4 @@
-package org.gualsh.demo.gw.filter;
+package org.gualsh.demo.gw.config.gateway.body;
 
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.web.server.ServerWebExchange;
