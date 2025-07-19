@@ -1,5 +1,6 @@
 package org.gualsh.demo.gw.config.gateway;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -14,8 +15,9 @@ import java.time.format.DateTimeFormatter;
 /**
  * Программное создание маршрутов через RouteLocator.
  */
+@Slf4j
 @Configuration
-public class RouteLocatorConfig {
+public class GetewayRouteLocatorConfig {
 
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {

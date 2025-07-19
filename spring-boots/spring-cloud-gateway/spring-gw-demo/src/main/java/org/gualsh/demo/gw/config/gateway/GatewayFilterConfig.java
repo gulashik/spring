@@ -1,4 +1,4 @@
-package org.gualsh.demo.gw.config;
+package org.gualsh.demo.gw.config.gateway;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -12,34 +12,9 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Конфигурация Spring Cloud Gateway для демонстрации расширенных возможностей.
- *
- * <p><strong>Образовательный момент:</strong>
- * Этот класс демонстрирует различные способы конфигурации Gateway:
- * <ul>
- * <li>Глобальные фильтры для всех маршрутов</li>
- * <li>Кастомные фильтры для специфичной логики</li>
- * <li>Интеграция с external системами</li>
- * <li>Обработка ошибок и метрики</li>
- * </ul>
- *
- * <p><strong>Пример использования:</strong>
- * <pre>{@code
- * // Глобальные фильтры автоматически применяются ко всем запросам
- * curl -X GET http://localhost:8080/demo/get -H "X-Correlation-ID: test-123"
- *
- * // Проверка добавленных заголовков
- * curl -X GET http://localhost:8080/demo/headers
- * }</pre>
- *
- * @author Spring Cloud Gateway Demo
- * @since 1.0.0
- */
 @Slf4j
 @Configuration
-public class GatewayConfig {
-
+public class GatewayFilterConfig {
     /**
      * Глобальный фильтр для логирования запросов.
      *
