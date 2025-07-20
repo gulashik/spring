@@ -35,6 +35,7 @@ if [ -n "$JPID" ]; then
     kill $JPID
 fi
 ```
+
 ```
 # Сборка и запуск приложения
 mvn clean install spring-boot:run
@@ -50,8 +51,6 @@ curl -s http://localhost:8080/actuator/health | jq
 clear
 curl -s http://localhost:8080/actuator/gateway/routes | jq
 ```
-
-### Быстрое тестирование
 
 ```bash
 # Базовый маршрут
