@@ -45,6 +45,11 @@ mvn clean install spring-boot:run
 clear
 curl -s http://localhost:8080/actuator/health | jq
 ```
+```bash
+# Маршруты
+clear
+curl -s http://localhost:8080/actuator/gateway/routes | jq
+```
 
 ### Быстрое тестирование
 
