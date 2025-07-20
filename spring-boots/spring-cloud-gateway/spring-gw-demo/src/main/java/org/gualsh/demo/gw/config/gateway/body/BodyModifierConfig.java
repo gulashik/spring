@@ -28,10 +28,6 @@ public class BodyModifierConfig {
     /**
      * Bean для модификации тела запроса.
      *
-     * <p><strong>Образовательный момент:</strong>
-     * Именование Bean'а важно для правильной работы SpEL выражений
-     * в конфигурации Gateway.
-     *
      * @return экземпляр RequestBodyModifier
      */
     @Bean
@@ -42,9 +38,9 @@ public class BodyModifierConfig {
     /**
      * Bean для модификации тела ответа.
      *
-     * <p><strong>Образовательный момент:</strong>
+     * <p><strong style="color:red">
      * ResponseBodyModifier должен быть thread-safe, так как
-     * может использоваться одновременно несколькими потоками.
+     * может использоваться одновременно несколькими потоками.</strong>
      *
      * @return экземпляр ResponseBodyModifier
      */

@@ -26,15 +26,6 @@ public class RequestBodyModifier implements RewriteFunction<String, String> {
     /**
      * Модифицирует тело запроса, добавляя метаданные.
      *
-     * <p><strong>Образовательный момент:</strong>
-     * При модификации тела запроса важно:
-     * <ul>
-     * <li>Обрабатывать null и пустые значения</li>
-     * <li>Сохранять валидность JSON/XML</li>
-     * <li>Учитывать размер данных</li>
-     * <li>Обрабатывать ошибки парсинга</li>
-     * </ul>
-     *
      * @param exchange текущий обмен
      * @param body оригинальное тело запроса
      * @return Publisher с модифицированным телом запроса
