@@ -6,28 +6,21 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Конфигурация для модификаторов тела запросов и ответов.
  *
- * <p><strong>Образовательный момент:</strong>
- * Этот класс демонстрирует как правильно настроить Bean'ы для
- * модификаторов тела в Spring Cloud Gateway:
- * <ul>
- * <li>Правильное именование Bean'ов</li>
- * <li>Использование @Configuration для группировки</li>
- * <li>Инъекция зависимостей в фильтры</li>
- * </ul>
- *
  * <p><strong>Пример использования:</strong>
  * <pre>{@code
- * # В application.yml
- * filters:
- *   - name: ModifyRequestBody
- *     args:
- *       inClass: java.lang.String
- *       outClass: java.lang.String
- *       rewriteFunction: "#{@requestBodyModifier}"
+ * // Маршрут с трансформацией данных
+ * .route("transform-route", r -> r
+ *     .path("/transform/**")
+ *     .filters(f -> f
+ *         .stripPrefix(1)
+ *         .modifyRequestBody(String.class, String.class, requestBodyModifier)
+ *         // или напрямую .modifyRequestBody(String.class, String.class, new RequestBodyModifier())
+ *         .modifyResponseBody(String.class, String.class, responseBodyModifier)
+ *         // или напрямую .modifyResponseBody(String.class, String.class, new ResponseBodyModifier())
+ *     )
+ *     .uri("https://httpbin.org")
+ * )
  * }</pre>
- *
- * @author Spring Cloud Gateway Demo
- * @since 1.0.0
  */
 @Configuration
 public class BodyModifierConfig {
