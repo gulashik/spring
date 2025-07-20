@@ -74,9 +74,40 @@ curl -X GET http://localhost:8080/rate-limited/get
 ```
 
 ```bash
-# Circuit breaker
+# Circuit breaker проверка работоспособности
+clear
 curl -X GET http://localhost:8080/circuit-breaker/get
 ```
+```bash
+# Проверка метрик Circuit Breaker
+clear
+curl -s http://localhost:8080/actuator/metrics/resilience4j.circuitbreaker.state | jq
+```
+```bash 
+#!/bin/bash
+echo "Текущее состояние Circuit Breaker 'demo-circuit-breaker':"
+
+states=("closed" "open" "half_open" "disabled" "forced_open" "metrics_only")
+
+for state in "${states[@]}"; 
+do
+  value=$(curl -s "http://localhost:8080/actuator/metrics/resilience4j.circuitbreaker.state?tag=name:demo-circuit-breaker&tag=state:$state" | jq -r '.measurements[0].value')
+  if [ "$value" != "0" ] && [ "$value" != "0.0" ] && [ "$value" != "null" ]; then
+    clear
+    echo "✅ Состояние: $state (значение: $value)"
+  fi
+done
+```
+```bash
+# Все метрики Circuit Breaker
+curl -s http://localhost:8080/actuator/metrics | grep circuitbreaker | jq
+```
+```bash 
+# Prometheus метрики
+clear
+curl -s http://localhost:8080/actuator/prometheus | grep circuitbreaker
+```
+
 
 ```bash
 # Cached пока не понял зачем
