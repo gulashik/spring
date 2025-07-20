@@ -256,7 +256,7 @@ gateway:
   demo:
     enabled: true
     rate-limiting:
-      enabled: false  # Отключено, так как требует Redis
+      enabled: true  # требует Redis
       default-rate: 100
       burst-capacity: 200
     security:
