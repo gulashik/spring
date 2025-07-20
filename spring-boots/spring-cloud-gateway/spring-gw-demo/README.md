@@ -106,6 +106,11 @@ curl -s http://localhost:8080/actuator/metrics | grep circuitbreaker | jq
 clear
 curl -s http://localhost:8080/actuator/prometheus | grep circuitbreaker
 ```
+```bash 
+# Prometheus метрики
+clear
+curl -s http://localhost:8080/actuator/prometheus | grep "resilience4j_circuitbreaker_state"
+```
 
 
 ```bash
