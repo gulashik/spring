@@ -1,9 +1,10 @@
-package org.gualsh.demo.gw.config.gateway.body;
+package org.gualsh.demo.gw.config.gateway.body.factory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import org.reactivestreams.Publisher;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,7 +32,7 @@ public class RequestBodyModifier implements RewriteFunction<String, String> {
      * @return Publisher с модифицированным телом запроса
      */
     @Override
-    public org.reactivestreams.Publisher<String> apply(ServerWebExchange exchange, String body) {
+    public Publisher<String> apply(ServerWebExchange exchange, String body) {
         if (body == null || body.trim().isEmpty()) {
             body = "{}";
         }

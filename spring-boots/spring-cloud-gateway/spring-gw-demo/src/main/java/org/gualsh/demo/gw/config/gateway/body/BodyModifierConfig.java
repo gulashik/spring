@@ -1,5 +1,7 @@
 package org.gualsh.demo.gw.config.gateway.body;
 
+import org.gualsh.demo.gw.config.gateway.body.factory.RequestBodyModifier;
+import org.gualsh.demo.gw.config.gateway.body.factory.ResponseBodyModifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

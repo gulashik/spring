@@ -1,8 +1,9 @@
 package org.gualsh.demo.gw.config.gateway.route;
 
 import lombok.extern.slf4j.Slf4j;
-import org.gualsh.demo.gw.config.gateway.body.RequestBodyModifier;
-import org.gualsh.demo.gw.config.gateway.body.ResponseBodyModifier;
+import org.gualsh.demo.gw.config.gateway.body.factory.RequestBodyModifier;
+import org.gualsh.demo.gw.config.gateway.body.factory.ResponseBodyModifier;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +22,8 @@ public class RouteLocatorConfig {
     public RouteLocator customRouteLocator(
         RouteLocatorBuilder builder,
         RequestBodyModifier requestBodyModifier,
-        ResponseBodyModifier responseBodyModifier
+        ResponseBodyModifier responseBodyModifier,
+        GatewayFilter requestInfoFilter
     ) {
         return builder.routes()
             // Базовый программный маршрут
@@ -126,15 +128,24 @@ public class RouteLocatorConfig {
             .route("transform-route", r -> r
                 .path("/transform/**")
                 .filters(f -> f
-                    .stripPrefix(1)
-                    .modifyRequestBody(String.class, String.class, requestBodyModifier)
-                    // или напрямую .modifyRequestBody(String.class, String.class, new RequestBodyModifier())
-                    .modifyResponseBody(String.class, String.class, responseBodyModifier)
+                        .stripPrefix(1)
+                        .modifyRequestBody(String.class, String.class, requestBodyModifier)
+                        // или напрямую .modifyRequestBody(String.class, String.class, new RequestBodyModifier())
+                        .modifyResponseBody(String.class, String.class, responseBodyModifier)
                     // или напрямую .modifyResponseBody(String.class, String.class, new ResponseBodyModifier())
                 )
                 .uri("https://httpbin.org")
             )
 
+            // Маршрут с кастомным фильтром
+            .route("filter-request-info-one-route", r -> r
+                .path("/request-info-filter/**")
+                .filters(f -> f
+                    .stripPrefix(1)
+                    .filter(requestInfoFilter)
+                )
+                .uri("https://httpbin.org")
+            )
             .build();
     }
 

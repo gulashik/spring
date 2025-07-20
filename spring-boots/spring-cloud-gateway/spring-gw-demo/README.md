@@ -74,6 +74,11 @@ curl -X GET http://localhost:8080/transform-yml/get
 ```
 
 ```bash
+# Модификация заголовков
+curl -X GET http://localhost:8080/request-info-filter/get
+```
+
+```bash
 # Маршрут с условиями
 curl -X GET "http://localhost:8080/conditional/get?env=dev"
 ```
