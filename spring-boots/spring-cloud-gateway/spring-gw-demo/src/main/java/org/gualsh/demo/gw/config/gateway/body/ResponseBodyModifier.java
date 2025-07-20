@@ -1,5 +1,6 @@
 package org.gualsh.demo.gw.config.gateway.body;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -9,9 +10,8 @@ import java.time.format.DateTimeFormatter;
 
 /**
  * Модификатор тела ответа для демонстрации.
- *
- * <p><strong>Образовательный момент:</strong>
- * Модификация ответа полезна для:
+ * <p>
+ * <strong>Образовательный момент:</strong>
  * <ul>
  * <li>Добавления метаданных</li>
  * <li>Унификации формата ответов</li>
@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
  * <li>Преобразования форматов</li>
  * </ul>
  */
+@Slf4j
 public class ResponseBodyModifier implements RewriteFunction<String, String> {
 
     /**
@@ -33,7 +34,7 @@ public class ResponseBodyModifier implements RewriteFunction<String, String> {
         if (body == null || body.trim().isEmpty()) {
             body = "{}";
         }
-
+        log.info("Body before: {}", body);
         try {
             int statusCode = exchange.getResponse().getStatusCode() != null ?
                 exchange.getResponse().getStatusCode().value() : 200;
@@ -42,7 +43,7 @@ public class ResponseBodyModifier implements RewriteFunction<String, String> {
                 "  \"success\": " + (statusCode >= 200 && statusCode < 300) + ",\n" +
                 "  \"data\": " + body + ",\n" +
                 "  \"metadata\": {\n" +
-                "    \"processedBy\": \"ResponseBodyModifier\",\n" +
+                "    \"processedBy\": \"------>ResponseBodyModifier<-----\",\n" +
                 "    \"timestamp\": \"" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\",\n" +
                 "    \"requestId\": \"" + exchange.getRequest().getHeaders().getFirst("X-Request-ID") + "\",\n" +
                 "    \"statusCode\": " + statusCode + "\n" +
@@ -51,6 +52,7 @@ public class ResponseBodyModifier implements RewriteFunction<String, String> {
 
             return Mono.just(modifiedBody);
         } catch (Exception e) {
+            // В случае ошибки возвращаем оригинальное тело
             return Mono.just(body != null ? body : "{}");
         }
     }

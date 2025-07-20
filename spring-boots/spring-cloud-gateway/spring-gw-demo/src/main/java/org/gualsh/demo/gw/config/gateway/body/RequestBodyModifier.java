@@ -1,5 +1,6 @@
 package org.gualsh.demo.gw.config.gateway.body;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -14,6 +15,7 @@ import java.time.format.DateTimeFormatter;
  * RewriteFunction используется для модификации тела запроса/ответа.
  * Этот класс должен быть thread-safe и корректно реализовывать интерфейс.
  */
+@Slf4j
 public class RequestBodyModifier implements RewriteFunction<String, String> {
 
     /**
@@ -37,7 +39,7 @@ public class RequestBodyModifier implements RewriteFunction<String, String> {
         if (body == null || body.trim().isEmpty()) {
             body = "{}";
         }
-
+        log.info("Body before: {}", body);
         try {
             // Простая обертка JSON
             String modifiedBody = "{\n" +

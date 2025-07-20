@@ -1,7 +1,7 @@
 # Spring Cloud Gateway Demo
 ### Ключевые концепции
 
-1. **Route (Маршрут)** - базовая единица Gateway, определяющая куда направить запрос
+1. Route (Маршрут) - базовая единица Gateway, определяющая куда направить запрос
 2. **Predicate (Предикат)** - условие для применения маршрута
 3. **Filter (Фильтр)** - модификация запросов и ответов
 4. **Gateway Filter** - фильтры для конкретных маршрутов
@@ -60,6 +60,17 @@ curl -X GET http://localhost:8080/demo/get
 ```bash
 # Программный маршрут
 curl -X GET http://localhost:8080/programmatic/get
+```
+
+```bash
+# Модификация заголовков
+curl -X GET http://localhost:8080/transform/get
+```
+
+
+```bash
+# Модификация заголовков
+curl -X GET http://localhost:8080/transform-yml/get
 ```
 
 ```bash

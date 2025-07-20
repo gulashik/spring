@@ -1,16 +1,14 @@
 package org.gualsh.demo.gw.config.gateway.route;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
+import org.gualsh.demo.gw.config.gateway.body.RequestBodyModifier;
+import org.gualsh.demo.gw.config.gateway.body.ResponseBodyModifier;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Программное создание маршрутов через RouteLocator.
@@ -20,7 +18,11 @@ import java.time.format.DateTimeFormatter;
 public class RouteLocatorConfig {
 
     @Bean
-    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
+    public RouteLocator customRouteLocator(
+        RouteLocatorBuilder builder,
+        RequestBodyModifier requestBodyModifier,
+        ResponseBodyModifier responseBodyModifier
+    ) {
         return builder.routes()
             // Базовый программный маршрут
             .route("programmatic-route", r -> r
@@ -125,8 +127,10 @@ public class RouteLocatorConfig {
                 .path("/transform/**")
                 .filters(f -> f
                     .stripPrefix(1)
-                    .modifyRequestBody(String.class, String.class, new RequestTransformer())
-                    .modifyResponseBody(String.class, String.class, new ResponseTransformer())
+                    .modifyRequestBody(String.class, String.class, requestBodyModifier)
+                    // или напрямую .modifyRequestBody(String.class, String.class, new RequestBodyModifier())
+                    .modifyResponseBody(String.class, String.class, responseBodyModifier)
+                    // или напрямую .modifyResponseBody(String.class, String.class, new ResponseBodyModifier())
                 )
                 .uri("https://httpbin.org")
             )
@@ -135,66 +139,10 @@ public class RouteLocatorConfig {
     }
 
     /**
-     * Трансформер для модификации тела ответа.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * Модификация ответа позволяет добавлять дополнительную информацию
-     * или трансформировать формат данных для клиентов.
-     */
-    private static class ResponseTransformer implements RewriteFunction<String, String> {
-        @Override
-        public org.reactivestreams.Publisher<String> apply(ServerWebExchange exchange, String body) {
-            if (body == null || body.isEmpty()) {
-                return Mono.just("");
-            }
-
-            // Оборачиваем ответ в metadata
-            String transformedBody = "{\n" +
-                "  \"data\": " + body + ",\n" +
-                "  \"metadata\": {\n" +
-                "    \"processed_by\": \"gateway\",\n" +
-                "    \"timestamp\": \"" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\",\n" +
-                "    \"request_id\": \"" + exchange.getRequest().getHeaders().getFirst("X-Request-ID") + "\",\n" +
-                "    \"status\": \"success\"\n" +
-                "  }\n" +
-                "}";
-
-            return Mono.just(transformedBody);
-        }
-    }
-
-    /**
-     * Трансформер для модификации тела запроса.
-     *
-     * <p><strong>Образовательный момент:</strong>
-     * RewriteFunction позволяет модифицировать тело запроса/ответа.
-     * Важно помнить о производительности при работе с большими объемами данных.
-     */
-    private static class RequestTransformer implements RewriteFunction<String, String> {
-        @Override
-        public org.reactivestreams.Publisher<String> apply(ServerWebExchange exchange, String body) {
-            if (body == null || body.isEmpty()) {
-                return Mono.just("");
-            }
-
-            // Добавляем метаданные к запросу
-            String transformedBody = "{\n" +
-                "  \"original_body\": " + body + ",\n" +
-                "  \"transformed_by\": \"gateway\",\n" +
-                "  \"timestamp\": \"" + LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + "\",\n" +
-                "  \"request_id\": \"" + exchange.getRequest().getHeaders().getFirst("X-Request-ID") + "\"\n" +
-                "}";
-
-            return Mono.just(transformedBody);
-        }
-    }
-
-    /**
      * Кастомная логика выбора backend сервера.
      *
-     * <p><strong>Образовательный момент:</strong>
-     * Этот метод демонстрирует как можно реализовать кастомную логику
-     * балансировки нагрузки на основе различных факторов.
+     * <p><strong>Этот метод демонстрирует как можно реализовать кастомную логику
+     * балансировки нагрузки на основе различных факторов.</strong>
      *
      * @param exchange текущий обмен запросом
      * @return выбранный backend
