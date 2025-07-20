@@ -247,7 +247,7 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.gualsh.demo.gw: DEBUG
-    reactor.netty: INFO
+    reactor.netty: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
@@ -279,12 +279,3 @@ gateway:
       log-request-bodies: false
       log-response-bodies: false
       log-headers: true
-
-# Информация о приложении
-info:
-  app:
-    name: ${spring.application.name}
-    description: Spring Cloud Gateway Educational Demo
-    version: 1.0.0
-    java:
-      version: ${java.version}
