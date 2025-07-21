@@ -5,7 +5,10 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -27,7 +30,7 @@ public class GlobalFilterConfig {
      * <li>Аутентификации и авторизации</li>
      * <li>Сбора метрик</li>
      * </ul>
-     *
+     * <p>
      * Order(-1) гарантирует выполнение до других фильтров.
      *
      * @return глобальный фильтр для логирования
@@ -35,6 +38,12 @@ public class GlobalFilterConfig {
     @Bean
     @Order(-1) // гарантирует выполнение до других фильтров
     public GlobalFilter loggingGlobalFilter() {
+        // Response
+        // HttpHeaders headersResponse() = exchange.getResponse().getHeaders();
+
+        // Request
+        // HttpHeaders headersRequest = exchange.getRequest().getHeaders();
+
         return (exchange, chain) -> {
             String requestId = exchange.getRequest().getHeaders().getFirst("X-Request-ID");
             if (requestId == null) {
@@ -89,21 +98,43 @@ public class GlobalFilterConfig {
     @Bean
     @Order(0)
     public GlobalFilter securityHeadersGlobalFilter() {
-        return (exchange, chain) -> chain.filter(exchange).then(Mono.fromRunnable(() -> {
-            HttpHeaders headers = exchange.getResponse().getHeaders();
+        return (exchange, chain) -> {
+            String path = exchange.getRequest().getPath().value();
 
-            // Добавляем security заголовки
-            headers.add("X-Content-Type-Options", "nosniff");
-            headers.add("X-Frame-Options", "DENY");
-            headers.add("X-XSS-Protection", "1; mode=block");
-            headers.add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-            headers.add("Content-Security-Policy", "default-src 'self'");
-            headers.add("X-Gateway-Version", "1.0.0");
+            // Блокируем доступ к админским эндпоинтам ДО обработки запроса
+            if (path.startsWith("/admin/")) {
+                ServerHttpResponse response = exchange.getResponse();
+                response.setStatusCode(HttpStatus.FORBIDDEN);
+                response.getHeaders().add("Content-Type", "application/json");
 
-            // Удаляем потенциально опасные заголовки
-            headers.remove("Server");
-            headers.remove("X-Powered-By");
-        }));
+                String body = "{\"error\": \"Access denied\"}";
+                DataBuffer buffer = response.bufferFactory().wrap(body.getBytes());
+                return response.writeWith(Mono.just(buffer));
+            }
+
+            // Продолжаем обработку и добавляем заголовки в ответ
+            return chain.filter(exchange)
+                .then(
+                    Mono.fromRunnable(
+                        () -> {
+                            HttpHeaders headers = exchange.getResponse().getHeaders();
+
+                            // Добавляем security заголовки
+                            headers.add("X-Content-Type-Options", "nosniff");
+                            headers.add("X-Frame-Options", "DENY");
+                            headers.add("X-XSS-Protection", "1; mode=block");
+                            headers.add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+                            headers.add("Content-Security-Policy", "default-src 'self'");
+                            headers.add("X-Gateway-Version", "1.0.0");
+                            headers.add("GlobalFilter-ModifedBy", "------>HeadersGlobalFilter<------");
+
+                            // Удаляем потенциально опасные заголовки
+                            headers.remove("Server");
+                            headers.remove("X-Powered-By");
+                        }
+                    )
+                );
+        };
     }
 
     /**

@@ -3,6 +3,7 @@ package org.gualsh.demo.gw.config.gateway.route;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.gw.config.gateway.body.factory.RequestBodyModifier;
 import org.gualsh.demo.gw.config.gateway.body.factory.ResponseBodyModifier;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -23,8 +24,11 @@ public class RouteLocatorConfig {
         RouteLocatorBuilder builder,
         RequestBodyModifier requestBodyModifier,
         ResponseBodyModifier responseBodyModifier,
-        GatewayFilter requestInfoFilter
+        @Qualifier("requestInfoFilter") GatewayFilter requestInfoFilter,
+        @Qualifier("authenticationFilter")GatewayFilter authenticationFilter
     ) {
+        // В Spring Cloud Gateway маршруты обрабатываются В ТОМ ПОРЯДКЕ, В КОТОРОМ ОНИ ОПРЕДЕЛЕНЫ.
+        // ПЕРВЫЙ ПОДХОДЯЩИЙ МАРШРУТ БУДЕТ ИСПОЛЬЗОВАН, и дальнейшие маршруты проверяться не будут.
         return builder.routes()
             // Базовый программный маршрут
             .route("programmatic-route", r -> r
@@ -146,6 +150,26 @@ public class RouteLocatorConfig {
                 )
                 .uri("https://httpbin.org")
             )
+            // Маршрут с блокирующим фильтром
+            .route("filter-blocking-route", r -> r
+                .path("/request-block-filter/**")
+                .filters(f -> f
+                    .stripPrefix(1)
+                    .filter(authenticationFilter)
+                )
+                .uri("https://httpbin.org")
+            )
+
+            // Маршрут если ничего не найдено. Должен быть последним!
+            .route("fallback-route", r -> r
+                .path("/**")
+                .filters(f -> f
+                    //.stripPrefix(1)
+                    .addResponseHeader("X-Gateway-Fallback", "true")
+                )
+                .uri("https://httpbin.org")
+            )
+
             .build();
     }
 
