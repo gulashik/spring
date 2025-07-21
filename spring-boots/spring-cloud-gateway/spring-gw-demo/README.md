@@ -54,19 +54,20 @@ curl -s http://localhost:8080/actuator/gateway/routes | jq
 
 ```bash
 # Базовый маршрут
-curl -v -X GET http://localhost:8080/demo/get
+clear
+curl  -X GET http://localhost:8080/demo/get
 ```
 
 ```bash
 # Программный маршрут
+clear
 curl -X GET http://localhost:8080/programmatic/get
 ```
 
 ```bash
 # Модификация заголовков
-curl -X GET http://localhost:8080/transform/get
+curl -v -X GET http://localhost:8080/transform/get
 ```
-
 
 ```bash
 # Модификация заголовков
@@ -79,23 +80,32 @@ curl -X GET http://localhost:8080/request-info-filter/get
 ```
 
 ```bash
+# Проверка блокировки заголовков - Заблокирован
+clear
+curl -X GET http://localhost:8080/request-block-filter/get 
+```
+```bash
 # Проверка блокировки заголовков - Пройдёт т.к. все условия соблюдается
+clear
 curl -X GET http://localhost:8080/request-block-filter/get \
 -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 ```
 
 ```bash
-# Проверка блокировки заголовков - Пройдёт т.к. все условия соблюдается
+# Проверка глобального фильтра - Заблокирован
+clear
 curl -X GET http://localhost:8080/admin/get
 ```
 
 ```bash
 # Маршрут с условиями
+clear
 curl -X GET "http://localhost:8080/conditional/get?env=dev"
 ```
 
 ```bash
 # Rate limiting
+clear
 curl -X GET http://localhost:8080/rate-limited/get
 ```
 

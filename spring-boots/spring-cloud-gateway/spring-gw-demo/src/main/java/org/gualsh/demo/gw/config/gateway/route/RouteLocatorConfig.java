@@ -161,14 +161,15 @@ public class RouteLocatorConfig {
             )
 
             // Маршрут если ничего не найдено. Должен быть последним!
-            .route("fallback-route", r -> r
-                .path("/**")
-                .filters(f -> f
-                    //.stripPrefix(1)
-                    .addResponseHeader("X-Gateway-Fallback", "true")
-                )
-                .uri("https://httpbin.org")
-            )
+            // ВАЖНО! Будет ПЕРЕБИВАТЬ МАРШРУТЫ из application.yml
+//            .route("fallback-route", r -> r
+//                .path("/**")
+//                .filters(f -> f
+//                    //.stripPrefix(1)
+//                    .addResponseHeader("X-Gateway-Fallback", "true")
+//                )
+//                .uri("https://httpbin.org")
+//            )
 
             .build();
     }

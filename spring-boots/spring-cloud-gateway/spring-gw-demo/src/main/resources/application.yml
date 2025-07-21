@@ -193,6 +193,14 @@ spring:
             - RewritePath=/api/v1/(?<path>.*), /${path} # RewritePath=<регулярное_выражение>, <замена>
             - AddRequestHeader=X-Original-Path, /api/v1 # удобно записать что удалили
 
+        # Fallback маршрут - должен быть ПОСЛЕДНИМ
+        - id: fallback-route-yml
+          uri: https://httpbin.org
+          predicates:
+            - Path=/**
+          filters:
+            - AddResponseHeader=X-Gateway-Fallback, true
+
   # Настройки Redis для Rate Limiting (отключен по умолчанию, требует Redis) см. README.md
   data:
      redis:
@@ -250,32 +258,3 @@ logging:
     reactor.netty: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-
-# Кастомные настройки для демо-приложения
-gateway:
-  demo:
-    enabled: true
-    rate-limiting:
-      enabled: true  # требует Redis
-      default-rate: 100
-      burst-capacity: 200
-    security:
-      enabled: true
-      allowed-origins:
-        - "*"
-    circuit-breaker:
-      enabled: true
-      failure-rate-threshold: 50
-      wait-duration-in-open-state: 30s
-      sliding-window-size: 10
-    monitoring:
-      enabled: true
-      detailed-metrics-enabled: true
-      prometheus-enabled: true
-    caching:
-      enabled: false
-    logging:
-      detailed-logging-enabled: true
-      log-request-bodies: false
-      log-response-bodies: false
-      log-headers: true
