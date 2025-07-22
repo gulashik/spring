@@ -149,12 +149,6 @@ clear
 curl -s http://localhost:8080/actuator/prometheus | grep "resilience4j_circuitbreaker_state"
 ```
 
-
-```bash
-# Cached пока не понял зачем
-curl -X GET http://localhost:8080/cached/get
-```
-
 ## ⚙️ Конфигурация
 
 ### Конфигурационные свойства (GatewayProperties)

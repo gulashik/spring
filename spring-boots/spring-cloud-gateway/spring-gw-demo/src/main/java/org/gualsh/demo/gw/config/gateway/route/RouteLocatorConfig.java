@@ -117,17 +117,6 @@ public class RouteLocatorConfig {
                 .uri("https://httpbin.org")
             )
 
-            // Маршрут с кэшированием
-            .route("cached-route", r -> r
-                .path("/cached/**")
-                .filters(f -> f
-                    .stripPrefix(1)
-                    .addResponseHeader("Cache-Control", "public, max-age=300")
-                    .addResponseHeader("X-Cache-Status", "MISS")
-                )
-                .uri("https://httpbin.org")
-            )
-
             // Маршрут с трансформацией данных
             .route("transform-route", r -> r
                 .path("/transform/**")
