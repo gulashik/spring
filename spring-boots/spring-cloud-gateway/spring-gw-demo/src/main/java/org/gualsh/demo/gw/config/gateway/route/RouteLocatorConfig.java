@@ -5,6 +5,7 @@ import org.gualsh.demo.gw.config.gateway.body.factory.RequestBodyModifier;
 import org.gualsh.demo.gw.config.gateway.body.factory.ResponseBodyModifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +26,8 @@ public class RouteLocatorConfig {
         RequestBodyModifier requestBodyModifier,
         ResponseBodyModifier responseBodyModifier,
         @Qualifier("requestInfoFilter") GatewayFilter requestInfoFilter,
-        @Qualifier("authenticationFilter")GatewayFilter authenticationFilter
+        @Qualifier("authenticationFilter")GatewayFilter authenticationFilter,
+        RedisRateLimiter redisRateLimiter
     ) {
         // В Spring Cloud Gateway маршруты обрабатываются В ТОМ ПОРЯДКЕ, В КОТОРОМ ОНИ ОПРЕДЕЛЕНЫ.
         // ПЕРВЫЙ ПОДХОДЯЩИЙ МАРШРУТ БУДЕТ ИСПОЛЬЗОВАН, и дальнейшие маршруты проверяться не будут.
@@ -145,6 +147,24 @@ public class RouteLocatorConfig {
                 .filters(f -> f
                     .stripPrefix(1)
                     .filter(authenticationFilter)
+                )
+                .uri("https://httpbin.org")
+            )
+
+            .route("rate-limited-service", r -> r
+                .path("/rate-limited/**")
+                .filters(f -> f
+                    .requestRateLimiter(config -> config
+                        .setRateLimiter(redisRateLimiter)
+                        .setKeyResolver(exchange ->
+                            // Можно использовать IP или другой идентификатор
+                            Mono.just(exchange.getRequest()
+                                .getRemoteAddress()
+                                .getAddress()
+                                .getHostAddress())
+                        )
+                    )
+                    .stripPrefix(1)
                 )
                 .uri("https://httpbin.org")
             )

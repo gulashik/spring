@@ -109,24 +109,6 @@ spring:
             - StripPrefix=1
             - AddRequestHeader=X-Query-Matched, true
 
-        # Маршрут с Rate Limiting (отключен по умолчанию, требует Redis) см. README.md
-        # Алгоритм работы (Token Bucket)
-        #   1. Корзина токенов вмещает максимум 20 токенов
-        #   2. Пополнение: каждую секунду добавляется 10 токенов
-        #   3. Обработка запроса: тратится 1 токен
-        #   4. Если токенов нет → запрос отклоняется с HTTP 429 (Too Many Requests)
-        - id: rate-limited-service
-          uri: https://httpbin.org
-          predicates:
-           - Path=/rate-limited/**
-          filters:
-           - name: RequestRateLimiter
-             args:
-               redis-rate-limiter.replenishRate: 10 # Базовая скорость пополнения токенов 10 токенов в секунду
-               redis-rate-limiter.burstCapacity: 20 # Максимальное количество токенов в корзине 20 токенов
-               redis-rate-limiter.requestedTokens: 1 # Каждый запрос "стоит" 1 токен
-           - StripPrefix=1
-
         # Маршрут с Circuit Breaker
         # Состояния Circuit Breaker'а
         # CLOSED
