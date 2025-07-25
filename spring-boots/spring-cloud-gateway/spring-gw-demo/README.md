@@ -62,12 +62,7 @@ curl -v -X GET http://localhost:8080/transform/get
 ```
 
 ```bash
-# Модификация заголовков
-curl -X GET http://localhost:8080/transform-yml/get
-```
-
-```bash
-# Проверка блокировки заголовков - Заблокирован
+# C кастомным фильтром
 curl -X GET http://localhost:8080/request-info-filter/get
 ```
 
@@ -90,9 +85,14 @@ curl -X GET http://localhost:8080/admin/get
 ```
 
 ```bash
-# Маршрут с условиями
+# Маршрут с условиями - попадёт под условия
 clear
-curl -X GET "http://localhost:8080/conditional/get?env=dev"
+curl -v -X GET "http://localhost:8080/conditional/get?env=dev"
+```
+```bash
+# Маршрут с условиями - будет с Fallback т.е. X-Gateway-Fallback: true
+clear
+curl -v -X GET "http://localhost:8080/conditional/get?env=xxx"
 ```
 
 ```bash
