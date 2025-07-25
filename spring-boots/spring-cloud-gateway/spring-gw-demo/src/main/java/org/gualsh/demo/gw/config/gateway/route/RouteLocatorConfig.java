@@ -10,6 +10,7 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -26,7 +27,7 @@ public class RouteLocatorConfig {
         RequestBodyModifier requestBodyModifier,
         ResponseBodyModifier responseBodyModifier,
         @Qualifier("requestInfoFilter") GatewayFilter requestInfoFilter,
-        @Qualifier("authenticationFilter")GatewayFilter authenticationFilter,
+        @Qualifier("authenticationFilter") GatewayFilter authenticationFilter,
         RedisRateLimiter redisRateLimiter
     ) {
         // В Spring Cloud Gateway маршруты обрабатываются В ТОМ ПОРЯДКЕ, В КОТОРОМ ОНИ ОПРЕДЕЛЕНЫ.
@@ -109,11 +110,26 @@ public class RouteLocatorConfig {
                 .filters(f -> f
                     .stripPrefix(1)
                     .filter((exchange, chain) -> {
-                        // Кастомная логика выбора backend
-                        String backend = selectBackend(exchange);
-                        exchange.getAttributes().put("backend", backend);
-                        return chain.filter(exchange);
+                            // Кастомная логика выбора backend
+                            String backend = selectBackend(exchange);
+                            exchange.getAttributes().put("backend", backend);
+                            return chain.filter(exchange);
+                        }
+                    )
+                    .filter((exchange, chain) -> {
+                        // Кастомная логика ДО отправки запроса
+                        ServerHttpRequest request = exchange.getRequest().mutate()
+                            .header("X-Custom-Filter", "applied")
+                            .build();
+
+                        return chain.filter(exchange.mutate().request(request).build())
+                            .doFinally(signalType -> {
+                                // Кастомная логика ПОСЛЕ получения ответа
+                                log.info("Request completed with signal: {}", signalType);
+                            });
                     })
+                    //.filter(customFilterBean) // Использование готового бина
+
                     .addRequestHeader("X-Selected-Backend", "#{exchange.attributes['backend']}")
                 )
                 .uri("https://httpbin.org")
@@ -149,6 +165,21 @@ public class RouteLocatorConfig {
                     .filter(authenticationFilter)
                 )
                 .uri("https://httpbin.org")
+            )
+
+            .route("conditional-access-route", r -> r
+                .path("/admins/**")
+                .and()
+                .header("Authorization", "Bearer .*")
+                .or()
+                .query("admin_token", ".*")
+                .or()
+                .remoteAddr("192.168.1.0/24") // локальная сеть
+                .filters(f -> f
+                    .stripPrefix(1)
+                    .addRequestHeader("X-Admin-Access", "granted")
+                )
+                .uri("https://admin-api.example.com")
             )
 
             .route("rate-limited-service", r -> r

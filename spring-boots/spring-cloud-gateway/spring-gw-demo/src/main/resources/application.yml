@@ -182,7 +182,7 @@ spring:
             - Path=/**
           filters:
             - AddResponseHeader=X-Gateway-Fallback, true
-            - StripPrefix=1
+            #- StripPrefix=1
 
   # Настройки Redis для Rate Limiting (отключен по умолчанию, требует Redis) см. README.md
   data:

@@ -81,7 +81,7 @@ curl -X GET http://localhost:8080/request-block-filter/get \
 ```bash
 # Проверка глобального фильтра - Заблокирован
 clear
-curl -X GET http://localhost:8080/admin/get
+curl -v -X GET http://localhost:8080/admin/get
 ```
 
 ```bash
