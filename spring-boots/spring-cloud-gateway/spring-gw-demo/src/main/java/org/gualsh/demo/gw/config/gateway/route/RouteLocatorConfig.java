@@ -172,9 +172,9 @@ public class RouteLocatorConfig {
             .route("conditional-access-route", r -> r
                 .path("/admins/**")
                 .and()
-                .header("Authorization", "Bearer .*")
+                .header("Authorization", "Bearer .*") // проверка, есть ли такой заголовок с таким значением
                 .or()
-                .query("admin_token", ".*")
+                .query("admin_token", ".*") // запрос содержит параметр admin_token с любым значением
                 .or()
                 .remoteAddr("192.168.1.0/24") // локальная сеть
                 .filters(f -> f
