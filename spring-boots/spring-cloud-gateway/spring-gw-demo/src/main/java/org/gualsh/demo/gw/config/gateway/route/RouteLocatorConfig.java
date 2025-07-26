@@ -200,6 +200,45 @@ public class RouteLocatorConfig {
                 .uri("https://httpbin.org")
             )
 
+            // Маршрут с Circuit Breaker
+            // Состояния Circuit Breaker'а
+            // CLOSED
+            // - Все запросы проходят к backend-сервису
+            // - Отслеживаются ошибки и медленные запросы
+            //
+            // OPEN
+            // - Все запросы перенаправляются на `fallbackUri`
+            // - Backend-сервис не вызывается
+            //
+            // HALF-OPEN
+            // - Пропускается ограниченное количество тестовых запросов
+            // - Если успешны → переход в CLOSED
+            // - Если неуспешны → переход в OPEN
+            //
+            // Логика работы
+            // Переход CLOSED → OPEN:
+            // - ≥50% запросов завершились ошибкой ИЛИ
+            // - ≥50% запросов выполнялись >2 секунд
+            // - В окне минимум 5 запросов из последних 10
+            //
+            // Переход OPEN → HALF-OPEN:
+            // - Прошло 30 секунд с момента открытия
+            .route("circuit-breaker-service", r -> r
+                .path("/circuit-breaker-yml/**")
+                .filters(f -> f
+                    .circuitBreaker(config -> config
+                        // Имя экземпляра Circuit Breaker'а, ссылается на конфигурацию
+                        //   в разделе resilience4j.circuitbreaker.instances.demo-circuit-breaker
+                        .setName("demo-circuit-breaker") // Имя экземпляра Circuit Breaker'а из application.yml
+                        // Запасной маршрут при срабатывании Circuit Breaker'а
+                        //   forward:/fallback - перенаправление на локальный endpoint
+                        .setFallbackUri("forward:/fallback") // Запасной маршрут при срабатывании
+                    )
+                    .stripPrefix(1) // Удаление первого сегмента пути
+                )
+                .uri("https://httpbin.org")
+            )
+
             // Маршрут если ничего не найдено. Должен быть последним!
             // ВАЖНО! Будет ПЕРЕБИВАТЬ МАРШРУТЫ из application.yml
 //            .route("fallback-route", r -> r

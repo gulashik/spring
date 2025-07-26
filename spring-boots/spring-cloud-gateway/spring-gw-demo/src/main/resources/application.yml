@@ -109,44 +109,6 @@ spring:
             - StripPrefix=1
             - AddRequestHeader=X-Query-Matched, true
 
-        # Маршрут с Circuit Breaker
-        # Состояния Circuit Breaker'а
-        # CLOSED
-        # - Все запросы проходят к backend-сервису
-        # - Отслеживаются ошибки и медленные запросы
-
-        # OPEN
-        # - Все запросы перенаправляются на `fallbackUri`
-        # - Backend-сервис не вызывается
-
-        # HALF-OPEN
-        # - Пропускается ограниченное количество тестовых запросов
-        # - Если успешны → переход в CLOSED
-        # - Если неуспешны → переход в OPEN
-
-        # Логика работы
-        # Переход CLOSED → OPEN:
-        # - ≥50% запросов завершились ошибкой ИЛИ
-        # - ≥50% запросов выполнялись >2 секунд
-        # - В окне минимум 5 запросов из последних 10
-
-        # Переход OPEN → HALF-OPEN:
-        # - Прошло 30 секунд с момента открытия
-        - id: circuit-breaker-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/circuit-breaker/**
-          filters:
-            - name: CircuitBreaker
-              args:
-                # Имя экземпляра Circuit Breaker'а, ссылается на конфигурацию
-                #   в разделе resilience4j.circuitbreaker.instances.demo-circuit-breaker
-                name: demo-circuit-breaker
-                # Запасной маршрут при срабатывании Circuit Breaker'а
-                #   forward:/fallback - перенаправление на локальный endpoint
-                fallbackUri: forward:/fallback
-            - StripPrefix=1
-
         # Маршрут с Retry(механизм повторных попыток)
         - id: retry-service
           uri: https://httpbin.org
@@ -219,7 +181,8 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,gateway
+        include: health,info,metrics,prometheus,gateway,circuitbreakers,circuitbreakerevents
+
   endpoint:
     health:
       show-details: always

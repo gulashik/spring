@@ -107,6 +107,26 @@ clear
 curl -X GET http://localhost:8080/circuit-breaker/get
 ```
 ```bash
+# Circuit breaker проверка работоспособности
+# Медленный запрос (>2 секунд согласно конфигурации). Откроется.
+clear
+curl -X GET http://localhost:8080/circuit-breaker/delay/3
+curl -X GET http://localhost:8080/circuit-breaker/delay/3
+curl -X GET http://localhost:8080/circuit-breaker/delay/3
+curl -X GET http://localhost:8080/circuit-breaker/delay/3
+curl -X GET http://localhost:8080/circuit-breaker/delay/3
+```
+```bash
+# Общая информация о всех Circuit Breaker-ах будет статус OPEN
+clear
+curl -s http://localhost:8080/actuator/circuitbreakers | jq
+```
+```bash
+# Cобытия Circuit Breaker-а
+clear
+curl -s http://localhost:8080/actuator/circuitbreakerevents | jq
+```
+```bash
 # Проверка метрик Circuit Breaker
 clear
 curl -s http://localhost:8080/actuator/metrics/resilience4j.circuitbreaker.state | jq
