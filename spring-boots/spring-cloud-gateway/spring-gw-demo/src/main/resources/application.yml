@@ -47,33 +47,6 @@ spring:
             - AddRequestHeader=X-Request-Demo, Gateway-Demo
             - AddResponseHeader=X-Response-Demo, Processed-By-Gateway
 
-        # Маршруты с весовым балансировщиком
-        #   Сводно При отправке 10 запросов на /weighted/get.
-        #     ~8 запросов уйдут на https://httpbin.org/get
-        #     ~2 запроса уйдут на https://postman-echo.com/get
-        # Основной маршрут
-        - id: weighted-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/weighted/**
-            # group1 - название группы весового балансировщика, 8 - вес данного маршрута (из общего веса группы)
-            - Weight=group1, 8
-          filters:
-            - StripPrefix=1
-            # добавление заголовков
-            - AddRequestHeader=X-Weight-Group, group1
-
-        # Альтернативный маршрут для демонстрации весового балансировщика
-        - id: weighted-service-alt
-          uri: https://postman-echo.com
-          predicates:
-            - Path=/weighted/**
-            # group1 - название группы весового балансировщика, 2 - вес данного маршрута (из общего веса группы)
-            - Weight=group1, 2
-          filters:
-            - StripPrefix=1
-            - AddRequestHeader=X-Weight-Group, group1-alt
-
         # Маршрут с условием по времени
         - id: time-based-service
           uri: https://httpbin.org

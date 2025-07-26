@@ -239,6 +239,32 @@ public class RouteLocatorConfig {
                 .uri("https://httpbin.org")
             )
 
+            // Основной маршрут с весовым балансировщиком
+            // ~8 запросов из 10 будут направлены на httpbin.org
+            .route("weighted-service", r -> r
+                .path("/weighted/**")
+                .and()
+                .weight("group1", 8)
+                .filters(f -> f
+                    .stripPrefix(1)
+                    .addRequestHeader("X-Weight-Group", "group1")
+                )
+                .uri("https://httpbin.org")
+            )
+
+            // Альтернативный маршрут для демонстрации весового балансировщика
+            // ~2 запроса из 10 будут направлены на postman-echo.com
+            .route("weighted-service-alt", r -> r
+                .path("/weighted/**")
+                .and()
+                .weight("group1", 2)
+                .filters(f -> f
+                    .stripPrefix(1)
+                    .addRequestHeader("X-Weight-Group", "group1-alt")
+                )
+                .uri("https://postman-echo.com")
+            )
+
             // Маршрут если ничего не найдено. Должен быть последним!
             // ВАЖНО! Будет ПЕРЕБИВАТЬ МАРШРУТЫ из application.yml
 //            .route("fallback-route", r -> r

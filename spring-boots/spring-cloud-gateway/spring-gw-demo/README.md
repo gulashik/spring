@@ -155,6 +155,48 @@ curl -s http://localhost:8080/actuator/metrics | grep circuitbreaker | jq
 clear
 curl -s http://localhost:8080/actuator/prometheus | grep circuitbreaker
 ```
+
+
+```bash 
+#!/bin/bash
+
+clear
+REQUESTS=50
+GATEWAY_URL="http://localhost:8080/weighted/get"
+
+echo "Тестирование весового балансировщика ($REQUESTS запросов)..."
+echo "Ожидаемое распределение: ~80% httpbin.org, ~20% postman-echo.com"
+echo "================================================"
+
+httpbin_count=0
+postman_count=0
+
+for i in $(seq 1 $REQUESTS); do
+  response=$(curl -s -H "X-Test-Request: $i" "$GATEWAY_URL")
+  
+  if echo "$response" | grep -q "httpbin.org"; then
+    httpbin_count=$((httpbin_count + 1))
+    echo "Request $i: httpbin.org"
+  elif echo "$response" | grep -q "postman-echo.com"; then
+    postman_count=$((postman_count + 1))
+    echo "Request $i: postman-echo.com"
+  else
+    echo "Request $i: Unknown backend"
+  fi
+
+  sleep 0.1
+done
+
+echo "================================================"
+echo "Результаты тестирования:"
+echo "httpbin.org: $httpbin_count запросов ($(( httpbin_count * 100 / REQUESTS ))%)"
+echo "postman-echo.com: $postman_count запросов ($(( postman_count * 100 / REQUESTS ))%)"
+echo "Всего: $((httpbin_count + postman_count)) из $REQUESTS запросов"
+```
+
+
+
+
 ```bash 
 # Prometheus метрики
 clear
