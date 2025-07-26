@@ -14,6 +14,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.time.ZonedDateTime;
+
 /**
  * Программное создание маршрутов через RouteLocator.
  */
@@ -263,6 +265,25 @@ public class RouteLocatorConfig {
                     .addRequestHeader("X-Weight-Group", "group1-alt")
                 )
                 .uri("https://postman-echo.com")
+            )
+
+            .route("time-based-service", r -> r
+                .path("/time/**")
+                .and()
+                // .after(...) - маршрут активен только ПОСЛЕ указанного времени
+                .after(ZonedDateTime.parse("2024-01-01T00:00:00+00:00[UTC]"))
+                .and()
+                // .before(...) - маршрут активен только ДО указанного времени
+                .before(ZonedDateTime.parse("2024-12-31T23:59:59+00:00[UTC]"))
+                .filters(f -> f
+                    .stripPrefix(1)
+                    .filter((exchange, chain) -> {
+                        log.info("Time-based route activated at: {}", ZonedDateTime.now());
+                        return chain.filter(exchange);
+                    })
+                    .addRequestHeader("X-Time-Based", "active")
+                )
+                .uri("https://httpbin.org")
             )
 
             // Маршрут если ничего не найдено. Должен быть последним!

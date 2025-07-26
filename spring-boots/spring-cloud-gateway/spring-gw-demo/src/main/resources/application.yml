@@ -47,17 +47,6 @@ spring:
             - AddRequestHeader=X-Request-Demo, Gateway-Demo
             - AddResponseHeader=X-Response-Demo, Processed-By-Gateway
 
-        # Маршрут с условием по времени
-        - id: time-based-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/time/**
-            - After=2024-01-01T00:00:00+00:00[UTC]
-            - Before=2026-12-31T23:59:59+00:00[UTC]
-          filters:
-            - StripPrefix=1
-            - AddRequestHeader=X-Time-Based, active
-
         # Маршрут с условием по заголовкам
         - id: header-based-service
           uri: https://httpbin.org

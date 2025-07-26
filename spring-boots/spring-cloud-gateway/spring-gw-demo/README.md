@@ -156,10 +156,9 @@ clear
 curl -s http://localhost:8080/actuator/prometheus | grep circuitbreaker
 ```
 
-
 ```bash 
 #!/bin/bash
-
+# Тестирование распределёния нагрузки
 clear
 REQUESTS=50
 GATEWAY_URL="http://localhost:8080/weighted/get"
@@ -194,7 +193,13 @@ echo "postman-echo.com: $postman_count запросов ($(( postman_count * 100
 echo "Всего: $((httpbin_count + postman_count)) из $REQUESTS запросов"
 ```
 
-
+```bash 
+# Тестирование запрос с ограничением по времени
+#   увидим "X-Time-Based": "active" если время попадает в диапазон
+#   увидим X-Gateway-Fallback: true если время НЕ попадает в диапазон
+clear
+curl -v -X GET "http://localhost:8080/time/get"
+```
 
 
 ```bash 
