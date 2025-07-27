@@ -3,6 +3,7 @@ package org.gualsh.demo.gw.config.gateway.route;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.gw.config.gateway.body.factory.RequestBodyModifier;
 import org.gualsh.demo.gw.config.gateway.body.factory.ResponseBodyModifier;
+import org.gualsh.demo.gw.config.gateway.retry.RetryLogger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
@@ -10,11 +11,15 @@ import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Программное создание маршрутов через RouteLocator.
@@ -30,7 +35,8 @@ public class RouteLocatorConfig {
         ResponseBodyModifier responseBodyModifier,
         @Qualifier("requestInfoFilter") GatewayFilter requestInfoFilter,
         @Qualifier("authenticationFilter") GatewayFilter authenticationFilter,
-        RedisRateLimiter redisRateLimiter
+        RedisRateLimiter redisRateLimiter,
+        RetryLogger retryLogger
     ) {
         // В Spring Cloud Gateway маршруты обрабатываются В ТОМ ПОРЯДКЕ, В КОТОРОМ ОНИ ОПРЕДЕЛЕНЫ.
         // ПЕРВЫЙ ПОДХОДЯЩИЙ МАРШРУТ БУДЕТ ИСПОЛЬЗОВАН, и дальнейшие маршруты проверяться не будут.
@@ -282,6 +288,26 @@ public class RouteLocatorConfig {
                         return chain.filter(exchange);
                     })
                     .addRequestHeader("X-Time-Based", "active")
+                )
+                .uri("https://httpbin.org")
+            )
+
+            // Маршрут с Retry(механизм повторных попыток)
+            .route("retry-service", r -> r.path("/retry/**")
+                .filters(f -> f
+                    .filter(retryLogger::logRetryAttempt) // если нужны доп. действия просто для демонстрации
+                    .retry(retryConfig -> retryConfig
+                        .setRetries(3) // Максимальное количество повторов
+                        .setStatuses(HttpStatus.BAD_GATEWAY, HttpStatus.GATEWAY_TIMEOUT) // HTTP-статусы для повтора
+                        .setMethods(HttpMethod.GET, HttpMethod.POST) // HTTP-методы, для которых разрешены повторы
+                        .setBackoff(
+                            Duration.ofMillis(10), // firstBackoff: первая задержка
+                            Duration.ofMillis(50), // maxBackoff: максимальная задержка
+                            2, // factor: коэффициент увеличения задержки
+                            false // basedOnPreviousValue: расчет от базового значения
+                        )
+                    )
+                    .stripPrefix(1)
                 )
                 .uri("https://httpbin.org")
             )

@@ -71,24 +71,6 @@ spring:
             - StripPrefix=1
             - AddRequestHeader=X-Query-Matched, true
 
-        # Маршрут с Retry(механизм повторных попыток)
-        - id: retry-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/retry/**
-          filters:
-            - name: Retry
-              args:
-                retries: 3 # Максимальное количество повторов
-                statuses: BAD_GATEWAY,GATEWAY_TIMEOUT # HTTP-статусы для повтора
-                methods: GET,POST # HTTP-методы, для которых разрешены повторы. Логичны только idempotent методы
-                backoff:
-                  firstBackoff: 10ms # Первая задержка
-                  maxBackoff: 50ms # Максимальная задержка
-                  factor: 2 # Коэффициент увеличения задержки
-                  basedOnPreviousValue: false # Расчет от базового значения, а не от предыдущего
-            - StripPrefix=1
-
           # Маршрут с модификацией пути
         - id: path-rewrite-service
           uri: https://httpbin.org

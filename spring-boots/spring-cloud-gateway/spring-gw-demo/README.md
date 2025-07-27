@@ -201,6 +201,30 @@ clear
 curl -v -X GET "http://localhost:8080/time/get"
 ```
 
+```bash
+# Тестирование Retry механизма
+# Успешный запрос (без повторов)
+clear
+curl -v -X GET http://localhost:8080/retry/get
+```
+
+```bash
+# Тестирование Retry механизма
+# Тестирование повторов при ошибке 502 (BAD_GATEWAY)
+# httpbin.org/status/502 всегда возвращает 502 ошибку 
+# В debug для r.n.http.client.HttpClientOperations видим что операции повторяются.
+clear
+curl -v -X GET http://localhost:8080/retry/status/502
+```
+
+```bash
+# Тестирование Retry механизма
+# Тестирование повторов при ошибке 504 (GATEWAY_TIMEOUT)
+# В debug для r.n.http.client.HttpClientOperations видим что операции повторяются.
+clear
+curl -v -X GET http://localhost:8080/retry/status/504
+```
+
 
 ```bash 
 # Prometheus метрики
