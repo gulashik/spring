@@ -19,7 +19,6 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Программное создание маршрутов через RouteLocator.
@@ -308,6 +307,17 @@ public class RouteLocatorConfig {
                         )
                     )
                     .stripPrefix(1)
+                )
+                .uri("https://httpbin.org")
+            )
+
+            // Маршрут с модификацией пути
+            .route("path-rewrite-service", r -> r
+                .path("/api/v1/**")
+                .filters(f -> f
+                    // GET /api/v1/orders/123 -> GET /orders/123 будет удален префикс /api/v1
+                    .rewritePath("/api/v1/(?<path>.*)", "/${path}") // RewritePath=<регулярное_выражение>, <замена>
+                    .addRequestHeader("X-Original-Path", "/api/v1") // удобно записать, что удалили
                 )
                 .uri("https://httpbin.org")
             )

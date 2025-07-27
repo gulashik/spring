@@ -225,6 +225,12 @@ clear
 curl -v -X GET http://localhost:8080/retry/status/504
 ```
 
+```bash
+# GET запрос с параметрами 
+#   url с подменой увидим в "url": "https://localhost:8080/get?param1=value1&param2=value2"  
+clear
+curl -X GET "http://localhost:8080/api/v1/get?param1=value1&param2=value2"
+```
 
 ```bash 
 # Prometheus метрики

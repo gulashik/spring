@@ -71,16 +71,6 @@ spring:
             - StripPrefix=1
             - AddRequestHeader=X-Query-Matched, true
 
-          # Маршрут с модификацией пути
-        - id: path-rewrite-service
-          uri: https://httpbin.org
-          predicates:
-            - Path=/api/v1/**
-          filters:
-            # GET /api/v1/orders/123 -> GET /orders/123 будет удален префикс /api/v1
-            - RewritePath=/api/v1/(?<path>.*), /${path} # RewritePath=<регулярное_выражение>, <замена>
-            - AddRequestHeader=X-Original-Path, /api/v1 # удобно записать что удалили
-
         # Fallback маршрут - должен быть ПОСЛЕДНИМ
         - id: fallback-route-yml
           uri: https://httpbin.org
