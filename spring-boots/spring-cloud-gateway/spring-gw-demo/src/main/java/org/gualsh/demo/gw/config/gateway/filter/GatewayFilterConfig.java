@@ -87,5 +87,4 @@ public class GatewayFilterConfig {
             return chain.filter(exchange);
         };
     }
-
 }

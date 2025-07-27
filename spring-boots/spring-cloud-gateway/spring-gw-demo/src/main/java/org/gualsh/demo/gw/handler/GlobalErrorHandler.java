@@ -23,7 +23,6 @@ import java.util.Map;
 /**
  * Глобальный обработчик ошибок для Spring Cloud Gateway.
  *
- * <p><strong>Образовательный момент:</strong>
  * Глобальный обработчик ошибок критически важен для Gateway, так как:
  * <ul>
  * <li>Обеспечивает единообразный формат ошибок</li>
@@ -47,9 +46,7 @@ import java.util.Map;
  * <li>Правильная обработка различных типов ошибок</li>
  * <li>Безопасность - не раскрывать внутренние детали</li>
  * </ul>
- *
- * @author Spring Cloud Gateway Demo
- * @since 1.0.0
+
  */
 @Slf4j
 @Configuration
