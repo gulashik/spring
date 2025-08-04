@@ -1,0 +1,104 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-circuit-breaker-demo
+
+# Конфигурация Resilience4j Circuit Breaker
+resilience4j:
+  circuitbreaker:
+    instances:
+      # Circuit Breaker для внешнего API
+      externalApi:
+        # Размер sliding window для расчета failure rate
+        sliding-window-size: 10
+        # Минимальное количество вызовов для расчета статистики
+        minimum-number-of-calls: 5
+        # Процент неудачных вызовов для открытия Circuit Breaker
+        failure-rate-threshold: 50
+        # Время ожидания в открытом состоянии (мс)
+        wait-duration-in-open-state: 30000
+        # Количество разрешенных вызовов в HALF_OPEN состоянии
+        permitted-number-of-calls-in-half-open-state: 3
+        # Автоматический переход в HALF_OPEN состояние
+        automatic-transition-from-open-to-half-open-enabled: true
+        # Исключения, которые НЕ засчитываются как failure
+        ignore-exceptions:
+          - java.lang.IllegalArgumentException
+        # Исключения, которые засчитываются как failure
+        record-exceptions:
+          - org.gualsh.demo.curbreaker.exception.ExternalServiceException
+          - java.util.concurrent.TimeoutException
+          - org.springframework.web.reactive.function.client.WebClientRequestException
+
+      # Circuit Breaker для базы данных
+      database:
+        sliding-window-size: 15
+        minimum-number-of-calls: 8
+        failure-rate-threshold: 60
+        wait-duration-in-open-state: 60000
+        permitted-number-of-calls-in-half-open-state: 5
+        automatic-transition-from-open-to-half-open-enabled: true
+
+      # Circuit Breaker для email сервиса
+      emailService:
+        sliding-window-size: 20
+        minimum-number-of-calls: 10
+        failure-rate-threshold: 40
+        wait-duration-in-open-state: 45000
+        permitted-number-of-calls-in-half-open-state: 4
+        automatic-transition-from-open-to-half-open-enabled: true
+
+  # Конфигурация Retry (дополнительная resilience pattern)
+  retry:
+    instances:
+      externalApi:
+        max-attempts: 3
+        wait-duration: 1000
+        exponential-backoff-multiplier: 2
+
+  # Конфигурация Timeout
+  timelimiter:
+    instances:
+      externalApi:
+        timeout-duration: 5000
+        cancel-running-future: true
+
+# Конфигурация мониторинга
+management:
+  endpoints:
+    web:
+      exposure:
+        # Включаем endpoints для мониторинга Circuit Breaker
+        include: health,info,metrics,prometheus,circuitbreakers
+  endpoint:
+    health:
+      # Показываем детали health check
+      show-details: always
+  health:
+    circuitbreakers:
+      # Включаем Circuit Breaker в health check
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Настройки логирования
+logging:
+  level:
+    io.github.resilience4j: DEBUG
+    org.gualsh.demo.curbreaker: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Настройки для внешних сервисов (для демонстрации)
+external-services:
+  api:
+    base-url: "https://jsonplaceholder.typicode.com"
+    timeout: 5000
+  database:
+    connection-timeout: 3000
+  email:
+    smtp-timeout: 10000
