@@ -2,7 +2,8 @@ package org.gualsh.demo.curbreaker.service;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
-import lombok.RequiredArgsConstructor;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.curbreaker.exception.ExternalServiceException;
 import org.gualsh.demo.curbreaker.model.ApiResponse;
@@ -16,6 +17,7 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -23,17 +25,15 @@ import java.util.concurrent.ThreadLocalRandom;
  *
  * <h3>Образовательный момент:</h3>
  * <p>
- * Данный сервис демонстрирует различные способы использования Circuit Breaker
- * с reactive streams (WebFlux) для вызовов ВНЕШНИХ API. Показаны как синхронные,
- * так и асинхронные подходы с правильной обработкой ошибок и fallback механизмами.
+ * Данный сервис демонстрирует ДВА различных способа использования Circuit Breaker:
+ * 1. ПРОГРАММНЫЙ подход - с явным использованием CircuitBreaker API
+ * 2. АННОТАЦИОННЫЙ подход - с использованием @CircuitBreaker аннотации
  * </p>
  *
- * <p><strong>Ключевые принципы:</strong></p>
+ * <p><strong>Сравнение подходов:</strong></p>
  * <ul>
- *   <li>Правильная интеграция Circuit Breaker с reactive streams</li>
- *   <li>Meaningful fallback responses для внешних API</li>
- *   <li>Логирование для мониторинга и диагностики</li>
- *   <li>Обработка различных типов HTTP ошибок</li>
+ *   <li><strong>Программный:</strong> больше контроля, лучше для reactive streams</li>
+ *   <li><strong>Аннотационный:</strong> меньше кода, декларативный стиль, AOP</li>
  * </ul>
  *
  * <p><strong>Пример использования:</strong></p>
@@ -41,11 +41,13 @@ import java.util.concurrent.ThreadLocalRandom;
  * @Autowired
  * private ExternalApiService apiService;
  *
- * // Асинхронный вызов
- * Mono<ApiResponse> response = apiService.getPostAsync(1L);
+ * // Программный подход
+ * Mono<ApiResponse> response1 = apiService.getPostAsync(1L);
+ * ApiResponse response2 = apiService.getPost(1L);
  *
- * // Синхронный вызов
- * ApiResponse response = apiService.getPost(1L);
+ * // Аннотационный подход  
+ * CompletableFuture<ApiResponse> response3 = apiService.getPostWithAnnotation(1L);
+ * Mono<ApiResponse> response4 = apiService.getPostReactiveWithAnnotation(1L);
  * }</pre>
  *
  * @author Educational Demo
@@ -86,8 +88,12 @@ public class ExternalApiService {
         this.circuitBreaker = circuitBreaker;
     }
 
+    // ===============================
+    // ПРОГРАММНЫЙ ПОДХОД (оригинальные методы)
+    // ===============================
+
     /**
-     * Получение поста по ID (синхронная версия).
+     * Получение поста по ID (синхронная версия) - ПРОГРАММНЫЙ подход.
      *
      * <p><strong>Образовательный момент:</strong></p>
      * <p>
@@ -106,7 +112,7 @@ public class ExternalApiService {
      * @return данные поста или fallback
      */
     public ApiResponse getPost(Long id) {
-        log.debug("Синхронный запрос поста с ID: {}", id);
+        log.debug("Синхронный запрос поста с ID: {} (программный подход)", id);
 
         try {
             return circuitBreaker.executeSupplier(() -> {
@@ -140,7 +146,7 @@ public class ExternalApiService {
     }
 
     /**
-     * Получение поста по ID с использованием Circuit Breaker (асинхронно).
+     * Получение поста по ID с использованием Circuit Breaker (асинхронно) - ПРОГРАММНЫЙ подход.
      *
      * <p><strong>Образовательный момент:</strong></p>
      * <p>
@@ -161,7 +167,7 @@ public class ExternalApiService {
      * @return Mono с данными поста или fallback
      */
     public Mono<ApiResponse> getPostAsync(Long id) {
-        log.debug("Запрос поста с ID: {}", id);
+        log.debug("Запрос поста с ID: {} (программный подход)", id);
 
         return webClient.get()
             .uri("/posts/{id}", id)
@@ -185,6 +191,250 @@ public class ExternalApiService {
                 log.debug("Успешно получен пост: {}", response.getId());
             });
     }
+
+    // ===============================
+    // АННОТАЦИОННЫЙ ПОДХОД (новые методы)
+    // ===============================
+
+    /**
+     * Получение поста по ID с использованием @CircuitBreaker аннотации - АННОТАЦИОННЫЙ подход.
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Этот метод демонстрирует аннотационный подход к Circuit Breaker.
+     * Spring AOP автоматически применяет Circuit Breaker логику перед выполнением метода.
+     * Fallback метод вызывается автоматически при срабатывании Circuit Breaker.
+     * </p>
+     *
+     * <p><strong>Ключевые особенности:</strong></p>
+     * <ul>
+     *   <li>Декларативный стиль - логика Circuit Breaker скрыта в аннотации</li>
+     *   <li>Автоматический вызов fallback метода</li>
+     *   <li>Меньше кода - нет явной обработки ошибок</li>
+     *   <li>Работает через AOP прокси</li>
+     * </ul>
+     *
+     * <p><strong>Важно:</strong></p>
+     * <p>
+     * CompletableFuture используется для совместимости с аннотационным подходом.
+     * Для чисто reactive подходов лучше использовать программный вариант.
+     * </p>
+     *
+     * @param id идентификатор поста
+     * @return CompletableFuture с данными поста или fallback
+     */
+    @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "externalApi", fallbackMethod = "getPostAnnotationFallback")
+    @TimeLimiter(name = "externalApi")
+    @Retry(name = "externalApi")
+    public CompletableFuture<ApiResponse> getPostWithAnnotation(Long id) {
+        log.debug("Запрос поста с ID: {} (аннотационный подход)", id);
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                simulateExternalApiCall("getPost-" + id);
+                
+                ApiResponse response = webClient.get()
+                    .uri("/posts/{id}", id)
+                    .retrieve()
+                    .bodyToMono(ApiResponse.class)
+                    .timeout(Duration.ofSeconds(4))
+                    .block();
+                
+                log.debug("Успешно получен пост через аннотации: {}", response.getId());
+                return response;
+            } catch (WebClientResponseException e) {
+                log.error("HTTP ошибка при получении поста {}: {} - {}",
+                    id, e.getStatusCode(), e.getResponseBodyAsString());
+                throw new ExternalServiceException(
+                    "HTTP ошибка: " + e.getStatusCode(),
+                    e,
+                    e.getResponseBodyAsString()
+                );
+            } catch (Exception e) {
+                log.error("Техническая ошибка при получении поста {}: {}",
+                    id, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                throw new ExternalServiceException("Техническая ошибка", e);
+            }
+        });
+    }
+
+    /**
+     * Fallback метод для getPostWithAnnotation.
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Fallback методы должны иметь такую же сигнатуру как оригинальный метод,
+     * плюс дополнительный параметр Exception. Spring автоматически передает
+     * исключение, которое привело к вызову fallback.
+     * </p>
+     *
+     * <p><strong>Порядок обработки fallback:</strong></p>
+     * <ol>
+     *   <li>Spring ищет fallback с точным типом исключения</li>
+     *   <li>Если не найден, ищет fallback с родительским типом</li>
+     *   <li>В итоге использует fallback с Exception</li>
+     * </ol>
+     *
+     * @param id идентификатор поста  
+     * @param ex исключение, которое привело к fallback
+     * @return CompletableFuture с fallback данными
+     */
+    public CompletableFuture<ApiResponse> getPostAnnotationFallback(Long id, Exception ex) {
+        log.warn("Fallback для поста {} (аннотационный подход): {}",
+            id, ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName());
+        
+        return CompletableFuture.completedFuture(
+            ApiResponse.builder()
+                .id(id)
+                .title("Fallback через аннотации")
+                .body("Данные получены через fallback механизм аннотационного подхода. " +
+                    "Внешний API временно недоступен.")
+                .userId(0L)
+                .build()
+        );
+    }
+
+    /**
+     * Получение поста через аннотации с reactive подходом - ЭКСПЕРИМЕНТАЛЬНЫЙ.
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Этот метод показывает попытку использования аннотаций с reactive streams.
+     * ВАЖНО: это может работать не во всех случаях, так как аннотационный подход
+     * Resilience4j лучше работает с CompletableFuture, чем с Mono/Flux.
+     * </p>
+     *
+     * <p><strong>Рекомендация:</strong></p>
+     * <p>
+     * Для reactive приложений лучше использовать программный подход
+     * с CircuitBreakerOperator.of(circuitBreaker).
+     * </p>
+     *
+     * @param id идентификатор поста
+     * @return Mono с данными поста или fallback
+     */
+    @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "externalApi", fallbackMethod = "getPostReactiveFallback")
+    public Mono<ApiResponse> getPostReactiveWithAnnotation(Long id) {
+        log.debug("Reactive запрос поста с ID: {} (аннотационный подход)", id);
+
+        return Mono.fromCallable(() -> {
+                simulateExternalApiCall("getPostReactive-" + id);
+                return "success";
+            })
+            .then(webClient.get()
+                .uri("/posts/{id}", id)
+                .retrieve()
+                .bodyToMono(ApiResponse.class)
+                .timeout(Duration.ofSeconds(4))
+            )
+            .doOnSuccess(response -> {
+                log.debug("Успешно получен пост через reactive аннотации: {}", response.getId());
+            });
+    }
+
+    /**
+     * Fallback для reactive метода с аннотациями.
+     *
+     * @param id идентификатор поста
+     * @param ex исключение
+     * @return Mono с fallback данными
+     */
+    public Mono<ApiResponse> getPostReactiveFallback(Long id, Exception ex) {
+        log.warn("Reactive fallback для поста {} (аннотационный подход): {}",
+            id, ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName());
+        
+        return Mono.just(
+            ApiResponse.builder()
+                .id(id)
+                .title("Reactive Fallback через аннотации")
+                .body("Reactive данные получены через fallback механизм. " +
+                    "Внешний API временно недоступен.")
+                .userId(0L)
+                .build()
+        );
+    }
+
+    /**
+     * Комбинированное использование нескольких resilience patterns - АННОТАЦИОННЫЙ подход.
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Этот метод демонстрирует мощь аннотационного подхода - возможность легко
+     * комбинировать несколько resilience patterns:
+     * </p>
+     * <ul>
+     *   <li>@CircuitBreaker - защита от каскадных сбоев</li>
+     *   <li>@TimeLimiter - ограничение времени выполнения</li>
+     *   <li>@Retry - повторные попытки при временных сбоях</li>
+     * </ul>
+     *
+     * <p><strong>Порядок применения:</strong></p>
+     * <ol>
+     *   <li>Retry - внутренний слой (самый близкий к методу)</li>
+     *   <li>TimeLimiter - средний слой</li>
+     *   <li>CircuitBreaker - внешний слой</li>
+     * </ol>
+     *
+     * @param id идентификатор поста
+     * @return CompletableFuture с данными поста
+     */
+    @io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker(name = "externalApi", fallbackMethod = "getRobustPostFallback")
+    @TimeLimiter(name = "externalApi")
+    @Retry(name = "externalApi")
+    public CompletableFuture<ApiResponse> getRobustPost(Long id) {
+        log.debug("Robust запрос поста с ID: {} (комбинированные аннотации)", id);
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                // Увеличиваем вероятность ошибок для демонстрации retry
+                if (ThreadLocalRandom.current().nextDouble() < 0.3) {
+                    throw new ExternalServiceException("Временная ошибка для демонстрации retry");
+                }
+                
+                simulateExternalApiCall("getRobustPost-" + id);
+                
+                ApiResponse response = webClient.get()
+                    .uri("/posts/{id}", id)
+                    .retrieve()
+                    .bodyToMono(ApiResponse.class)
+                    .timeout(Duration.ofSeconds(3))
+                    .block();
+                
+                log.debug("Успешно получен robust пост: {}", response.getId());
+                return response;
+            } catch (Exception e) {
+                log.error("Ошибка в robust методе для поста {}: {}", id, e.getMessage());
+                throw new ExternalServiceException("Robust метод ошибка", e);
+            }
+        });
+    }
+
+    /**
+     * Fallback для комбинированного метода.
+     *
+     * @param id идентификатор поста
+     * @param ex исключение
+     * @return CompletableFuture с fallback данными
+     */
+    public CompletableFuture<ApiResponse> getRobustPostFallback(Long id, Exception ex) {
+        log.warn("Robust fallback для поста {} (комбинированные аннотации): {}",
+            id, ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName());
+        
+        return CompletableFuture.completedFuture(
+            ApiResponse.builder()
+                .id(id)
+                .title("Robust Fallback")
+                .body("Данные получены через robust fallback после применения " +
+                    "Circuit Breaker + TimeLimiter + Retry. Все попытки исчерпаны.")
+                .userId(0L)
+                .build()
+        );
+    }
+
+    // ===============================
+    // ОСТАЛЬНЫЕ МЕТОДЫ
+    // ===============================
+
     /**
      * Получение списка всех постов с Circuit Breaker (асинхронно).
      *
