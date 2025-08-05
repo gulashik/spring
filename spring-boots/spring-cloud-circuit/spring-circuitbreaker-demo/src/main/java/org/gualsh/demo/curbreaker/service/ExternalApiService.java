@@ -87,53 +87,6 @@ public class ExternalApiService {
     }
 
     /**
-     * Получение поста по ID с использованием Circuit Breaker (асинхронно).
-     *
-     * <p><strong>Образовательный момент:</strong></p>
-     * <p>
-     * Данный метод показывает правильную интеграцию Circuit Breaker с reactive streams.
-     * CircuitBreakerOperator.of(circuitBreaker) оборачивает Mono и применяет
-     * логику Circuit Breaker автоматически.
-     * </p>
-     *
-     * <p><strong>Важные особенности:</strong></p>
-     * <ul>
-     *   <li>onErrorResume для graceful fallback</li>
-     *   <li>doOnError для логирования</li>
-     *   <li>timeout для предотвращения долгих ожиданий</li>
-     *   <li>Правильная обработка HTTP ошибок</li>
-     * </ul>
-     *
-     * @param id идентификатор поста
-     * @return Mono с данными поста или fallback
-     */
-    public Mono<ApiResponse> getPostAsync(Long id) {
-        log.debug("Запрос поста с ID: {}", id);
-
-        return webClient.get()
-            .uri("/posts/{id}", id)
-            .retrieve()
-            .bodyToMono(ApiResponse.class)
-            // Применяем Circuit Breaker к reactive stream
-            .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
-            // Устанавливаем timeout (должен быть меньше Circuit Breaker timeout)
-            .timeout(Duration.ofSeconds(4))
-            // Логируем ошибки перед fallback
-            .doOnError(throwable -> {
-                log.error("Ошибка при получении поста {}: {}", id, throwable.getMessage());
-            })
-            // Fallback при любой ошибке
-            .onErrorResume(throwable -> {
-                log.warn("Использование fallback для поста {}: {}", id, throwable.getMessage());
-                return Mono.just(createFallbackPost(id));
-            })
-            // Логируем успешные результаты
-            .doOnSuccess(response -> {
-                log.debug("Успешно получен пост: {}", response.getId());
-            });
-    }
-
-    /**
      * Получение поста по ID (синхронная версия).
      *
      * <p><strong>Образовательный момент:</strong></p>
@@ -187,7 +140,53 @@ public class ExternalApiService {
     }
 
     /**
-     * Получение списка всех постов с Circuit Breaker.
+     * Получение поста по ID с использованием Circuit Breaker (асинхронно).
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Данный метод показывает правильную интеграцию Circuit Breaker с reactive streams.
+     * CircuitBreakerOperator.of(circuitBreaker) оборачивает Mono и применяет
+     * логику Circuit Breaker автоматически.
+     * </p>
+     *
+     * <p><strong>Важные особенности:</strong></p>
+     * <ul>
+     *   <li>onErrorResume для graceful fallback</li>
+     *   <li>doOnError для логирования</li>
+     *   <li>timeout для предотвращения долгих ожиданий</li>
+     *   <li>Правильная обработка HTTP ошибок</li>
+     * </ul>
+     *
+     * @param id идентификатор поста
+     * @return Mono с данными поста или fallback
+     */
+    public Mono<ApiResponse> getPostAsync(Long id) {
+        log.debug("Запрос поста с ID: {}", id);
+
+        return webClient.get()
+            .uri("/posts/{id}", id)
+            .retrieve()
+            .bodyToMono(ApiResponse.class)
+            // Применяем Circuit Breaker к reactive stream
+            .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+            // Устанавливаем timeout (должен быть меньше Circuit Breaker timeout)
+            .timeout(Duration.ofSeconds(4))
+            // Логируем ошибки перед fallback
+            .doOnError(throwable -> {
+                log.error("Ошибка при получении поста {}: {}", id, throwable.getMessage());
+            })
+            // Fallback при любой ошибке
+            .onErrorResume(throwable -> {
+                log.warn("Использование fallback для поста {}: {}", id, throwable.getMessage());
+                return Mono.just(createFallbackPost(id));
+            })
+            // Логируем успешные результаты
+            .doOnSuccess(response -> {
+                log.debug("Успешно получен пост: {}", response.getId());
+            });
+    }
+    /**
+     * Получение списка всех постов с Circuit Breaker (асинхронно).
      *
      * <p><strong>Образовательный момент:</strong></p>
      * <p>
