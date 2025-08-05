@@ -11,18 +11,10 @@ import org.springframework.context.event.EventListener;
 /**
  * Конфигурация Circuit Breaker с дополнительными настройками и мониторингом.
  *
- * <h3>Образовательный момент:</h3>
  * <p>
  * Данный класс демонстрирует программную конфигурацию Circuit Breaker в дополнение
  * к настройкам из application.yml. Здесь мы добавляем event listeners для мониторинга
  * изменений состояния Circuit Breaker.
- * </p>
- *
- * <p><strong>Важное о циклических зависимостях:</strong></p>
- * <p>
- * В Spring Boot с автоконфигурацией Resilience4j может возникнуть циклическая зависимость,
- * если неправильно инжектить CircuitBreakerRegistry. Решение - использовать @EventListener
- * для настройки после полной инициализации контекста.
  * </p>
  *
  * <p><strong>Основные преимущества программной конфигурации:</strong></p>
@@ -43,9 +35,6 @@ import org.springframework.context.event.EventListener;
  * circuitBreaker.executeSupplier(() -> externalApiCall());
  * }</pre>
  *
- * @author Educational Demo
- * @see CircuitBreakerRegistry
- * @see CircuitBreaker
  */
 @Slf4j
 @Configuration
