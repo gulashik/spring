@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.curbreaker.exception.ExternalServiceException;
 import org.gualsh.demo.curbreaker.model.ApiResponse;
-import org.gualsh.demo.curbreaker.model.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -25,16 +24,16 @@ import java.util.concurrent.ThreadLocalRandom;
  * <h3>Образовательный момент:</h3>
  * <p>
  * Данный сервис демонстрирует различные способы использования Circuit Breaker
- * с reactive streams (WebFlux). Показаны как синхронные, так и асинхронные подходы
- * с правильной обработкой ошибок и fallback механизмами.
+ * с reactive streams (WebFlux) для вызовов ВНЕШНИХ API. Показаны как синхронные,
+ * так и асинхронные подходы с правильной обработкой ошибок и fallback механизмами.
  * </p>
  *
  * <p><strong>Ключевые принципы:</strong></p>
  * <ul>
  *   <li>Правильная интеграция Circuit Breaker с reactive streams</li>
- *   <li>Meaningful fallback responses</li>
+ *   <li>Meaningful fallback responses для внешних API</li>
  *   <li>Логирование для мониторинга и диагностики</li>
- *   <li>Обработка различных типов ошибок</li>
+ *   <li>Обработка различных типов HTTP ошибок</li>
  * </ul>
  *
  * <p><strong>Пример использования:</strong></p>
@@ -55,13 +54,37 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class ExternalApiService {
 
     private final WebClient webClient;
-
-    @Qualifier("externalApiCircuitBreaker")
     private final CircuitBreaker circuitBreaker;
+
+    /**
+     * Конструктор с явным указанием @Qualifier для Circuit Breaker.
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Lombok @RequiredArgsConstructor НЕ УМЕЕТ корректно обрабатывать @Qualifier аннотации.
+     * Поэтому для dependency injection с qualifiers необходимо использовать явные конструкторы.
+     * </p>
+     *
+     * <p><strong>Альтернативы:</strong></p>
+     * <ul>
+     *   <li>Явный конструктор (рекомендуется) - показан здесь</li>
+     *   <li>Field injection с @Autowired + @Qualifier</li>
+     *   <li>Setter injection (не рекомендуется)</li>
+     * </ul>
+     *
+     * @param webClient настроенный WebClient для HTTP вызовов
+     * @param circuitBreaker Circuit Breaker для внешнего API
+     */
+    public ExternalApiService(
+        WebClient webClient,
+        @Qualifier("externalApiCircuitBreaker") CircuitBreaker circuitBreaker
+    ) {
+        this.webClient = webClient;
+        this.circuitBreaker = circuitBreaker;
+    }
 
     /**
      * Получение поста по ID с использованием Circuit Breaker (асинхронно).
@@ -97,186 +120,254 @@ public class ExternalApiService {
             .timeout(Duration.ofSeconds(4))
             // Логируем ошибки перед fallback
             .doOnError(throwable -> {
-                log.error("Ошибка сохранения пользователя через Circuit Breaker: {}",
-                    throwable.getMessage());
-
-                // Для операций записи fallback может быть проблематичным
-                // В реальном приложении стоит рассмотреть retry pattern или queue
-                throw new RuntimeException("Невозможно сохранить пользователя: сервис БД недоступен",
-                    throwable);
+                log.error("Ошибка при получении поста {}: {}", id, throwable.getMessage());
+            })
+            // Fallback при любой ошибке
+            .onErrorResume(throwable -> {
+                log.warn("Использование fallback для поста {}: {}", id, throwable.getMessage());
+                return Mono.just(createFallbackPost(id));
+            })
+            // Логируем успешные результаты
+            .doOnSuccess(response -> {
+                log.debug("Успешно получен пост: {}", response.getId());
             });
     }
 
     /**
-     * Удаление пользователя с Circuit Breaker защитой.
+     * Получение поста по ID (синхронная версия).
      *
      * <p><strong>Образовательный момент:</strong></p>
      * <p>
-     * Операции удаления также требуют осторожности с fallback логикой.
-     * Неудачное удаление не должно создавать ложное впечатление успеха.
+     * Иногда требуется синхронный API. В этом случае мы блокируем reactive stream
+     * и используем CircuitBreaker.executeSupplier для синхронного выполнения.
+     * Fallback обрабатывается через try-catch, так как executeSupplier не имеет recover().
      * </p>
      *
-     * @param id идентификатор пользователя для удаления
-     * @return true если удален успешно
+     * <p><strong>Важно:</strong></p>
+     * <p>
+     * block() блокирует текущий поток, что может негативно влиять на производительность
+     * в reactive приложениях. Используйте только когда действительно необходимо.
+     * </p>
+     *
+     * @param id идентификатор поста
+     * @return данные поста или fallback
      */
-    public boolean deleteById(Long id) {
-        log.debug("Удаление пользователя с ID: {}", id);
+    public ApiResponse getPost(Long id) {
+        log.debug("Синхронный запрос поста с ID: {}", id);
 
-        return circuitBreaker.executeSupplier(() -> {
-            simulateDatabaseOperation("deleteById");
-
-            User removed = database.remove(id);
-            boolean success = removed != null;
-
-            if (success) {
-                log.debug("Пользователь {} удален успешно", id);
-            } else {
-                log.debug("Пользователь {} не найден для удаления", id);
-            }
-
-            return success;
-        }).recover(throwable -> {
-            log.error("Ошибка удаления пользователя {} через Circuit Breaker: {}",
-                id, throwable.getMessage());
-
-            // Для операций удаления не возвращаем false, так как это может ввести в заблуждение
-            throw new RuntimeException("Невозможно удалить пользователя: сервис БД недоступен",
-                throwable);
-        });
+        try {
+            return circuitBreaker.executeSupplier(() -> {
+                try {
+                    return webClient.get()
+                        .uri("/posts/{id}", id)
+                        .retrieve()
+                        .bodyToMono(ApiResponse.class)
+                        .timeout(Duration.ofSeconds(4))
+                        .block();
+                } catch (WebClientResponseException e) {
+                    log.error("HTTP ошибка при получении поста {}: {} - {}",
+                        id, e.getStatusCode(), e.getResponseBodyAsString());
+                    throw new ExternalServiceException(
+                        "HTTP ошибка: " + e.getStatusCode(),
+                        e,
+                        e.getResponseBodyAsString()
+                    );
+                } catch (Exception e) {
+                    log.error("Техническая ошибка при получении поста {}: {}",
+                        id, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                    throw new ExternalServiceException("Техническая ошибка", e);
+                }
+            });
+        } catch (Exception e) {
+            // Fallback при любых ошибках (включая Circuit Breaker)
+            log.warn("Circuit Breaker fallback для поста {}: {}",
+                id, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+            return createFallbackPost(id);
+        }
     }
 
     /**
-     * Проверка доступности базы данных.
+     * Получение списка всех постов с Circuit Breaker.
      *
      * <p><strong>Образовательный момент:</strong></p>
      * <p>
-     * Health check операции полезны для мониторинга и могут использоваться
-     * системами оркестрации для принятия решений о маршрутизации трафика.
+     * Для операций, возвращающих коллекции, важно предоставлять разумные fallback
+     * значения. Пустой список часто лучше, чем исключение для пользовательского опыта.
      * </p>
      *
-     * @return true если БД доступна
+     * @return Flux со списком постов
      */
-    public boolean isHealthy() {
+    public Flux<ApiResponse> getAllPostsAsync() {
+        log.debug("Запрос всех постов");
+
+        return webClient.get()
+            .uri("/posts")
+            .retrieve()
+            .bodyToFlux(ApiResponse.class)
+            .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+            .timeout(Duration.ofSeconds(10))
+            .doOnError(throwable -> {
+                log.error("Ошибка при получении списка постов: {}", throwable.getMessage());
+            })
+            .onErrorResume(throwable -> {
+                log.warn("Использование fallback списка постов: {}", throwable.getMessage());
+                return Flux.fromIterable(createFallbackPosts());
+            })
+            .doOnComplete(() -> {
+                log.debug("Успешно получен список постов");
+            });
+    }
+
+    /**
+     * Демонстрация работы с Circuit Breaker в разных состояниях.
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Этот метод позволяет протестировать различные сценарии работы Circuit Breaker:
+     * успех, ошибка, timeout. Полезно для понимания поведения в разных ситуациях.
+     * </p>
+     *
+     * @param scenario тип сценария: "success", "error", "timeout"
+     * @return результат выполнения сценария
+     */
+    public Mono<String> testCircuitBreakerScenario(String scenario) {
+        log.info("Тестирование сценария Circuit Breaker: {}", scenario);
+
+        return Mono.fromSupplier(() -> {
+                switch (scenario.toLowerCase()) {
+                    case "success":
+                        simulateExternalApiCall("success");
+                        return "Успешное выполнение операции внешнего API";
+                    case "error":
+                        throw new ExternalServiceException("Симуляция ошибки внешнего API сервиса");
+                    case "timeout":
+                        try {
+                            Thread.sleep(6000); // больше timeout Circuit Breaker
+                            return "Этот результат не должен вернуться";
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new ExternalServiceException("Прервано во время ожидания", e);
+                        }
+                    default:
+                        throw new IllegalArgumentException("Неизвестный сценарий: " + scenario);
+                }
+            })
+            .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
+            .timeout(Duration.ofSeconds(5))
+            .onErrorResume(throwable -> {
+                log.warn("Fallback для сценария {}: {}", scenario, throwable.getMessage());
+                return Mono.just("Fallback результат для сценария: " + scenario);
+            });
+    }
+
+    /**
+     * Проверка доступности внешнего API.
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Health check для внешних API помогает определить доступность сервиса
+     * и может использоваться для принятия решений о маршрутизации.
+     * Fallback обрабатывается через try-catch, так как executeSupplier не имеет recover().
+     * </p>
+     *
+     * @return true если внешний API доступен
+     */
+    public boolean isExternalApiHealthy() {
         try {
             return circuitBreaker.executeSupplier(() -> {
-                simulateDatabaseOperation("healthCheck");
+                simulateExternalApiCall("healthCheck");
                 return true;
-            }).recover(throwable -> false);
+            });
         } catch (Exception e) {
+            log.warn("External API health check failed: {}",
+                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             return false;
         }
     }
 
     /**
-     * Имитация операций с базой данных с возможными ошибками.
+     * Создание fallback поста для graceful degradation.
      *
      * <p><strong>Образовательный момент:</strong></p>
      * <p>
-     * Этот метод симулирует реальные проблемы БД: медленные запросы, timeouts,
-     * connection issues. В реальном приложении такие проблемы происходят
-     * непредсказуемо.
+     * Хорошие fallback данные должны быть meaningful для пользователя.
+     * Избегайте null значений и предоставляйте информативные сообщения.
      * </p>
      *
-     * @param operation название операции
+     * @param id идентификатор поста
+     * @return fallback пост
      */
-    private void simulateDatabaseOperation(String operation) {
-        try {
-            // Симуляция времени выполнения запроса (50-200ms нормально)
-            int delay = ThreadLocalRandom.current().nextInt(50, 200);
-            Thread.sleep(delay);
-
-            // Симуляция случайных ошибок (5% вероятность)
-            if (ThreadLocalRandom.current().nextDouble() < 0.05) {
-                // Симуляция различных типов ошибок БД
-                double errorType = ThreadLocalRandom.current().nextDouble();
-
-                if (errorType < 0.3) {
-                    throw new RuntimeException("Database connection timeout");
-                } else if (errorType < 0.6) {
-                    throw new RuntimeException("Database lock timeout");
-                } else {
-                    throw new RuntimeException("Database connection pool exhausted");
-                }
-            }
-
-            // Симуляция медленных запросов (2% вероятность)
-            if (ThreadLocalRandom.current().nextDouble() < 0.02) {
-                log.warn("Медленный запрос БД для операции: {}", operation);
-                Thread.sleep(4000); // больше timeout Circuit Breaker
-            }
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Database operation interrupted", e);
-        }
-    }
-
-    /**
-     * Создание fallback пользователя.
-     *
-     * @param id идентификатор пользователя
-     * @return fallback пользователь
-     */
-    private User createFallbackUser(Long id) {
-        return User.builder()
+    private ApiResponse createFallbackPost(Long id) {
+        return ApiResponse.builder()
             .id(id)
-            .name("Пользователь недоступен")
-            .email("unavailable@system.local")
-            .additionalInfo("Данные временно недоступны из-за проблем с БД")
+            .title("Внешний сервис временно недоступен")
+            .body("К сожалению, внешний API временно недоступен. " +
+                "Попробуйте обновить страницу через несколько минут.")
+            .userId(0L)
             .build();
     }
 
     /**
-     * Создание fallback списка пользователей.
+     * Создание fallback списка постов.
      *
-     * @return минимальный список пользователей
+     * @return список fallback постов
      */
-    private List<User> createFallbackUserList() {
+    private List<ApiResponse> createFallbackPosts() {
         return Arrays.asList(
-            User.builder()
-                .id(1L)
-                .name("Системный пользователь")
-                .email("system@fallback.local")
-                .additionalInfo("Cached данные")
+            createFallbackPost(1L),
+            ApiResponse.builder()
+                .id(2L)
+                .title("Кэшированные данные")
+                .body("Отображаются последние кэшированные данные из внешнего API.")
+                .userId(0L)
                 .build()
         );
     }
 
     /**
-     * Генерация следующего ID для новых пользователей.
+     * Имитация вызова внешнего API с возможными проблемами.
      *
-     * @return новый уникальный ID
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Этот метод симулирует реальные проблемы внешних API: network timeouts,
+     * rate limiting, service unavailability. В реальном приложении такие проблемы
+     * происходят непредсказуемо.
+     * </p>
+     *
+     * @param operation название операции для логирования
+     * @throws RuntimeException при симуляции ошибок внешнего API
      */
-    private Long generateNextId() {
-        return database.keySet().stream()
-            .mapToLong(Long::longValue)
-            .max()
-            .orElse(0L) + 1;
-    }
+    private void simulateExternalApiCall(String operation) {
+        try {
+            // Симуляция нормального времени выполнения HTTP запроса (100-300ms)
+            int delay = ThreadLocalRandom.current().nextInt(100, 300);
+            Thread.sleep(delay);
 
-    /**
-     * Инициализация тестовых данных.
-     */
-    private void initializeTestData() {
-        database.put(1L, User.builder()
-            .id(1L)
-            .name("Иван Петров")
-            .email("ivan.petrov@example.com")
-            .additionalInfo("Администратор системы")
-            .build());
+            // Симуляция случайных ошибок внешнего API (7% вероятность)
+            if (ThreadLocalRandom.current().nextDouble() < 0.07) {
+                // Различные типы ошибок внешних API
+                double errorType = ThreadLocalRandom.current().nextDouble();
 
-        database.put(2L, User.builder()
-            .id(2L)
-            .name("Мария Сидорова")
-            .email("maria.sidorova@example.com")
-            .additionalInfo("Менеджер проекта")
-            .build());
+                if (errorType < 0.3) {
+                    throw new RuntimeException("External API connection timeout");
+                } else if (errorType < 0.6) {
+                    throw new RuntimeException("External API rate limit exceeded");
+                } else if (errorType < 0.8) {
+                    throw new RuntimeException("External API service unavailable (503)");
+                } else {
+                    throw new RuntimeException("External API authentication failed (401)");
+                }
+            }
 
-        database.put(3L, User.builder()
-            .id(3L)
-            .name("Алексей Иванов")
-            .email("alexey.ivanov@example.com")
-            .additionalInfo("Разработчик")
-            .build());
+            // Симуляция медленных ответов от внешнего API (3% вероятность)
+            if (ThreadLocalRandom.current().nextDouble() < 0.03) {
+                log.warn("Медленный ответ от внешнего API для операции: {} (> 5s)", operation);
+                Thread.sleep(6000); // больше timeout Circuit Breaker
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("External API call interrupted: " + operation, e);
+        }
     }
 }
