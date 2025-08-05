@@ -80,9 +80,9 @@ management:
     circuitbreakers:
       # Включаем Circuit Breaker в health check
       enabled: true
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
 
 # Настройки логирования
