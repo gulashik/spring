@@ -1,7 +1,6 @@
 package org.gualsh.demo.curbreaker.service;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.curbreaker.model.EmailRequest;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -55,11 +54,24 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class EmailService {
 
-    @Qualifier("emailServiceCircuitBreaker")
     private final CircuitBreaker circuitBreaker;
+
+    /**
+     * Конструктор с явным указанием @Qualifier для Circuit Breaker.
+     *
+     * <p><strong>Образовательный момент:</strong></p>
+     * <p>
+     * Lombok @RequiredArgsConstructor НЕ УМЕЕТ корректно обрабатывать @Qualifier аннотации.
+     * Поэтому для dependency injection с qualifiers необходимо использовать явные конструкторы.
+     * </p>
+     *
+     * @param circuitBreaker Circuit Breaker для email сервиса
+     */
+    public EmailService(@Qualifier("emailServiceCircuitBreaker") CircuitBreaker circuitBreaker) {
+        this.circuitBreaker = circuitBreaker;
+    }
 
     /**
      * Отправка email с Circuit Breaker защитой.
@@ -69,6 +81,7 @@ public class EmailService {
      * Метод демонстрирует использование Circuit Breaker для защиты от проблем
      * с внешними email провайдерами. При срабатывании Circuit Breaker email
      * сохраняется в очередь для последующей отправки.
+     * Fallback обрабатывается через try-catch, так как executeSupplier не имеет recover().
      * </p>
      *
      * <p><strong>Важные аспекты:</strong></p>
@@ -91,24 +104,26 @@ public class EmailService {
             return false;
         }
 
-        return circuitBreaker.executeSupplier(() -> {
-            // Симуляция отправки email
-            simulateEmailSending(emailRequest);
+        try {
+            return circuitBreaker.executeSupplier(() -> {
+                // Симуляция отправки email
+                simulateEmailSending(emailRequest);
 
-            log.info("Email успешно отправлен: {} -> {} [{}]",
-                emailRequest.getFrom(),
-                emailRequest.getTo(),
-                emailRequest.getSubject());
+                log.info("Email успешно отправлен: {} -> {} [{}]",
+                    emailRequest.getFrom(),
+                    emailRequest.getTo(),
+                    emailRequest.getSubject());
 
-            return true;
-
-        }).recover(throwable -> {
+                return true;
+            });
+        } catch (Exception e) {
             log.warn("Email Circuit Breaker fallback для {}: {}",
-                emailRequest.getTo(), throwable.getMessage());
+                emailRequest.getTo(),
+                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
 
             // Fallback: сохраняем в очередь для последующей отправки
             return queueEmailForLaterDelivery(emailRequest);
-        });
+        }
     }
 
     /**
@@ -161,13 +176,12 @@ public class EmailService {
 
                 // Небольшая задержка между отправками для соблюдения rate limits
                 Thread.sleep(100);
-
-            } catch (Exception e) {
-                log.error("Ошибка при bulk отправке email {}: {}", email.getTo(), e.getMessage());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.error("Bulk отправка прервана");
                 break;
+            } catch (Exception e) {
+                log.error("Ошибка при bulk отправке email {}: {}", email.getTo(), e.getMessage());
             }
         }
 
@@ -186,8 +200,10 @@ public class EmailService {
                 // Простая проверка доступности
                 simulateEmailServiceHealthCheck();
                 return true;
-            }).recover(throwable -> false);
+            });
         } catch (Exception e) {
+            log.warn("Email service health check failed: {}",
+                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             return false;
         }
     }
