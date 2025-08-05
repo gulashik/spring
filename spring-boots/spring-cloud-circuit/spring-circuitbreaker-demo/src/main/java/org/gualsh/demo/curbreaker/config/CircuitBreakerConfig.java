@@ -115,9 +115,9 @@ public class CircuitBreakerConfig {
      *
      * <p><strong>Образовательный момент:</strong></p>
      * <p>
-     * @EventListener(ContextRefreshedEvent.class) гарантирует, что все beans уже созданы
-     * и нет риска циклической зависимости. Event listeners позволяют отслеживать
-     * изменения состояния Circuit Breaker и реагировать на них.
+     * @EventListener(ContextRefreshedEvent.class) вызывается после полной инициализации
+     * контекста Spring. Мы получаем CircuitBreakerRegistry через ApplicationContext,
+     * чтобы избежать проблем с типами параметров.
      * </p>
      *
      * <p><strong>Типы событий Circuit Breaker:</strong></p>
@@ -141,11 +141,15 @@ public class CircuitBreakerConfig {
      *   <li>Custom logging systems</li>
      * </ul>
      *
-     * @param registry CircuitBreakerRegistry с уже созданными Circuit Breaker instances
+     * @param event событие завершения инициализации контекста
      */
     @EventListener(ContextRefreshedEvent.class)
-    public void configureEventListeners(CircuitBreakerRegistry registry) {
+    public void configureEventListeners(ContextRefreshedEvent event) {
         log.info("Настройка event listeners для Circuit Breakers...");
+
+        // Получаем CircuitBreakerRegistry из контекста
+        CircuitBreakerRegistry registry = event.getApplicationContext()
+            .getBean(CircuitBreakerRegistry.class);
 
         // Добавляем event listeners для всех Circuit Breaker instances
         registry.getAllCircuitBreakers().forEach(circuitBreaker -> {
@@ -154,65 +158,65 @@ public class CircuitBreakerConfig {
 
             // Слушатель изменений состояния (самый важный для мониторинга)
             circuitBreaker.getEventPublisher()
-                .onStateTransition(event -> {
+                .onStateTransition(stateEvent -> {
                     log.warn("🔄 Circuit Breaker [{}] изменил состояние: {} -> {} (причина: {})",
-                        event.getCircuitBreakerName(),
-                        event.getStateTransition().getFromState(),
-                        event.getStateTransition().getToState(),
-                        event.getStateTransition().getFromState() != event.getStateTransition().getToState()
+                        stateEvent.getCircuitBreakerName(),
+                        stateEvent.getStateTransition().getFromState(),
+                        stateEvent.getStateTransition().getToState(),
+                        stateEvent.getStateTransition().getFromState() != stateEvent.getStateTransition().getToState()
                             ? "threshold exceeded" : "recovery detected");
 
                     // Здесь можно добавить отправку алертов
-                    sendStateChangeAlert(event.getCircuitBreakerName(),
-                        event.getStateTransition().getFromState(),
-                        event.getStateTransition().getToState());
+                    sendStateChangeAlert(stateEvent.getCircuitBreakerName(),
+                        stateEvent.getStateTransition().getFromState(),
+                        stateEvent.getStateTransition().getToState());
                 });
 
             // Слушатель успешных вызовов (для статистики)
             circuitBreaker.getEventPublisher()
-                .onSuccess(event -> {
+                .onSuccess(successEvent -> {
                     log.debug("✅ Circuit Breaker [{}] успешный вызов за {}ms",
-                        event.getCircuitBreakerName(),
-                        event.getElapsedDuration().toMillis());
+                        successEvent.getCircuitBreakerName(),
+                        successEvent.getElapsedDuration().toMillis());
 
                     // Можно собирать статистику производительности
-                    recordSuccessMetric(event.getCircuitBreakerName(),
-                        event.getElapsedDuration().toMillis());
+                    recordSuccessMetric(successEvent.getCircuitBreakerName(),
+                        successEvent.getElapsedDuration().toMillis());
                 });
 
             // Слушатель ошибок (для диагностики)
             circuitBreaker.getEventPublisher()
-                .onError(event -> {
+                .onError(errorEvent -> {
                     log.warn("❌ Circuit Breaker [{}] ошибка за {}ms: {}",
-                        event.getCircuitBreakerName(),
-                        event.getElapsedDuration().toMillis(),
-                        event.getThrowable().getMessage() != null
-                            ? event.getThrowable().getMessage()
-                            : event.getThrowable().getClass().getSimpleName());
+                        errorEvent.getCircuitBreakerName(),
+                        errorEvent.getElapsedDuration().toMillis(),
+                        errorEvent.getThrowable().getMessage() != null
+                            ? errorEvent.getThrowable().getMessage()
+                            : errorEvent.getThrowable().getClass().getSimpleName());
 
                     // Можно собирать статистику ошибок
-                    recordErrorMetric(event.getCircuitBreakerName(),
-                        event.getThrowable());
+                    recordErrorMetric(errorEvent.getCircuitBreakerName(),
+                        errorEvent.getThrowable());
                 });
 
             // Слушатель отклоненных вызовов (когда Circuit Breaker в состоянии OPEN)
             circuitBreaker.getEventPublisher()
-                .onCallNotPermitted(event -> {
+                .onCallNotPermitted(notPermittedEvent -> {
                     log.warn("🚫 Circuit Breaker [{}] отклонил вызов - состояние OPEN",
-                        event.getCircuitBreakerName());
+                        notPermittedEvent.getCircuitBreakerName());
 
                     // Можно увеличивать счетчик отклоненных вызовов
-                    recordRejectedCallMetric(event.getCircuitBreakerName());
+                    recordRejectedCallMetric(notPermittedEvent.getCircuitBreakerName());
                 });
 
             // Слушатель игнорируемых ошибок (для понимания конфигурации)
             circuitBreaker.getEventPublisher()
-                .onIgnoredError(event -> {
+                .onIgnoredError(ignoredErrorEvent -> {
                     log.debug("⚠️ Circuit Breaker [{}] игнорировал ошибку: {}",
-                        event.getCircuitBreakerName(),
-                        event.getThrowable().getMessage() != null
-                            ? event.getThrowable().getMessage()
-                            : event.getThrowable().getClass().getSimpleName());
+                        ignoredErrorEvent.getCircuitBreakerName(),
+                        ignoredErrorEvent.getThrowable().getMessage() != null
+                            ? ignoredErrorEvent.getThrowable().getMessage()
+                            : ignoredErrorEvent.getThrowable().getClass().getSimpleName());
                 });
         });
 
