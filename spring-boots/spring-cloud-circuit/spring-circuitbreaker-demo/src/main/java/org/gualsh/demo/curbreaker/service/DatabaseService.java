@@ -1,7 +1,6 @@
 package org.gualsh.demo.curbreaker.service;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.curbreaker.model.User;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -74,19 +73,8 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DatabaseService {
 
-    /**
-     * Circuit Breaker для операций с базой данных.
-     *
-     * <p><strong>Образовательный момент:</strong></p>
-     * <p>
-     * @Qualifier используется для инжекции конкретного Circuit Breaker bean,
-     * так как в приложении может быть несколько Circuit Breaker для разных сервисов.
-     * </p>
-     */
-    @Qualifier("databaseCircuitBreaker")
     private final CircuitBreaker circuitBreaker;
 
     /**
@@ -102,15 +90,18 @@ public class DatabaseService {
     private final Map<Long, User> database = new ConcurrentHashMap<>();
 
     /**
-     * Инициализация тестовых данных при создании сервиса.
+     * Конструктор с явным указанием @Qualifier для Circuit Breaker.
      *
      * <p><strong>Образовательный момент:</strong></p>
      * <p>
-     * Блок инициализации выполняется при создании экземпляра класса.
-     * В реальном приложении данные бы загружались из реальной БД.
+     * Lombok @RequiredArgsConstructor НЕ УМЕЕТ корректно обрабатывать @Qualifier аннотации.
+     * Поэтому для dependency injection с qualifiers необходимо использовать явные конструкторы.
      * </p>
+     *
+     * @param circuitBreaker Circuit Breaker для базы данных
      */
-    {
+    public DatabaseService(@Qualifier("databaseCircuitBreaker") CircuitBreaker circuitBreaker) {
+        this.circuitBreaker = circuitBreaker;
         initializeTestData();
     }
 
@@ -121,13 +112,13 @@ public class DatabaseService {
      * <p>
      * Метод демонстрирует использование CircuitBreaker.executeSupplier() для
      * синхронных операций с БД. При срабатывании Circuit Breaker возвращается
-     * cached пользователь через recover() метод.
+     * cached пользователь через try-catch fallback.
      * </p>
      *
      * <p><strong>Важные аспекты реализации:</strong></p>
      * <ul>
      *   <li>executeSupplier() - для операций, возвращающих значение</li>
-     *   <li>recover() - fallback логика при ошибках</li>
+     *   <li>try-catch - fallback логика при ошибках (НЕ recover()!)</li>
      *   <li>Логирование на разных уровнях для мониторинга</li>
      *   <li>Graceful degradation с meaningful данными</li>
      * </ul>
@@ -145,25 +136,27 @@ public class DatabaseService {
     public User findById(Long id) {
         log.debug("Поиск пользователя с ID: {}", id);
 
-        return circuitBreaker.executeSupplier(() -> {
-            // Симуляция работы с БД с возможными проблемами
-            simulateDatabaseOperation("findById");
+        try {
+            return circuitBreaker.executeSupplier(() -> {
+                // Симуляция работы с БД с возможными проблемами
+                simulateDatabaseOperation("findById");
 
-            User user = database.get(id);
-            if (user != null) {
-                log.debug("Пользователь найден: {} ({})", user.getName(), user.getEmail());
-            } else {
-                log.debug("Пользователь с ID {} не найден в базе данных", id);
-            }
+                User user = database.get(id);
+                if (user != null) {
+                    log.debug("Пользователь найден: {} ({})", user.getName(), user.getEmail());
+                } else {
+                    log.debug("Пользователь с ID {} не найден в базе данных", id);
+                }
 
-            return user;
-        }).recover(throwable -> {
+                return user;
+            });
+        } catch (Exception e) {
             log.warn("Database Circuit Breaker fallback для пользователя {}: {}",
-                id, throwable.getMessage());
+                id, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
 
             // Fallback: возвращаем cached данные или системного пользователя
             return createFallbackUser(id);
-        });
+        }
     }
 
     /**
@@ -189,23 +182,24 @@ public class DatabaseService {
     public List<User> findAll() {
         log.debug("Получение списка всех пользователей");
 
-        return circuitBreaker.executeSupplier(() -> {
-            simulateDatabaseOperation("findAll");
+        try {
+            return circuitBreaker.executeSupplier(() -> {
+                simulateDatabaseOperation("findAll");
 
-            List<User> users = new ArrayList<>(database.values());
-            // Сортируем по ID для предсказуемого порядка
-            users.sort(Comparator.comparing(User::getId));
+                List<User> users = new ArrayList<>(database.values());
+                // Сортируем по ID для предсказуемого порядка
+                users.sort(Comparator.comparing(User::getId));
 
-            log.debug("Найдено {} пользователей в базе данных", users.size());
-            return users;
-
-        }).recover(throwable -> {
+                log.debug("Найдено {} пользователей в базе данных", users.size());
+                return users;
+            });
+        } catch (Exception e) {
             log.warn("Database Circuit Breaker fallback для списка пользователей: {}",
-                throwable.getMessage());
+                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
 
             // Fallback: возвращаем минимальный набор cached данных
             return createFallbackUserList();
-        });
+        }
     }
 
     /**
@@ -241,39 +235,40 @@ public class DatabaseService {
     public User save(User user) {
         log.debug("Сохранение пользователя: {} ({})", user.getName(), user.getEmail());
 
-        return circuitBreaker.executeSupplier(() -> {
-            simulateDatabaseOperation("save");
+        try {
+            return circuitBreaker.executeSupplier(() -> {
+                simulateDatabaseOperation("save");
 
-            // Генерируем ID если его нет (имитация auto-increment)
-            if (user.getId() == null) {
-                user.setId(generateNextId());
-            }
+                // Генерируем ID если его нет (имитация auto-increment)
+                if (user.getId() == null) {
+                    user.setId(generateNextId());
+                }
 
-            // Создаем копию для сохранения (defensive copying)
-            User userToSave = User.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .additionalInfo(user.getAdditionalInfo())
-                .build();
+                // Создаем копию для сохранения (defensive copying)
+                User userToSave = User.builder()
+                    .id(user.getId())
+                    .name(user.getName())
+                    .email(user.getEmail())
+                    .additionalInfo(user.getAdditionalInfo())
+                    .build();
 
-            database.put(userToSave.getId(), userToSave);
-            log.info("Пользователь сохранен успешно с ID: {}", userToSave.getId());
+                database.put(userToSave.getId(), userToSave);
+                log.info("Пользователь сохранен успешно с ID: {}", userToSave.getId());
 
-            return userToSave;
-
-        }).recover(throwable -> {
+                return userToSave;
+            });
+        } catch (Exception e) {
             log.error("Ошибка сохранения пользователя '{}' через Circuit Breaker: {}",
-                user.getName(), throwable.getMessage());
+                user.getName(), e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
 
             // Для операций записи НЕ делаем fallback с фиктивными данными
             // Лучше честно сообщить об ошибке
             throw new RuntimeException(
                 "Невозможно сохранить пользователя: сервис базы данных временно недоступен. " +
                     "Попробуйте повторить операцию через несколько минут.",
-                throwable
+                e
             );
-        });
+        }
     }
 
     /**
@@ -301,34 +296,35 @@ public class DatabaseService {
     public boolean deleteById(Long id) {
         log.debug("Удаление пользователя с ID: {}", id);
 
-        return circuitBreaker.executeSupplier(() -> {
-            simulateDatabaseOperation("deleteById");
+        try {
+            return circuitBreaker.executeSupplier(() -> {
+                simulateDatabaseOperation("deleteById");
 
-            User removed = database.remove(id);
-            boolean success = removed != null;
+                User removed = database.remove(id);
+                boolean success = removed != null;
 
-            if (success) {
-                log.info("Пользователь {} ('{}') удален успешно", id, removed.getName());
-            } else {
-                log.debug("Пользователь {} не найден для удаления (уже удален или не существовал)", id);
-                // Для идемпотентности возвращаем true даже если пользователь не найден
-                success = true;
-            }
+                if (success) {
+                    log.info("Пользователь {} ('{}') удален успешно", id, removed.getName());
+                } else {
+                    log.debug("Пользователь {} не найден для удаления (уже удален или не существовал)", id);
+                    // Для идемпотентности возвращаем true даже если пользователь не найден
+                    success = true;
+                }
 
-            return success;
-
-        }).recover(throwable -> {
+                return success;
+            });
+        } catch (Exception e) {
             log.error("Ошибка удаления пользователя {} через Circuit Breaker: {}",
-                id, throwable.getMessage());
+                id, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
 
             // Для операций удаления не возвращаем false, так как это может ввести в заблуждение
             // Лучше выбросить исключение и позволить клиенту решить, что делать
             throw new RuntimeException(
                 "Невозможно удалить пользователя: сервис базы данных временно недоступен. " +
                     "Попробуйте повторить операцию через несколько минут.",
-                throwable
+                e
             );
-        });
+        }
     }
 
     /**
@@ -346,24 +342,25 @@ public class DatabaseService {
     public List<User> findByEmailDomain(String domain) {
         log.debug("Поиск пользователей с email доменом: {}", domain);
 
-        return circuitBreaker.executeSupplier(() -> {
-            simulateDatabaseOperation("findByEmailDomain");
+        try {
+            return circuitBreaker.executeSupplier(() -> {
+                simulateDatabaseOperation("findByEmailDomain");
 
-            List<User> result = database.values().stream()
-                .filter(user -> user.getEmail().endsWith("@" + domain))
-                .sorted(Comparator.comparing(User::getId))
-                .toList();
+                List<User> result = database.values().stream()
+                    .filter(user -> user.getEmail().endsWith("@" + domain))
+                    .sorted(Comparator.comparing(User::getId))
+                    .toList();
 
-            log.debug("Найдено {} пользователей с доменом {}", result.size(), domain);
-            return result;
-
-        }).recover(throwable -> {
+                log.debug("Найдено {} пользователей с доменом {}", result.size(), domain);
+                return result;
+            });
+        } catch (Exception e) {
             log.warn("Database Circuit Breaker fallback для поиска по домену {}: {}",
-                domain, throwable.getMessage());
+                domain, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
 
             // Для поисковых запросов возвращаем пустой список
             return Collections.emptyList();
-        });
+        }
     }
 
     /**
@@ -396,12 +393,10 @@ public class DatabaseService {
                 log.debug("Database health check: {} записей в базе", recordCount);
 
                 return recordCount >= 0; // Всегда true для демонстрации
-            }).recover(throwable -> {
-                log.warn("Database health check failed: {}", throwable.getMessage());
-                return false;
             });
         } catch (Exception e) {
-            log.error("Unexpected error during database health check", e);
+            log.warn("Database health check failed: {}",
+                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             return false;
         }
     }
@@ -418,20 +413,23 @@ public class DatabaseService {
      * @return Map с статистикой БД
      */
     public Map<String, Object> getDatabaseStats() {
-        return circuitBreaker.executeSupplier(() -> {
-            simulateDatabaseOperation("getDatabaseStats");
+        try {
+            return circuitBreaker.executeSupplier(() -> {
+                simulateDatabaseOperation("getDatabaseStats");
 
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("totalUsers", database.size());
-            stats.put("emailDomains", database.values().stream()
-                .map(user -> user.getEmail().substring(user.getEmail().indexOf("@") + 1))
-                .distinct()
-                .count());
-            stats.put("lastUpdate", java.time.LocalDateTime.now());
+                Map<String, Object> stats = new HashMap<>();
+                stats.put("totalUsers", database.size());
+                stats.put("emailDomains", database.values().stream()
+                    .map(user -> user.getEmail().substring(user.getEmail().indexOf("@") + 1))
+                    .distinct()
+                    .count());
+                stats.put("lastUpdate", java.time.LocalDateTime.now());
 
-            return stats;
-        }).recover(throwable -> {
-            log.warn("Database stats Circuit Breaker fallback: {}", throwable.getMessage());
+                return stats;
+            });
+        } catch (Exception e) {
+            log.warn("Database stats Circuit Breaker fallback: {}",
+                e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
 
             // Fallback статистика
             Map<String, Object> fallbackStats = new HashMap<>();
@@ -440,7 +438,7 @@ public class DatabaseService {
             fallbackStats.put("lastUpdate", java.time.LocalDateTime.now());
 
             return fallbackStats;
-        });
+        }
     }
 
     /**
