@@ -2,6 +2,8 @@ package org.gualsh.demo.curbreaker.service;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
+import io.github.resilience4j.reactor.retry.RetryOperator;
+import io.github.resilience4j.reactor.timelimiter.TimeLimiterOperator;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +47,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * Mono<ApiResponse> response1 = apiService.getPostAsync(1L);
  * ApiResponse response2 = apiService.getPost(1L);
  *
- * // Аннотационный подход  
+ * // Аннотационный подход
  * CompletableFuture<ApiResponse> response3 = apiService.getPostWithAnnotation(1L);
  * Mono<ApiResponse> response4 = apiService.getPostReactiveWithAnnotation(1L);
  * }</pre>
@@ -59,7 +61,9 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ExternalApiService {
 
     private final WebClient webClient;
-    private final CircuitBreaker circuitBreaker;
+    private final io.github.resilience4j.circuitbreaker.CircuitBreaker circuitBreaker;
+    private final io.github.resilience4j.timelimiter.TimeLimiter timeLimiter;
+    private final io.github.resilience4j.retry.Retry retry;
 
     /**
      * Конструктор с явным указанием @Qualifier для Circuit Breaker.
@@ -77,19 +81,24 @@ public class ExternalApiService {
      *   <li>Setter injection (не рекомендуется)</li>
      * </ul>
      *
-     * @param webClient настроенный WebClient для HTTP вызовов
+     * @param webClient      настроенный WebClient для HTTP вызовов
      * @param circuitBreaker Circuit Breaker для внешнего API
      */
     public ExternalApiService(
         WebClient webClient,
-        @Qualifier("externalApiCircuitBreaker") CircuitBreaker circuitBreaker
+        @Qualifier("externalApiCircuitBreaker") io.github.resilience4j.circuitbreaker.CircuitBreaker circuitBreaker,
+        @Qualifier("externalApiTimeLimiter") io.github.resilience4j.timelimiter.TimeLimiter timeLimiter,
+        @Qualifier("externalApiRetry") io.github.resilience4j.retry.Retry retry
+
     ) {
         this.webClient = webClient;
         this.circuitBreaker = circuitBreaker;
+        this.timeLimiter = timeLimiter;
+        this.retry = retry;
     }
 
     // ===============================
-    // ПРОГРАММНЫЙ ПОДХОД (оригинальные методы)
+    // ПРОГРАММНЫЙ ПОДХОД 
     // ===============================
 
     /**
@@ -112,34 +121,50 @@ public class ExternalApiService {
      * @return данные поста или fallback
      */
     public ApiResponse getPost(Long id) {
-        log.debug("Синхронный запрос поста с ID: {} (программный подход)", id);
+        log.info("Синхронный запрос поста с ID: {} (программный подход с Retry + TimeLimiter + CircuitBreaker)", id);
 
         try {
+            // Комбинируем все три паттерна: CircuitBreaker, TimeLimiter и Retry
+            // CircuitBreaker
             return circuitBreaker.executeSupplier(() -> {
-                try {
-                    return webClient.get()
-                        .uri("/posts/{id}", id)
-                        .retrieve()
-                        .bodyToMono(ApiResponse.class)
-                        .timeout(Duration.ofSeconds(4))
-                        .block();
-                } catch (WebClientResponseException e) {
-                    log.error("HTTP ошибка при получении поста {}: {} - {}",
-                        id, e.getStatusCode(), e.getResponseBodyAsString());
-                    throw new ExternalServiceException(
-                        "HTTP ошибка: " + e.getStatusCode(),
-                        e,
-                        e.getResponseBodyAsString()
-                    );
-                } catch (Exception e) {
-                    log.error("Техническая ошибка при получении поста {}: {}",
-                        id, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
-                    throw new ExternalServiceException("Техническая ошибка", e);
+                    try {
+                        // TimeLimiter
+                        return timeLimiter.executeFutureSupplier(() ->
+                            CompletableFuture.supplyAsync(() ->
+                                // Retry
+                                retry.executeSupplier(() -> {
+                                        try {
+                                            log.debug("Выполняю HTTP запрос для поста {}", id);
+                                            return webClient.get()
+                                                .uri("/posts/{id}", id)
+                                                .retrieve()
+                                                .bodyToMono(ApiResponse.class)
+                                                .block(); // Блокируем для синхронного API
+                                        } catch (WebClientResponseException e) {
+                                            log.error("HTTP ошибка при получении поста {}: {} - {}",
+                                                id, e.getStatusCode(), e.getResponseBodyAsString());
+                                            throw new ExternalServiceException(
+                                                "HTTP ошибка: " + e.getStatusCode(),
+                                                e,
+                                                e.getResponseBodyAsString()
+                                            );
+                                        } catch (Exception e) {
+                                            log.error("Техническая ошибка при получении поста {}: {}",
+                                                id, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+                                            throw new ExternalServiceException("Техническая ошибка", e);
+                                        }
+                                    }
+                                )
+                            )
+                        );
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-            });
+            );
         } catch (Exception e) {
-            // Fallback при любых ошибках (включая Circuit Breaker)
-            log.warn("Circuit Breaker fallback для поста {}: {}",
+            // Fallback при любых ошибках (включая Circuit Breaker, TimeLimiter, Retry)
+            log.warn("Fallback для поста {} после исчерпания всех попыток: {}",
                 id, e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
             return createFallbackPost(id);
         }
@@ -167,29 +192,28 @@ public class ExternalApiService {
      * @return Mono с данными поста или fallback
      */
     public Mono<ApiResponse> getPostAsync(Long id) {
-        log.debug("Запрос поста с ID: {} (программный подход)", id);
+        log.info("Запрос поста с ID: {} (программный подход с Retry + TimeLimiter + CircuitBreaker)", id);
 
         return webClient.get()
             .uri("/posts/{id}", id)
             .retrieve()
             .bodyToMono(ApiResponse.class)
-            // Применяем Circuit Breaker к reactive stream
+            // Применяем операторы в правильном порядке:
+            // 1. Retry - самый внутренний (ближе к HTTP вызову)
+            .transformDeferred(RetryOperator.of(retry))
+            // 2. TimeLimiter - средний слой
+            .transformDeferred(TimeLimiterOperator.of(timeLimiter))
+            // 3. CircuitBreaker - внешний слой
             .transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
-            // Устанавливаем timeout (должен быть меньше Circuit Breaker timeout)
-            .timeout(Duration.ofSeconds(4))
-            // Логируем ошибки перед fallback
-            .doOnError(throwable -> {
-                log.error("Ошибка при получении поста {}: {}", id, throwable.getMessage());
-            })
-            // Fallback при любой ошибке
-            .onErrorResume(throwable -> {
-                log.warn("Использование fallback для поста {}: {}", id, throwable.getMessage());
-                return Mono.just(createFallbackPost(id));
-            })
-            // Логируем успешные результаты
-            .doOnSuccess(response -> {
-                log.debug("Успешно получен пост: {}", response.getId());
-            });
+            .doOnSubscribe(subscription -> log.debug("Подписка на получение поста {}", id))
+            .doOnNext(response -> log.info("Успешно получен пост: {}", response.getTitle()))
+            .doOnError(error -> log.error("Ошибка при получении поста {}: {}", id, error.getMessage()))
+            .onErrorResume(this::handleError);
+    }
+
+    private Mono<ApiResponse> handleError(Throwable error) {
+        log.warn("Применяем fallback из-за ошибки: {}", error.getMessage());
+        return Mono.just(createFallbackPost(null));
     }
 
     // ===============================
@@ -232,14 +256,14 @@ public class ExternalApiService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 simulateExternalApiCall("getPost-" + id);
-                
+
                 ApiResponse response = webClient.get()
                     .uri("/posts/{id}", id)
                     .retrieve()
                     .bodyToMono(ApiResponse.class)
                     .timeout(Duration.ofSeconds(4))
                     .block();
-                
+
                 log.debug("Успешно получен пост через аннотации: {}", response.getId());
                 return response;
             } catch (WebClientResponseException e) {
@@ -275,14 +299,14 @@ public class ExternalApiService {
      *   <li>В итоге использует fallback с Exception</li>
      * </ol>
      *
-     * @param id идентификатор поста  
+     * @param id идентификатор поста
      * @param ex исключение, которое привело к fallback
      * @return CompletableFuture с fallback данными
      */
     public CompletableFuture<ApiResponse> getPostAnnotationFallback(Long id, Exception ex) {
         log.warn("Fallback для поста {} (аннотационный подход): {}",
             id, ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName());
-        
+
         return CompletableFuture.completedFuture(
             ApiResponse.builder()
                 .id(id)
@@ -342,7 +366,7 @@ public class ExternalApiService {
     public Mono<ApiResponse> getPostReactiveFallback(Long id, Exception ex) {
         log.warn("Reactive fallback для поста {} (аннотационный подход): {}",
             id, ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName());
-        
+
         return Mono.just(
             ApiResponse.builder()
                 .id(id)
@@ -390,16 +414,16 @@ public class ExternalApiService {
                 if (ThreadLocalRandom.current().nextDouble() < 0.3) {
                     throw new ExternalServiceException("Временная ошибка для демонстрации retry");
                 }
-                
+
                 simulateExternalApiCall("getRobustPost-" + id);
-                
+
                 ApiResponse response = webClient.get()
                     .uri("/posts/{id}", id)
                     .retrieve()
                     .bodyToMono(ApiResponse.class)
                     .timeout(Duration.ofSeconds(3))
                     .block();
-                
+
                 log.debug("Успешно получен robust пост: {}", response.getId());
                 return response;
             } catch (Exception e) {
@@ -419,7 +443,7 @@ public class ExternalApiService {
     public CompletableFuture<ApiResponse> getRobustPostFallback(Long id, Exception ex) {
         log.warn("Robust fallback для поста {} (комбинированные аннотации): {}",
             id, ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName());
-        
+
         return CompletableFuture.completedFuture(
             ApiResponse.builder()
                 .id(id)

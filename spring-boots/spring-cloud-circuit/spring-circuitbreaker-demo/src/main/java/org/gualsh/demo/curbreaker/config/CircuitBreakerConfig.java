@@ -2,6 +2,10 @@ package org.gualsh.demo.curbreaker.config;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryRegistry;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,6 +67,16 @@ public class CircuitBreakerConfig {
     @Bean(name = "externalApiCircuitBreaker")
     public CircuitBreaker externalApiCircuitBreaker(CircuitBreakerRegistry registry) {
         return registry.circuitBreaker("externalApi");
+    }
+
+    @Bean(name = "externalApiTimeLimiter")
+    public TimeLimiter externalApiTimeLimiter(TimeLimiterRegistry registry) {
+        return registry.timeLimiter("externalApi");
+    }
+
+    @Bean(name = "externalApiRetry")
+    public Retry externalApiRetry(RetryRegistry registry) {
+        return registry.retry("externalApi");
     }
 
     /**

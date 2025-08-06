@@ -3,18 +3,15 @@ package org.gualsh.demo.curbreaker.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gualsh.demo.curbreaker.model.ApiResponse;
-import org.gualsh.demo.curbreaker.model.EmailRequest;
-import org.gualsh.demo.curbreaker.model.User;
-import org.gualsh.demo.curbreaker.service.DatabaseService;
-import org.gualsh.demo.curbreaker.service.EmailService;
 import org.gualsh.demo.curbreaker.service.ExternalApiService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import jakarta.validation.Valid;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,10 +40,7 @@ import java.util.Map;
  *   <li>GET /api/test/scenario/{scenario} - тест различных сценариев</li>
  * </ul>
  *
- * @author Educational Demo
  * @see ExternalApiService
- * @see DatabaseService
- * @see EmailService
  */
 @Slf4j
 @RestController
@@ -55,8 +49,6 @@ import java.util.Map;
 public class DemoController {
 
     private final ExternalApiService externalApiService;
-    private final DatabaseService databaseService;
-    private final EmailService emailService;
 
     /**
      * Получение поста из внешнего API (асинхронно).
@@ -124,128 +116,6 @@ public class DemoController {
             });
     }
 
-    /**
-     * Получение пользователя из базы данных.
-     *
-     * <p><strong>Образовательный момент:</strong></p>
-     * <p>
-     * Синхронный endpoint для демонстрации работы Circuit Breaker с
-     * блокирующими операциями (например, JPA repositories).
-     * </p>
-     *
-     * @param id идентификатор пользователя
-     * @return пользователь или 404 если не найден
-     */
-    @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
-        log.info("Запрос пользователя с ID: {}", id);
-
-        try {
-            User user = databaseService.findById(id);
-
-            if (user == null) {
-                return ResponseEntity.notFound().build();
-            }
-
-            if (user.getName().contains("недоступен")) {
-                // Fallback данные - возвращаем 503 Service Unavailable
-                return ResponseEntity.status(503).body(user);
-            }
-
-            return ResponseEntity.ok(user);
-
-        } catch (Exception e) {
-            log.error("Ошибка при получении пользователя {}: {}", id, e.getMessage());
-
-            User errorUser = User.builder()
-                .id(id)
-                .name("Ошибка сервиса")
-                .email("error@system.local")
-                .additionalInfo("Произошла ошибка: " + e.getMessage())
-                .build();
-
-            return ResponseEntity.status(500).body(errorUser);
-        }
-    }
-
-    /**
-     * Получение всех пользователей.
-     *
-     * @return список всех пользователей
-     */
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
-        log.info("Запрос всех пользователей");
-
-        try {
-            List<User> users = databaseService.findAll();
-            return ResponseEntity.ok(users);
-
-        } catch (Exception e) {
-            log.error("Ошибка при получении всех пользователей: {}", e.getMessage());
-            return ResponseEntity.status(500).body(List.of());
-        }
-    }
-
-    /**
-     * Создание нового пользователя.
-     *
-     * @param user данные пользователя
-     * @return созданный пользователь
-     */
-    @PostMapping("/users")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        log.info("Создание пользователя: {}", user.getName());
-
-        try {
-            User savedUser = databaseService.save(user);
-            return ResponseEntity.status(201).body(savedUser);
-
-        } catch (Exception e) {
-            log.error("Ошибка при создании пользователя: {}", e.getMessage());
-            return ResponseEntity.status(500).build();
-        }
-    }
-
-    /**
-     * Отправка email.
-     *
-     * <p><strong>Образовательный момент:</strong></p>
-     * <p>
-     * Endpoint для тестирования email сервиса с Circuit Breaker.
-     * Демонстрирует правильную обработку ошибок отправки.
-     * </p>
-     *
-     * @param emailRequest запрос на отправку email
-     * @return результат отправки
-     */
-    @PostMapping("/email/send")
-    public ResponseEntity<Map<String, Object>> sendEmail(@Valid @RequestBody EmailRequest emailRequest) {
-        log.info("Отправка email: {} -> {}", emailRequest.getFrom(), emailRequest.getTo());
-
-        try {
-            boolean sent = emailService.sendEmail(emailRequest);
-
-            Map<String, Object> response = Map.of(
-                "success", sent,
-                "message", sent ? "Email отправлен успешно" : "Email поставлен в очередь",
-                "to", emailRequest.getTo()
-            );
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            log.error("Ошибка при отправке email: {}", e.getMessage());
-
-            Map<String, Object> response = Map.of(
-                "success", false,
-                "message", "Ошибка отправки email: " + e.getMessage(),
-                "to", emailRequest.getTo()
-            );
-
-            return ResponseEntity.status(500).body(response);
-        }
-    }
 
     /**
      * Тестирование различных сценариев Circuit Breaker.
@@ -282,66 +152,5 @@ public class DemoController {
                 );
                 return Mono.just(ResponseEntity.status(500).body(response));
             });
-    }
-
-    /**
-     * Health check endpoint для мониторинга состояния сервисов.
-     *
-     * <p><strong>Образовательный момент:</strong></p>
-     * <p>
-     * Health check endpoint полезен для мониторинга состояния различных
-     * сервисов через Circuit Breaker. Может использоваться load balancer'ами
-     * и системами оркестрации.
-     * </p>
-     *
-     * @return состояние всех сервисов
-     */
-    @GetMapping("/health/services")
-    public ResponseEntity<Map<String, Object>> getServicesHealth() {
-        log.debug("Проверка состояния сервисов");
-
-        Map<String, Object> health = Map.of(
-            "database", databaseService.isHealthy(),
-            "email", emailService.isEmailServiceHealthy(),
-            "timestamp", java.time.LocalDateTime.now().toString()
-        );
-
-        boolean allHealthy = health.values().stream()
-            .filter(Boolean.class::isInstance)
-            .map(Boolean.class::cast)
-            .allMatch(Boolean::booleanValue);
-
-        return ResponseEntity
-            .status(allHealthy ? 200 : 503)
-            .body(Map.of(
-                "status", allHealthy ? "UP" : "DOWN",
-                "services", health
-            ));
-    }
-
-    /**
-     * Информация о приложении.
-     *
-     * @return информация о приложении и версиях
-     */
-    @GetMapping("/info")
-    public ResponseEntity<Map<String, Object>> getInfo() {
-        Map<String, Object> info = Map.of(
-            "application", "Spring Circuit Breaker Demo",
-            "version", "1.0.0",
-            "springBoot", "3.3.4",
-            "resilience4j", "2.2.0",
-            "description", "Образовательный проект для демонстрации Spring Cloud Circuit Breaker",
-            "endpoints", Map.of(
-                "external_api", "/api/external/posts/{id}",
-                "database", "/api/users/{id}",
-                "email", "/api/email/send",
-                "test_scenarios", "/api/test/scenario/{scenario}",
-                "health", "/api/health/services",
-                "actuator", "/actuator"
-            )
-        );
-
-        return ResponseEntity.ok(info);
     }
 }
