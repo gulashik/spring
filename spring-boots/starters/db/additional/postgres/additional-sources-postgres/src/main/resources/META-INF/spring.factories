@@ -1,9 +1,0 @@
-# =============================================================================
-# spring.factories — в Spring Boot 3.x используется ТОЛЬКО для extension-механизмов,
-# которые ещё не получили свой собственный .imports-файл.
-#
-# Здесь регистрируется наш FailureAnalyzer: он не относится к auto-configuration,
-# поэтому файл AutoConfiguration.imports тут не подходит.
-# =============================================================================
-org.springframework.boot.diagnostics.FailureAnalyzer=\
-  org.gulash.demo.starter.postgres.AdditionalDataSourceFailureAnalyzer

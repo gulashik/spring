@@ -22,9 +22,7 @@ import org.springframework.core.env.Environment;
  * <h2>Точка входа стартера</h2>
  * Этот класс регистрируется через файл
  * {@code META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports}
- * — это <strong>современный</strong> механизм Spring Boot 3.x. Старый механизм
- * {@code spring.factories} (ключ {@code EnableAutoConfiguration}) <em>удалён</em> в
- * Boot 3.x — намеренно не используем его, чтобы соответствовать актуальному API.
+ * — это <strong>современный</strong> механизм Spring Boot 3.x.
  *
  * <h2>Аннотация {@link AutoConfiguration}</h2>
  * Это «специализированный» {@code @Configuration} для авто-конфигов. Главное отличие —

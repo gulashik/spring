@@ -23,7 +23,6 @@
 | `@ConfigurationProperties` (record, конструкторное связывание, Map<String, X>)   | `AdditionalSourcesProperties.java`, `DataSourceProperties.java`         |
 | Динамическая регистрация бинов через `BeanDefinitionRegistryPostProcessor`       | `AdditionalDataSourceRegistrar.java`                                    |
 | Условия активации: `@ConditionalOnClass`, `@AutoConfigureBefore`, FilteredClassLoader | `AdditionalPostgresAutoConfiguration.java`, тесты                  |
-| `FailureAnalyzer` + `META-INF/spring.factories`                                  | `AdditionalDataSourceFailureAnalyzer.java`                              |
 | Опциональная Actuator-интеграция (HealthIndicator)                               | `AdditionalDataSourceHealthIndicator.java`                              |
 | Метаданные конфигурации (`additional-spring-configuration-metadata.json`)        | `META-INF/additional-spring-configuration-metadata.json`                |
 | `publishToMavenLocal` для распространения стартера                               | `additional-sources-postgres/build.gradle.kts`                          |
@@ -129,8 +128,7 @@ cd ../dwh && ./gradlew test
 | HealthIndicator стандартный покрывает только основной DataSource | Свой `AdditionalDataSourceHealthIndicator` + регистрация в `ContextRefreshedEvent` |
 | `ConditionalOnProperty` не умеет различать `Map`-маркер        | «Софт-выключение» в Registrar при пустой карте                          |
 | Hikari «утечка» при остановке контекста                        | `setDestroyMethodName("close")` в BeanDefinition                        |
-| Spring Boot 3 **не использует** `spring.factories` для авто-конфигов | Используется `META-INF/spring/...AutoConfiguration.imports`        |
-| `spring.factories` **всё ещё нужен** для FailureAnalyzer       | Файл оставлен только под этот ключ                                      |
+
 
 ---
 

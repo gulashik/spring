@@ -18,7 +18,7 @@ app:
 
 ## Что регистрируется
 
-Для каждой записи карты `app.datasources.<name>` стартер создаёт три бина:
+Для каждой записи map-ы `app.datasources.<name>` стартер создаёт три бина:
 
 | Имя бина                      | Тип                                |
 | ----------------------------- | ---------------------------------- |
@@ -45,8 +45,10 @@ class DictionaryDao {
 ## Сборка и публикация
 
 ```bash
-./gradlew build               # тесты + сборка
-./gradlew publishToMavenLocal # положить в ~/.m2/repository
+# тесты + сборка
+./gradlew build
+# положить в ~/.m2/repository
+./gradlew publishToMavenLocal 
 ```
 
 ## Подключение в потребителе (Gradle)
