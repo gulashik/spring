@@ -1,0 +1,25 @@
+{
+  "groups": [
+    {
+      "name": "app.datasources",
+      "type": "java.util.Map<java.lang.String,org.gulash.demo.starter.postgres.DataSourceProperties>",
+      "description": "Карта именованных дополнительных PostgreSQL-источников. Ключ — логическое имя (становится префиксом имён бинов: <name>DataSource, <name>JdbcTemplate)."
+    }
+  ],
+  "properties": [
+    {
+      "name": "app.datasources",
+      "type": "java.util.Map<java.lang.String,org.gulash.demo.starter.postgres.DataSourceProperties>",
+      "description": "Карта дополнительных Postgres-источников."
+    }
+  ],
+  "hints": [
+    {
+      "name": "app.datasources.keys",
+      "values": [
+        { "value": "dictionary", "description": "Справочная БД." },
+        { "value": "history", "description": "БД исторических данных." }
+      ]
+    }
+  ]
+}

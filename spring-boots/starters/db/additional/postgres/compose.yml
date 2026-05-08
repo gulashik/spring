@@ -1,0 +1,101 @@
+# =====================================================================================
+# Демонстрационный compose-файл для проекта.
+#
+# Запускает три независимых экземпляра PostgreSQL 16:
+#   - dwh         (основная БД "хранилища" — используется приложением dwh напрямую)
+#   - dictionary  (справочная БД — подключается через стартер additional-sources-postgres)
+#   - history     (БД исторических данных — подключается через стартер)
+#
+# Зачем три отдельных контейнера, а не три БД в одном:
+#   - реалистичнее: в проде каждая БД, как правило, живёт на своём сервере;
+#   - изолированы ресурсы (shared_buffers, WAL и т.п.) и сбои;
+#   - наглядно показано, что стартер реально работает с РАЗНЫМИ источниками данных.
+#
+# Замечание о версии: ключ `version:` в Compose v2 устарел (deprecated) и не указывается
+# намеренно. Современный Docker/Podman compose сам определяет схему.
+#
+# Использование:
+#   docker compose up -d        # или: podman compose up -d
+#   docker compose ps
+#   docker compose logs -f dwh
+#   docker compose down -v      # -v очистит volume'ы (полная очистка данных)
+#
+# Подводные камни:
+#   - В macOS/Windows Docker Desktop порты ниже 1024 могут конфликтовать; здесь все порты
+#     >= 5432, но если у вас уже запущен локальный PostgreSQL на 5432 — будет ошибка
+#     "port is already allocated". Поэтому "dwh" слушает на 5433, "dictionary" 5434,
+#     "history" 5435. Порты в самом контейнере всегда 5432 — это внутренний контракт
+#     PostgreSQL, его менять не нужно.
+#   - healthcheck использует `pg_isready` — это самый дешёвый способ узнать, что инстанс
+#     принимает соединения (без открытия SQL-сессии).
+#   - Тома именованные — данные сохраняются между перезапусками. Удалить можно `down -v`.
+# =====================================================================================
+
+services:
+
+  postgres-dwh:
+    image: postgres:16.4-alpine
+    container_name: demo-postgres-dwh
+    environment:
+      POSTGRES_DB: dwh
+      POSTGRES_USER: dwh
+      POSTGRES_PASSWORD: dwh
+      # TZ важно фиксировать: иначе TIMESTAMP WITHOUT TIME ZONE в разных окружениях
+      # будет интерпретироваться по-разному. Для DWH типична UTC.
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-dwh-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U dwh -d dwh" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  postgres-dictionary:
+    image: postgres:16.4-alpine
+    container_name: demo-postgres-dictionary
+    environment:
+      POSTGRES_DB: dictionary
+      POSTGRES_USER: dictionary
+      POSTGRES_PASSWORD: dictionary
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres-dictionary-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U dictionary -d dictionary" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  postgres-history:
+    image: postgres:16.4-alpine
+    container_name: demo-postgres-history
+    environment:
+      POSTGRES_DB: history
+      POSTGRES_USER: history
+      POSTGRES_PASSWORD: history
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres-history-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U history -d history" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  postgres-dwh-data:
+  postgres-dictionary-data:
+  postgres-history-data:

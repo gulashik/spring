@@ -1,0 +1,72 @@
+# =====================================================================================
+# application.yml — единственная конфигурация приложения dwh.
+#
+# Намеренно ОДИН профиль (без application-dev.yml / application-prod.yml). Цель —
+# не отвлекать на «много-профильные» механики, а показать суть стартера.
+#
+# Как читать этот файл:
+#   - spring.datasource.* — основная dwh (управляется самим Spring Boot и Flyway).
+#   - app.datasources.*  — карта дополнительных источников (наш стартер).
+#   - spring.flyway.*    — миграции для основной БД (для дополнительных см. AdditionalFlywayConfig).
+# =====================================================================================
+
+spring:
+  application:
+    name: dwh
+
+  # === Основной DataSource: подключается к контейнеру postgres-dwh из compose.yml ===
+  datasource:
+    url: jdbc:postgresql://localhost:5433/dwh
+    username: dwh
+    password: dwh
+    hikari:
+      pool-name: hikari-dwh
+      maximum-pool-size: 10
+      minimum-idle: 10
+      connection-timeout: 5000
+
+  # === Flyway для основной БД ===
+  flyway:
+    enabled: true
+    locations: classpath:db/migration/dwh
+    baseline-on-migrate: true
+
+# === Стартер additional-sources-postgres: две дополнительные БД ===
+# Имена 'dictionary' и 'history' становятся префиксами имён бинов:
+#   dictionaryDataSource, dictionaryJdbcTemplate, dictionaryNamedJdbcTemplate
+#   historyDataSource,    historyJdbcTemplate,    historyNamedJdbcTemplate
+app:
+  datasources:
+    dictionary:
+      jdbc-url: jdbc:postgresql://localhost:5434/dictionary
+      username: dictionary
+      password: dictionary
+      maximum-pool-size: 5     # справочник используется реже — пул меньше
+      read-only: false         # в реальном проде здесь часто true; здесь демо пишет seed-данные через миграции
+      health-query: SELECT 1
+    history:
+      jdbc-url: jdbc:postgresql://localhost:5435/history
+      username: history
+      password: history
+      maximum-pool-size: 8
+      connection-timeout: 5s
+
+# === Actuator ===
+# Выставляем endpoint health и показываем компоненты (по-умолчанию они скрыты).
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-components: always
+      show-details: always
+
+# === Логирование ===
+# Подсветим INFO-логи стартера и Flyway, чтобы было видно регистрацию источников
+# и миграции.
+logging:
+  level:
+    org.gulash.demo.starter.postgres: INFO
+    org.flywaydb: INFO
