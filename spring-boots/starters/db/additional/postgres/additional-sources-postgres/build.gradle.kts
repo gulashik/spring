@@ -1,23 +1,9 @@
-/*
- * build.gradle.kts — сборка стартера additional-sources-postgres.
- *
- * Что такое "Spring Boot Starter" и почему здесь НЕТ плагина org.springframework.boot:
- *   Стартер — это БИБЛИОТЕКА, а не приложение. Плагин `org.springframework.boot`
- *   собирает исполняемый fat-jar и поэтому здесь НЕ нужен (и даже вреден). Используем
- *   обычный `java-library` — это создаёт корректный публикуемый jar с Class-Path,
- *   совместимый с любым потребителем (Spring Boot 3.x приложение, обычное Spring-приложение).
- *
- * Что делает плагин `io.spring.dependency-management`:
- *   Импортирует BOM Spring Boot, чтобы версии всех Spring-артефактов брались из
- *   единого источника. Это гарантирует совместимость и избавляет от ручного
- *   указания версий для spring-context, spring-jdbc, HikariCP и т.п.
- *
- * Зачем `maven-publish`:
- *   Чтобы пользователь мог выполнить `./gradlew publishToMavenLocal` и сразу
- *   подтянуть стартер в проект `dwh` через mavenLocal().
- */
 
 plugins {
+    /*
+        НЕТ плагина org.springframework.boot. Стартер — это БИБЛИОТЕКА, а не приложение.
+        Используем: обычный `java-library` — это создаёт корректный публикуемый jar с Class-Path
+    */
     `java-library`                                                  // публикуем библиотеку, а не приложение
     `maven-publish`                                                 // публикация в локальный/удалённый Maven repo
     id("io.spring.dependency-management") version "1.1.6"           // BOM Spring Boot для согласованных версий
@@ -29,12 +15,13 @@ description = "Spring Boot Starter, добавляющий несколько д
 
 java {
     // Toolchain — рекомендуемый способ зафиксировать целевую JDK независимо от системной.
-    // Gradle сам найдёт/скачает JDK. На машине разработчика она уже есть в ~/.gradle/jdks.
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
-    withSourcesJar()                                                // публикуем исходники — полезно для пользователей starter'а
-    withJavadocJar()                                                // и javadoc-jar
+    // публикуем исходники — полезно для пользователей starter'а
+    withSourcesJar()
+    // и javadoc-jar
+    withJavadocJar()
 }
 
 dependencyManagement {
@@ -62,6 +49,7 @@ dependencies {
 
     // === ИНСТРУМЕНТЫ РАЗРАБОТКИ ===
     // configuration-processor: генерирует spring-configuration-metadata.json из @ConfigurationProperties.
+    // генерируется в build/classes/java/main/META-INF/spring-configuration-metadata.json
     // Это даёт автодополнение свойств app.datasources.* в IDE у пользователей стартера.
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
@@ -79,7 +67,7 @@ dependencies {
 
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
-    options.compilerArgs.add("-parameters")                         // нужно для @ConfigurationProperties (rec. конструкторное связывание)
+    options.compilerArgs.add("-parameters")  // нужно для @ConfigurationProperties (rec. конструкторное связывание)
 }
 
 tasks.withType<Javadoc>().configureEach {
@@ -106,10 +94,19 @@ tasks.withType<GenerateModuleMetadata>().configureEach {
     enabled = false
 }
 
+// Это блок плагина `maven-publish`
+// публикуется в ~/.m2/repository/org/gulash/demo/additional-sources-postgres/0.0.1-SNAPSHOT/
+// что именно публикуется
+//  - основной .jar
+//  - зависимости из api / implementation
+//  - при наличии withSourcesJar() — jar с исходниками
+//  - при наличии withJavadocJar() — jar с Javadoc
+// Для публикации в mavenLocal нужно явно запустить `./gradlew publishToMavenLocal` это таска плагина `maven-publish`
 publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
+            // При публикации Gradle создаёт pom.xml
             pom {
                 name.set("additional-sources-postgres")
                 description.set(project.description)

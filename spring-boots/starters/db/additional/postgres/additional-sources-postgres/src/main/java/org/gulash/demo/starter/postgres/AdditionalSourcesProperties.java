@@ -58,7 +58,7 @@ import java.util.Map;
  *       полезно при логировании и health-output (детерминированный вывод).</li>
  * </ul>
  *
- * @param datasources карта «логическое имя -> свойства источника»
+ * @param datasources map-а «логическое имя -> свойства источника»
  */
 @ConfigurationProperties(prefix = "app")
 public record AdditionalSourcesProperties(Map<String, DataSourceProperties> datasources) {
