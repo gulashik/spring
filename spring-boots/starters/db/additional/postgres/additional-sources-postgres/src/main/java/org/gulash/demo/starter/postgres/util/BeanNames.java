@@ -1,14 +1,9 @@
-package org.gulash.demo.starter.postgres;
+package org.gulash.demo.starter.postgres.util;
 
 /**
  * Утилита генерации стабильных имён бинов для каждого дополнительного источника.
  *
- * <h2>Зачем выделено в отдельный класс</h2>
- * Имена бинов — это <em>контракт</em> между стартером и пользователем. Если они
- * рассыпаны по коду строковыми литералами — легко рассинхронизировать регистрацию
- * и {@code @Qualifier} на стороне приложения. Здесь — единый источник истины.
- *
- * <h2>Соглашение об именах</h2>
+ * <h4>Соглашение об именах</h4>
  * <ul>
  *   <li>{@code <name>DataSource}        — {@link javax.sql.DataSource} (Hikari)</li>
  *   <li>{@code <name>JdbcTemplate}      — {@link org.springframework.jdbc.core.JdbcTemplate}</li>

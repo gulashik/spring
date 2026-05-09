@@ -1,6 +1,10 @@
-package org.gulash.demo.starter.postgres;
+package org.gulash.demo.starter.postgres.registration;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.gulash.demo.starter.postgres.exception.AdditionalDataSourceConfigurationException;
+import org.gulash.demo.starter.postgres.AdditionalSourcesProperties;
+import org.gulash.demo.starter.postgres.props.DataSourceProperties;
+import org.gulash.demo.starter.postgres.util.BeanNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -80,9 +84,15 @@ public class AdditionalDataSourceRegistrar implements BeanDefinitionRegistryPost
         this.environment = environment;
     }
 
+    /**
+     * Вызывается очень рано при запуске Spring-контекста, ещё до создания обычных бинов.
+     * Его задача — дать возможность программно зарегистрировать новые BeanDefinition, то есть описания будущих бинов.
+     * */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+        log.debug("additional-sources-postgres: начало регистрации дополнительных источников данных");
         AdditionalSourcesProperties props = Binder.get(environment)
+                // Из environment(в т.ч. application.yml), начинающиеся с "app" собрать объект AdditionalSourcesProperties
                 .bind("app", AdditionalSourcesProperties.class)
                 .orElseGet(() -> new AdditionalSourcesProperties(Map.of()));
 

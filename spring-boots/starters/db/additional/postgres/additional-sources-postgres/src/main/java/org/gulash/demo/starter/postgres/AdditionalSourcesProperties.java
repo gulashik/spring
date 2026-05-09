@@ -1,5 +1,7 @@
 package org.gulash.demo.starter.postgres;
 
+import org.gulash.demo.starter.postgres.props.DataSourceProperties;
+import org.gulash.demo.starter.postgres.registration.AdditionalDataSourceRegistrar;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.LinkedHashMap;

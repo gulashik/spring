@@ -1,6 +1,7 @@
 package org.gulash.demo.starter.postgres;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.gulash.demo.starter.postgres.exception.AdditionalDataSourceConfigurationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.autoconfigure.AutoConfigurations;

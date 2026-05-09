@@ -1,5 +1,6 @@
-package org.gulash.demo.starter.postgres;
+package org.gulash.demo.starter.postgres.actuactor;
 
+import org.gulash.demo.starter.postgres.util.BeanNames;
 import org.springframework.boot.actuate.health.AbstractHealthIndicator;
 import org.springframework.boot.actuate.health.Health;
 

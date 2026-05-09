@@ -1,4 +1,4 @@
-package org.gulash.demo.starter.postgres;
+package org.gulash.demo.starter.postgres.exception;
 
 /**
  * Доменная ошибка стартера: «конфигурация дополнительного источника невалидна».

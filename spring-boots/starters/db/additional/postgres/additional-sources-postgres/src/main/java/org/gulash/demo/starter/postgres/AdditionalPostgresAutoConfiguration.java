@@ -1,6 +1,9 @@
 package org.gulash.demo.starter.postgres;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.gulash.demo.starter.postgres.actuactor.AdditionalDataSourceHealthIndicator;
+import org.gulash.demo.starter.postgres.registration.AdditionalDataSourceRegistrar;
+import org.gulash.demo.starter.postgres.util.BeanNames;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;

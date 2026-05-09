@@ -1,4 +1,4 @@
-package org.gulash.demo.starter.postgres;
+package org.gulash.demo.starter.postgres.props;
 
 import java.time.Duration;
 
