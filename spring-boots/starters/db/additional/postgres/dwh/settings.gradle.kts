@@ -1,3 +1,5 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
 /*
  * settings.gradle.kts проекта dwh.
  *
@@ -23,7 +25,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenLocal()       // здесь живёт наш стартер после publishToMavenLocal
+        mavenLocal() // здесь живёт наш стартер после publishToMavenLocal
         mavenCentral()
     }
 }

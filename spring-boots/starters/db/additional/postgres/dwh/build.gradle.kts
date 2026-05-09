@@ -56,7 +56,7 @@ dependencies {
 
     // === НАШ СТАРТЕР ===
     // Подтягивается из mavenLocal() (см. settings.gradle.kts).
-    implementation("org.gulash.demo:additional-sources-postgres:0.0.1-SNAPSHOT")
+    implementation("org.gulash.demo:additional-sources-postgres:1.0.0")
 
     // === Тесты ===
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "org.gulash.demo"
-version = "0.0.1-SNAPSHOT"
+version = "1.0.0"
 description = "Spring Boot Starter, добавляющий несколько дополнительных PostgreSQL-источников по конфигурации"
 
 java {

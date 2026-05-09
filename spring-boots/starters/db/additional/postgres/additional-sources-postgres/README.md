@@ -1,11 +1,11 @@
 
-### Spring Boot Starter, добавляющий приложению произвольное количество дополнительных PostgreSQL-источников через YAML-конфигурацию application.yml.
+Spring Boot Starter, добавляющий приложению произвольное количество дополнительных PostgreSQL-источников через YAML-конфигурацию application.yml.
 
 ### Подключение в потребителе (Gradle)
 #### build.gradle.kts
 ```kotlin
  dependencies {
-     implementation("org.gulash.demo:additional-sources-postgres:0.0.1-SNAPSHOT")
+     implementation("org.gulash.demo:additional-sources-postgres:1.0.0")
  }
 ```
 #### settings.gradle.kts
@@ -33,6 +33,17 @@ app:
       password: history
 ```
 
+#### Использование в коде
+```java
+@Repository
+class DictionaryDao {
+    private final JdbcTemplate jdbc;
+    DictionaryDao(@Qualifier("dictionaryJdbcTemplate") JdbcTemplate jdbc) {
+        this.jdbc = jdbc;
+    }
+}
+```
+
 #### Что регистрируется
 
 Для каждой записи map-ы `app.datasources.<name>` стартер создаёт три бина:
@@ -47,35 +58,7 @@ app:
 `<name>DataSourceHealthIndicator` и появляется в `/actuator/health` под
 `components.db.components.<name>DataSource`.
 
-## Использование
 
-```java
-@Repository
-class DictionaryDao {
-    private final JdbcTemplate jdbc;
-    DictionaryDao(@Qualifier("dictionaryJdbcTemplate") JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
-    }
-}
-```
-
-## Подключение в потребителе (Gradle)
-
-```kotlin
-// settings.gradle.kts
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        mavenLocal() // здесь живёт наш стартер после publishToMavenLocal
-        mavenCentral()
-    }
-}
-
-// build.gradle.kts
-dependencies {
-    implementation("org.gulash.demo:additional-sources-postgres:0.0.1-SNAPSHOT")
-}
-```
 
 ## Опциональные поля конфигурации
 
@@ -88,4 +71,3 @@ dependencies {
 | `schema`               | (без изменений)       | дефолтная схема (search_path)             |
 | `health-query`         | `SELECT 1`            | SQL для health-indicator                  |
 
-Подробнее см. javadoc классов и корневой README репозитория.
