@@ -55,8 +55,12 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 
     // === НАШ СТАРТЕР ===
+    // Подтягивается из https://jitpack.io/
+    // в поиске пишем "gulashik/spring-starter-additional-sources-postgres" и выбираем нужную версию
+    implementation("com.github.gulashik:spring-starter-additional-sources-postgres:main-SNAPSHOT")
+
     // Подтягивается из mavenLocal() (см. settings.gradle.kts).
-    implementation("org.gulash.demo:additional-sources-postgres:1.0.0")
+    //implementation("org.gulash.demo:additional-sources-postgres:1.0.0")
 
     // === Тесты ===
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

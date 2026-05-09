@@ -25,7 +25,10 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenLocal() // здесь живёт наш стартер после publishToMavenLocal
+        // здесь живёт наш стартер после publishToMavenLocal
+        mavenLocal()
+        // здесь живёт наш стартер нужно глянуть на https://jitpack.io/#gulashik/spring-starter-additional-sources-postgres
+        maven { url = uri("https://jitpack.io") }
         mavenCentral()
     }
 }
