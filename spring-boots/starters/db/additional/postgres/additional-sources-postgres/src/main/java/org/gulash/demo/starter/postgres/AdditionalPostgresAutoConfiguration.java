@@ -2,6 +2,7 @@ package org.gulash.demo.starter.postgres;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.gulash.demo.starter.postgres.actuactor.AdditionalDataSourceHealthIndicator;
+import org.gulash.demo.starter.postgres.props.AdditionalSourcesProperties;
 import org.gulash.demo.starter.postgres.registration.AdditionalDataSourceRegistrar;
 import org.gulash.demo.starter.postgres.util.BeanNames;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -20,21 +21,19 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
 /**
- * Авто-конфигурация стартера {@code additional-sources-postgres}.
- *
- * <h2>Точка входа стартера</h2>
- * Этот класс регистрируется через файл
- * {@code META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports}
+ * <h4>Авто-конфигурация стартера {@code additional-sources-postgres}.</h4>
+ * <h4>Точка входа стартера</h4>
+ * Этот класс регистрируется через файл {@code META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports}
  * — это <strong>современный</strong> механизм Spring Boot 3.x.
  *
- * <h2>Аннотация {@link AutoConfiguration}</h2>
- * Это «специализированный» {@code @Configuration} для авто-конфигов. Главное отличие —
- * порядок применения и поддержка атрибутов {@code before/after}, которые здесь и
+ * <h4>Аннотация {@link AutoConfiguration}</h4>
+ * Это «специализированный» {@code @Configuration} для авто-конфигов.
+ * Главное отличие — порядок применения и поддержка атрибутов {@code before/after}, которые здесь и
  * используем: наш конфиг должен отработать <strong>до</strong> {@link DataSourceAutoConfiguration},
  * иначе Spring Boot создаст «основной» DataSource раньше, и в некоторых сценариях
  * (например, при отсутствии основной spring.datasource.url) это приведёт к падению старта.
  *
- * <h2>Структура</h2>
+ * <h4>Структура</h4>
  * <ol>
  *   <li>{@link AdditionalDataSourceRegistrar} — регистрирует {@code DataSource}/{@code JdbcTemplate}
  *       динамически по карте {@code app.datasources.*};</li>
@@ -43,7 +42,7 @@ import org.springframework.core.env.Environment;
  *       (через {@link ConditionalOnClass}).</li>
  * </ol>
  *
- * <h2>Условия активации</h2>
+ * <h4>Условия активации</h4>
  * <ul>
  *   <li>{@link ConditionalOnClass}({@link HikariDataSource}) — без Hikari в classpath
  *       стартер не активируется (чтобы не падать с {@code NoClassDefFoundError}).</li>
@@ -52,12 +51,7 @@ import org.springframework.core.env.Environment;
  *       нулевой ущерб, если стартер случайно подтянут как транзитивная зависимость.</li>
  * </ul>
  *
- * <h3>Почему НЕ {@code @ConditionalOnProperty}</h3>
- * Свойство-маркер {@code Map} не имеет одного «фиксированного» имени, поэтому
- * {@code @ConditionalOnProperty(prefix = "app.datasources")} не даст нужный эффект
- * (он ожидает скаляр). Поэтому используем «софт-выключение» в самом Registrar.
- *
- * <h2>Пример минимальной конфигурации потребителя</h2>
+ * <h3>Пример минимальной конфигурации потребителя</h3>
  * <pre>{@code
  * # build.gradle.kts
  * dependencies {

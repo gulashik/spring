@@ -1,8 +1,25 @@
-# additional-sources-postgres
 
-Spring Boot Starter, добавляющий приложению произвольное количество дополнительных
-PostgreSQL-источников через простую YAML-конфигурацию.
+### Spring Boot Starter, добавляющий приложению произвольное количество дополнительных PostgreSQL-источников через YAML-конфигурацию application.yml.
 
+### Подключение в потребителе (Gradle)
+#### build.gradle.kts
+```kotlin
+ dependencies {
+     implementation("org.gulash.demo:additional-sources-postgres:0.0.1-SNAPSHOT")
+ }
+```
+#### settings.gradle.kts
+```kotlin
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenLocal() // здесь живёт наш стартер после publishToMavenLocal
+        mavenCentral()
+    }
+}
+```
+
+#### application.yml
 ```yaml
 app:
   datasources:
@@ -16,7 +33,7 @@ app:
       password: history
 ```
 
-## Что регистрируется
+#### Что регистрируется
 
 Для каждой записи map-ы `app.datasources.<name>` стартер создаёт три бина:
 
@@ -42,22 +59,14 @@ class DictionaryDao {
 }
 ```
 
-## Сборка и публикация
-
-```bash
-# тесты + сборка
-./gradlew build
-# положить в ~/.m2/repository
-./gradlew publishToMavenLocal 
-```
-
 ## Подключение в потребителе (Gradle)
 
 ```kotlin
 // settings.gradle.kts
 dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        mavenLocal()
+        mavenLocal() // здесь живёт наш стартер после publishToMavenLocal
         mavenCentral()
     }
 }

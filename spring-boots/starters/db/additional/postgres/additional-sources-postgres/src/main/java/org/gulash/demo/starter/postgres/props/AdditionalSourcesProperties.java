@@ -1,6 +1,6 @@
-package org.gulash.demo.starter.postgres;
+package org.gulash.demo.starter.postgres.props;
 
-import org.gulash.demo.starter.postgres.props.DataSourceProperties;
+import org.gulash.demo.starter.postgres.AdditionalPostgresAutoConfiguration;
 import org.gulash.demo.starter.postgres.registration.AdditionalDataSourceRegistrar;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -63,9 +63,12 @@ import java.util.Map;
  * @param datasources map-а «логическое имя -> свойства источника»
  */
 @ConfigurationProperties(prefix = "app")
-public record AdditionalSourcesProperties(Map<String, DataSourceProperties> datasources) {
-
-    /** Канонизирует {@code null} в пустую карту, чтобы потребители не падали с NPE. */
+public record AdditionalSourcesProperties(
+    Map<String, DataSourceProperties> datasources
+) {
+    /**
+     * Канонизирует {@code null} в пустую карту, чтобы потребители не падали с NPE.
+     */
     public AdditionalSourcesProperties {
         datasources = (datasources == null) ? new LinkedHashMap<>() : new LinkedHashMap<>(datasources);
     }

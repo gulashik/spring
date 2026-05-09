@@ -3,7 +3,7 @@ package org.gulash.demo.starter.postgres.props;
 import java.time.Duration;
 
 /**
- * Настройки одного дополнительного PostgreSQL-источника.
+ * Настройки одного дополнительного PostgreSQL-источника. Используется в {@link AdditionalSourcesProperties#datasources()}.
  * <p>
  * {@code -parameters} (включён в build.gradle.kts) даёт корректное имя параметра в bytecode,
  *        без него Boot не сможет связать YAML-ключ с аргументом конструктора.

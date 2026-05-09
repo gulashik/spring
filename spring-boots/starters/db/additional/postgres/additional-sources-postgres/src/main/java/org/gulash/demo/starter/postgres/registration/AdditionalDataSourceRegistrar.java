@@ -2,7 +2,7 @@ package org.gulash.demo.starter.postgres.registration;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.gulash.demo.starter.postgres.exception.AdditionalDataSourceConfigurationException;
-import org.gulash.demo.starter.postgres.AdditionalSourcesProperties;
+import org.gulash.demo.starter.postgres.props.AdditionalSourcesProperties;
 import org.gulash.demo.starter.postgres.props.DataSourceProperties;
 import org.gulash.demo.starter.postgres.util.BeanNames;
 import org.slf4j.Logger;
